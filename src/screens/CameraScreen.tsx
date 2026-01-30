@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Camera, Upload, X, Zap, RotateCcw, Check, Plus, Image as ImageIcon } from "lucide-react";
 
 interface CameraScreenProps {
@@ -10,7 +10,88 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [pages, setPages] = useState<string[]>([]);
   const [flashEnabled, setFlashEnabled] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setCameraActive(false);
+  }, []);
+
+  const startCamera = useCallback(async () => {
+    try {
+      setCameraError(null);
+      
+      // Stop any existing stream
+      stopCamera();
+      
+      const constraints: MediaStreamConstraints = {
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+        setCameraActive(true);
+      }
+    } catch (err) {
+      console.error("Camera error:", err);
+      setCameraError("Unable to access camera. Please upload a photo instead.");
+      setCameraActive(false);
+    }
+  }, [facingMode, stopCamera]);
+
+  useEffect(() => {
+    startCamera();
+    
+    return () => {
+      stopCamera();
+    };
+  }, [startCamera, stopCamera]);
+
+  const handleFlipCamera = () => {
+    setFacingMode(prev => prev === "environment" ? "user" : "environment");
+  };
+
+  useEffect(() => {
+    if (cameraActive) {
+      startCamera();
+    }
+  }, [facingMode]);
+
+  const handleCapture = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.drawImage(video, 0, 0);
+      const imageData = canvas.toDataURL("image/jpeg", 0.9);
+      setCapturedImage(imageData);
+      stopCamera();
+    }
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -19,24 +100,20 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
       reader.onloadend = () => {
         const result = reader.result as string;
         setCapturedImage(result);
+        stopCamera();
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSimulateCapture = () => {
-    // For prototype, simulate a capture with a placeholder
-    setCapturedImage("/placeholder.svg");
-  };
-
   const handleRetake = () => {
     setCapturedImage(null);
+    startCamera();
   };
 
   const handleUsePhoto = () => {
     if (capturedImage) {
       if (pages.length > 0) {
-        // Multi-page: use first page
         onCapture(pages[0]);
       } else {
         onCapture(capturedImage);
@@ -48,11 +125,17 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
     if (capturedImage) {
       setPages([...pages, capturedImage]);
       setCapturedImage(null);
+      startCamera();
     }
   };
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleClose = () => {
+    stopCamera();
+    onClose();
   };
 
   // Preview screen after capture
@@ -62,7 +145,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-black/80">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
           >
             <X className="w-6 h-6 text-white" />
@@ -139,6 +222,9 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
             Add Another Page
           </button>
         </div>
+        
+        {/* Hidden canvas for capture */}
+        <canvas ref={canvasRef} className="hidden" />
       </div>
     );
   }
@@ -152,14 +238,16 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
         ref={fileInputRef}
         onChange={handleFileUpload}
         accept="image/*"
-        capture="environment"
         className="hidden"
       />
+      
+      {/* Hidden canvas for capture */}
+      <canvas ref={canvasRef} className="hidden" />
 
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/80 z-10">
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
         >
           <X className="w-6 h-6 text-white" />
@@ -175,32 +263,68 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
         </button>
       </div>
 
-      {/* Camera View Placeholder */}
-      <div className="flex-1 relative flex items-center justify-center">
-        {/* Simulated camera background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-muted-foreground/50 to-muted-foreground/80" />
-        
-        {/* Frame guide */}
-        <div className="relative w-[90%] h-[70%] border-2 border-white/50 rounded-xl">
-          <div className="absolute -top-8 left-0 right-0 text-center">
-            <span className="text-white/80 text-sm bg-black/40 px-3 py-1 rounded-full">
-              📄 Fit your worksheet in the frame
-            </span>
+      {/* Camera View */}
+      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+        {cameraActive ? (
+          <>
+            {/* Live video feed */}
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            
+            {/* Frame guide overlay */}
+            <div className="relative z-10 w-[90%] h-[70%] border-2 border-white/50 rounded-xl pointer-events-none">
+              <div className="absolute -top-8 left-0 right-0 text-center">
+                <span className="text-white/80 text-sm bg-black/40 px-3 py-1 rounded-full">
+                  📄 Fit your worksheet in the frame
+                </span>
+              </div>
+              
+              {/* Corner guides */}
+              <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg" />
+              <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg" />
+              <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-lg" />
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg" />
+              
+              {/* Tip */}
+              <div className="absolute bottom-4 left-4 right-4 text-center">
+                <span className="text-white/60 text-xs">
+                  Make sure all problems are visible
+                </span>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Fallback when camera not available */
+          <div className="flex flex-col items-center justify-center text-center p-8">
+            <div className="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mb-4">
+              <Camera className="w-12 h-12 text-white/50" />
+            </div>
+            {cameraError ? (
+              <>
+                <p className="text-white/80 mb-2">{cameraError}</p>
+                <button
+                  onClick={startCamera}
+                  className="text-primary underline mb-4"
+                >
+                  Try again
+                </button>
+              </>
+            ) : (
+              <p className="text-white/60 mb-4">Starting camera...</p>
+            )}
+            <button
+              onClick={triggerFileInput}
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium"
+            >
+              Upload from Gallery
+            </button>
           </div>
-          
-          {/* Corner guides */}
-          <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg" />
-          <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg" />
-          <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-lg" />
-          <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg" />
-          
-          {/* Tip */}
-          <div className="absolute bottom-4 left-4 right-4 text-center">
-            <span className="text-white/60 text-xs">
-              Make sure all problems are visible
-            </span>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Bottom Controls */}
@@ -218,7 +342,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
 
         {/* Capture Button */}
         <button
-          onClick={triggerFileInput}
+          onClick={cameraActive ? handleCapture : triggerFileInput}
           className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg active:scale-95 transition-transform"
         >
           <div className="w-16 h-16 rounded-full border-4 border-primary bg-white flex items-center justify-center">
@@ -226,15 +350,15 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
           </div>
         </button>
 
-        {/* Upload from Photos */}
+        {/* Flip Camera */}
         <button
-          onClick={triggerFileInput}
+          onClick={handleFlipCamera}
           className="flex flex-col items-center gap-1"
         >
           <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center">
-            <Upload className="w-7 h-7 text-white" />
+            <RotateCcw className="w-7 h-7 text-white" />
           </div>
-          <span className="text-white/80 text-xs">Photos</span>
+          <span className="text-white/80 text-xs">Flip</span>
         </button>
       </div>
 
