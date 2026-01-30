@@ -1,0 +1,68 @@
+import React from "react";
+import { Home, CheckSquare, PenLine, BarChart3 } from "lucide-react";
+import SproutMascot from "./SproutMascot";
+
+interface NavigationProps {
+  currentScreen: string;
+  onNavigate: (screen: string) => void;
+}
+
+const Navigation: React.FC<NavigationProps> = ({ currentScreen, onNavigate }) => {
+  const navItems = [
+    { id: "home", icon: Home, label: "Home" },
+    { id: "upload", icon: CheckSquare, label: "Check" },
+    { id: "practice", icon: PenLine, label: "Practice" },
+    { id: "progress", icon: BarChart3, label: "Progress" },
+  ];
+
+  return (
+    <>
+      {/* Top Navigation */}
+      <header className="fixed top-0 left-0 right-0 bg-card/95 backdrop-blur-sm shadow-soft z-40 border-b border-border">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={() => onNavigate("home")}
+            className="flex items-center gap-2 hover:scale-105 transition-transform"
+          >
+            <SproutMascot size="sm" animate={false} expression="happy" />
+            <span className="text-2xl font-bold text-gradient-primary">Sprout</span>
+          </button>
+          <div className="text-sm text-muted-foreground font-medium">
+            Your Homework Helper 🌱
+          </div>
+        </div>
+      </header>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm shadow-float z-40 border-t border-border">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-around py-2">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentScreen === item.id || 
+                (item.id === "upload" && ["upload", "processing", "results", "tutoring"].includes(currentScreen)) ||
+                (item.id === "practice" && ["practice", "completion"].includes(currentScreen));
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id === "upload" ? "upload" : item.id)}
+                  className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? "text-primary bg-sprout-green-light"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                  <span className="text-xs font-semibold">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+    </>
+  );
+};
+
+export default Navigation;
