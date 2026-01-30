@@ -1,32 +1,34 @@
 import React, { useEffect, useState } from "react";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, ChevronRight, Target } from "lucide-react";
 import SproutMascot from "../components/SproutMascot";
 import ProgressChart from "../components/ProgressChart";
-import ProblemCard from "../components/ProblemCard";
+import { sampleWorksheet, Problem } from "../data/mockData";
 
 interface ResultsScreenProps {
   onStartTutoring: () => void;
+  onViewProblem?: (problem: Problem, index: number) => void;
+  uploadedImage?: string | null;
 }
 
-const problems = [
-  { id: 1, expression: "15 + 8", studentAnswer: 23, correctAnswer: 23, isCorrect: true },
-  { id: 2, expression: "42 - 17", studentAnswer: 25, correctAnswer: 25, isCorrect: true },
-  { id: 3, expression: "56 + 29", studentAnswer: 85, correctAnswer: 85, isCorrect: true },
-  { id: 4, expression: "73 - 38", studentAnswer: 45, correctAnswer: 35, isCorrect: false, errorType: "Regrouping error" },
-  { id: 5, expression: "91 - 47", studentAnswer: 54, correctAnswer: 44, isCorrect: false, errorType: "Regrouping error" },
-  { id: 6, expression: "28 + 36", studentAnswer: 64, correctAnswer: 64, isCorrect: true },
-  { id: 7, expression: "82 - 56", studentAnswer: 36, correctAnswer: 26, isCorrect: false, errorType: "Regrouping error" },
-  { id: 8, expression: "45 + 17", studentAnswer: 62, correctAnswer: 62, isCorrect: true },
-  { id: 9, expression: "33 + 29", studentAnswer: 62, correctAnswer: 62, isCorrect: true },
-  { id: 10, expression: "19 + 24", studentAnswer: 43, correctAnswer: 43, isCorrect: true },
-];
+const getEncouragingMessage = (percentage: number) => {
+  if (percentage >= 90) return { text: "Amazing! You're a superstar!", emoji: "⭐" };
+  if (percentage >= 70) return { text: "Great work! Let's review a few things", emoji: "🌟" };
+  if (percentage >= 50) return { text: "Good effort! Let's practice together", emoji: "💪" };
+  return { text: "Let's work on this together! You got this!", emoji: "🌱" };
+};
 
-const ResultsScreen: React.FC<ResultsScreenProps> = ({ onStartTutoring }) => {
+const ResultsScreen: React.FC<ResultsScreenProps> = ({ 
+  onStartTutoring, 
+  onViewProblem,
+  uploadedImage 
+}) => {
   const [showDetails, setShowDetails] = useState(false);
   
-  const correctCount = problems.filter((p) => p.isCorrect).length;
-  const incorrectCount = problems.length - correctCount;
-  const percentage = (correctCount / problems.length) * 100;
+  const worksheet = sampleWorksheet;
+  const correctCount = worksheet.correctAnswers;
+  const percentage = (correctCount / worksheet.totalProblems) * 100;
+  const message = getEncouragingMessage(percentage);
+  const incorrectProblems = worksheet.problems.filter(p => !p.isCorrect);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowDetails(true), 800);
@@ -36,89 +38,156 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onStartTutoring }) => {
   return (
     <div className="min-h-screen pt-20 pb-24 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-4 animate-fade-in">
-          <div className="flex justify-center">
-            <SproutMascot size="lg" animate={true} expression="excited" />
+        {/* Hero Score Card */}
+        <div className="sprout-card bg-gradient-to-br from-primary/10 to-secondary/10 animate-fade-in">
+          <div className="flex items-center gap-6">
+            <ProgressChart percentage={percentage} animate={true} />
+            <div className="flex-1">
+              <div className="text-5xl mb-2">{message.emoji}</div>
+              <h2 className="text-xl font-bold text-foreground">{message.text}</h2>
+              <p className="text-muted-foreground">
+                {correctCount}/{worksheet.totalProblems} correct
+              </p>
+            </div>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            Great job! Here's what Sprout found: 🎉
-          </h1>
         </div>
+
+        {/* Worksheet Preview */}
+        {uploadedImage && (
+          <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+            <h3 className="font-bold text-foreground mb-3">Your Worksheet</h3>
+            <div className="relative rounded-xl overflow-hidden">
+              <img 
+                src={uploadedImage} 
+                alt="Uploaded worksheet" 
+                className="w-full h-40 object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            </div>
+          </div>
+        )}
+
+        {/* Pattern Insight */}
+        {Object.keys(worksheet.errorPatterns).some(k => worksheet.errorPatterns[k] > 0) && (
+          <div 
+            className="sprout-card bg-sprout-blue-light animate-fade-in-up"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center">
+                <Target className="w-6 h-6 text-secondary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-foreground flex items-center gap-2">
+                  I noticed a pattern! 🔍
+                </h3>
+                <p className="text-muted-foreground mt-1">
+                  <strong>{worksheet.errorPatterns["Regrouping"]}</strong> problems had regrouping errors
+                </p>
+                {/* Mini bar chart */}
+                <div className="mt-3 space-y-2">
+                  {Object.entries(worksheet.errorPatterns).map(([type, count]) => (
+                    count > 0 && (
+                      <div key={type} className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground w-24">{type}</span>
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-warning rounded-full"
+                            style={{ width: `${(count / worksheet.totalProblems) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-foreground">{count}</span>
+                      </div>
+                    )
+                  ))}
+                </div>
+                <button
+                  onClick={onStartTutoring}
+                  className="mt-3 text-secondary font-medium flex items-center gap-1 hover:gap-2 transition-all"
+                >
+                  Practice Regrouping (5 problems)
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Progress Chart */}
-          <div className="sprout-card flex flex-col items-center justify-center py-8 animate-fade-in-up">
-            <ProgressChart percentage={percentage} animate={true} />
-            <p className="mt-4 text-lg font-semibold text-muted-foreground">
-              {correctCount} out of {problems.length} correct!
-            </p>
+        <div className="grid grid-cols-2 gap-4 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+          <div className="sprout-card bg-sprout-green-light text-center">
+            <div className="text-4xl font-bold text-success">{correctCount}</div>
+            <div className="text-sm text-muted-foreground">Correct ✅</div>
           </div>
-
-          {/* Summary Stats */}
-          <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-            <div className="sprout-card bg-sprout-green-light">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Correct Answers</p>
-                  <p className="text-3xl font-bold text-success">{correctCount}</p>
-                </div>
-                <div className="text-4xl">✅</div>
-              </div>
-            </div>
-
-            <div className="sprout-card bg-sprout-yellow-light">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Needs Review</p>
-                  <p className="text-3xl font-bold text-warning">{incorrectCount}</p>
-                </div>
-                <div className="text-4xl">🔶</div>
-              </div>
-            </div>
+          <div className="sprout-card bg-sprout-yellow-light text-center">
+            <div className="text-4xl font-bold text-warning">{worksheet.totalProblems - correctCount}</div>
+            <div className="text-sm text-muted-foreground">Needs Review 🔶</div>
           </div>
         </div>
 
-        {/* Error Pattern Detection */}
-        <div 
-          className="sprout-card bg-sprout-blue-light animate-fade-in-up flex items-start gap-4"
-          style={{ animationDelay: "0.4s" }}
-        >
-          <Sparkles className="w-8 h-8 text-secondary flex-shrink-0 mt-1" />
-          <div>
-            <h3 className="text-xl font-bold text-foreground">Pattern Detected! 🧩</h3>
-            <p className="text-muted-foreground mt-1">
-              I noticed you're having trouble with <strong>regrouping in subtraction</strong>. 
-              This is totally normal - it's tricky at first! Let me help you master it.
-            </p>
-          </div>
-        </div>
-
-        {/* Problem Details */}
+        {/* Problem List */}
         {showDetails && (
-          <div className="space-y-3 animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
-            <h3 className="text-lg font-bold text-foreground">Your Answers:</h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-              {problems.map((problem) => (
-                <ProblemCard 
-                  key={problem.id} 
-                  problem={problem} 
-                  showDetails={!problem.isCorrect} 
-                />
+          <div className="animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+            <h3 className="font-bold text-foreground mb-3">All Problems</h3>
+            <div className="space-y-2">
+              {worksheet.problems.map((problem, index) => (
+                <button
+                  key={problem.id}
+                  onClick={() => onViewProblem?.(problem, index)}
+                  className={`w-full sprout-card flex items-center gap-3 p-4 hover:shadow-float transition-all ${
+                    !problem.isCorrect ? "border-l-4 border-warning" : ""
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                    problem.isCorrect 
+                      ? "bg-success/10 text-success" 
+                      : "bg-warning/10 text-warning"
+                  }`}>
+                    {problem.id}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-medium text-foreground">{problem.question}</p>
+                    <p className={`text-sm ${problem.isCorrect ? "text-success" : "text-warning"}`}>
+                      Your answer: {problem.studentAnswer}
+                      {!problem.isCorrect && (
+                        <span className="text-muted-foreground"> (Correct: {problem.correctAnswer})</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!problem.isCorrect && problem.errorType && (
+                      <span className="bg-warning/10 text-warning text-xs px-2 py-1 rounded-full">
+                        {problem.errorType}
+                      </span>
+                    )}
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      problem.isCorrect ? "bg-success text-white" : "bg-warning text-white"
+                    }`}>
+                      {problem.isCorrect ? "✓" : "✗"}
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* CTA Button */}
-        <div className="pt-4 animate-fade-in-up" style={{ animationDelay: "0.8s" }}>
+        {/* CTA Buttons */}
+        <div className="space-y-3 pt-4 animate-fade-in-up" style={{ animationDelay: "0.5s" }}>
           <button
             onClick={onStartTutoring}
             className="w-full sprout-button-primary flex items-center justify-center gap-3"
           >
-            <span>Let's work on these together!</span>
+            <span>Practice Problem Areas</span>
             <ArrowRight className="w-6 h-6" />
+          </button>
+          
+          <button
+            onClick={() => {}}
+            className="w-full sprout-button-secondary flex items-center justify-center gap-2"
+          >
+            Review All Problems
           </button>
         </div>
       </div>
