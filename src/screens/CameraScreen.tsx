@@ -12,6 +12,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isStarting, setIsStarting] = useState(false);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -25,11 +26,13 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
       streamRef.current = null;
     }
     setCameraActive(false);
+    setIsStarting(false);
   }, []);
 
   const startCamera = useCallback(async () => {
     try {
       setCameraError(null);
+      setIsStarting(true);
       
       // Stop any existing stream
       stopCamera();
@@ -42,28 +45,44 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
         }
       };
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      // Some browsers (notably iOS Safari) may require a user gesture before camera permission resolves.
+      // Use a timeout so we can show a helpful prompt instead of hanging on "Starting camera...".
+      const getStream = navigator.mediaDevices.getUserMedia(constraints);
+      const timeoutMs = 8000;
+      const stream = await Promise.race([
+        getStream,
+        new Promise<MediaStream>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("camera_start_timeout")),
+            timeoutMs,
+          ),
+        ),
+      ]);
       streamRef.current = stream;
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
         setCameraActive(true);
+        setIsStarting(false);
       }
     } catch (err) {
       console.error("Camera error:", err);
-      setCameraError("Unable to access camera. Please upload a photo instead.");
+      setCameraError(
+        "Camera permission is blocked or unavailable. Tap the big camera button to try again, or upload a photo instead.",
+      );
       setCameraActive(false);
+      setIsStarting(false);
     }
   }, [facingMode, stopCamera]);
 
+  // NOTE: We intentionally do NOT auto-start the camera on mount.
+  // Many browsers require a user gesture; starting automatically can hang on "Starting camera...".
   useEffect(() => {
-    startCamera();
-    
     return () => {
       stopCamera();
     };
-  }, [startCamera, stopCamera]);
+  }, [stopCamera]);
 
   const handleFlipCamera = () => {
     setFacingMode(prev => prev === "environment" ? "user" : "environment");
@@ -73,7 +92,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
     if (cameraActive) {
       startCamera();
     }
-  }, [facingMode]);
+  }, [facingMode, cameraActive, startCamera]);
 
   const handleCapture = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -131,6 +150,16 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
+  };
+
+  const handlePrimaryCameraAction = () => {
+    // If camera is not active, try starting it via user gesture.
+    // Only fall back to file upload if we already have an error.
+    if (!cameraActive) {
+      if (cameraError) return triggerFileInput();
+      return void startCamera();
+    }
+    return handleCapture();
   };
 
   const handleClose = () => {
@@ -315,7 +344,9 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
                 </button>
               </>
             ) : (
-              <p className="text-white/60 mb-4">Starting camera...</p>
+              <p className="text-white/60 mb-4">
+                {isStarting ? "Starting camera..." : "Tap the camera button to enable the camera"}
+              </p>
             )}
             <button
               onClick={triggerFileInput}
@@ -342,7 +373,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
 
         {/* Capture Button */}
         <button
-          onClick={cameraActive ? handleCapture : triggerFileInput}
+          onClick={handlePrimaryCameraAction}
           className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg active:scale-95 transition-transform"
         >
           <div className="w-16 h-16 rounded-full border-4 border-primary bg-white flex items-center justify-center">
