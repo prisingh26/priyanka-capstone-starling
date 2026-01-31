@@ -1,5 +1,5 @@
 import React from "react";
-import { Camera, PenLine, BarChart3, ArrowRight, Sparkles, Clock, TrendingUp } from "lucide-react";
+import { Camera, PenLine, BarChart3, ArrowRight, Sparkles, Clock, TrendingUp, FileText } from "lucide-react";
 import SproutMascot from "../components/SproutMascot";
 import { recentWorksheets, weeklyStats } from "../data/mockData";
 
@@ -138,8 +138,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName = "Stud
           </div>
         </button>
 
+        {/* Wireframe Link - Dev Tool */}
+        <button
+          onClick={() => onNavigate("wireframe")}
+          className="w-full sprout-card bg-muted hover:shadow-float group transition-all animate-fade-in-up border-dashed border-2"
+          style={{ animationDelay: "0.5s" }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-muted-foreground/20 rounded-xl flex items-center justify-center">
+              <FileText className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1 text-left">
+              <h3 className="font-medium text-muted-foreground">View Wireframe</h3>
+              <p className="text-xs text-muted-foreground/70">App structure & design system</p>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+          </div>
+        </button>
+
         {/* Motivation Card */}
-        <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.5s" }}>
+        <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
           <div className="flex items-start gap-3">
             <Sparkles className="w-6 h-6 text-warning flex-shrink-0" />
             <div>
