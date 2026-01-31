@@ -13,6 +13,7 @@ import ProblemDetailScreen from "../screens/ProblemDetailScreen";
 import PracticeSetsScreen from "../screens/PracticeSetsScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import ParentDashboardScreen from "../screens/ParentDashboardScreen";
+import WireframeScreen from "../screens/WireframeScreen";
 import { sampleWorksheet, Problem } from "../data/mockData";
 
 type Screen = 
@@ -28,7 +29,8 @@ type Screen =
   | "completion" 
   | "progress"
   | "settings"
-  | "parent-dashboard";
+  | "parent-dashboard"
+  | "wireframe";
 
 const Index = () => {
   // Check if user has completed onboarding
@@ -206,9 +208,16 @@ const Index = () => {
       
       case "parent-dashboard":
         return (
-          <ParentDashboardScreen
+        <ParentDashboardScreen
             studentName={userProfile.name}
             onBack={() => setCurrentScreen("settings")}
+          />
+        );
+      
+      case "wireframe":
+        return (
+          <WireframeScreen
+            onClose={() => setCurrentScreen("home")}
           />
         );
       
