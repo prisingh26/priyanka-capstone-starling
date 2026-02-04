@@ -1,15 +1,15 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
-// Firebase configuration - these are publishable client-side keys
-// You'll need to replace these with your own Firebase project config
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyC5J_WMNbl1sms6dYjq0-1yGZa25BgeMHU",
+  authDomain: "sprout-learning-1f90c.firebaseapp.com",
+  projectId: "sprout-learning-1f90c",
+  storageBucket: "sprout-learning-1f90c.firebasestorage.app",
+  messagingSenderId: "889449281433",
+  appId: "1:889449281433:web:b3e00e7c85657ac7784508",
+  measurementId: "G-N7S1G2Z6GQ"
 };
 
 // Initialize Firebase
