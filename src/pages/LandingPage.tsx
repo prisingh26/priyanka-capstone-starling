@@ -3,8 +3,10 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Camera, Bot, BarChart3, Star, ArrowRight, Play, Sparkles, Heart, Shield, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 const LandingPage = () => {
+  const navigate = useNavigate();
   const [isLoaded, setIsLoaded] = useState(false);
   const { scrollYProgress } = useScroll();
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
@@ -236,6 +238,7 @@ const LandingPage = () => {
                 <Button
                   size="lg"
                   className="text-lg px-8 py-6 bg-gradient-to-r from-primary to-green-500 hover:from-primary/90 hover:to-green-500/90 shadow-xl shadow-primary/30 group"
+                  onClick={() => navigate("/signup")}
                 >
                   Start Free
                   <motion.span
