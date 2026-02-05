@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { User, Bell, Volume2, Moon, Shield, HelpCircle, ChevronRight, Lock, Star, Edit2 } from "lucide-react";
+import { User, Bell, Volume2, Moon, Shield, HelpCircle, ChevronRight, Lock, Star, Edit2, BookOpen } from "lucide-react";
 import SproutMascot from "../components/SproutMascot";
 
 interface SettingsScreenProps {
@@ -210,6 +210,14 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <h3 className="font-bold text-foreground mb-4">Help & Support</h3>
           
           <div className="space-y-1">
+            <button 
+              onClick={() => onNavigate("show-tutorial")}
+              className="w-full flex items-center gap-3 p-3 hover:bg-muted rounded-xl transition-colors"
+            >
+              <BookOpen className="w-5 h-5 text-muted-foreground" />
+              <span className="flex-1 text-left text-foreground">Show Tutorial Again</span>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
             <button className="w-full flex items-center gap-3 p-3 hover:bg-muted rounded-xl transition-colors">
               <HelpCircle className="w-5 h-5 text-muted-foreground" />
               <span className="flex-1 text-left text-foreground">How to Use Sprout</span>
