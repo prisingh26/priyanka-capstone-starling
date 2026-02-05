@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { User, Bell, Volume2, Moon, Shield, HelpCircle, ChevronRight, Lock, Star, Edit2, BookOpen } from "lucide-react";
+import { User, Bell, Volume2, Moon, Shield, HelpCircle, ChevronRight, Lock, Star, Edit2, BookOpen, UserCircle } from "lucide-react";
 import SproutMascot from "../components/SproutMascot";
 
 interface SettingsScreenProps {
@@ -94,7 +94,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 <Star className="w-5 h-5 text-warning fill-warning" />
                 <span className="font-medium text-foreground">3 Badges Earned</span>
               </div>
-              <button className="text-primary text-sm font-medium">View All</button>
+              <button 
+                onClick={() => onNavigate("student-profile")}
+                className="text-primary text-sm font-medium"
+              >
+                View All
+              </button>
             </div>
             <div className="flex gap-2 mt-3">
               <div className="w-12 h-12 bg-gradient-to-br from-warning to-orange-400 rounded-xl flex items-center justify-center text-xl">
@@ -115,6 +120,21 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <h3 className="font-bold text-foreground mb-4">App Settings</h3>
           
           <div className="space-y-1">
+            {/* My Profile */}
+            <button
+              onClick={() => onNavigate("student-profile")}
+              className="w-full flex items-center justify-between p-3 hover:bg-muted rounded-xl transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <UserCircle className="w-5 h-5 text-muted-foreground" />
+                <div className="text-left">
+                  <p className="font-medium text-foreground">My Profile</p>
+                  <p className="text-sm text-muted-foreground">Avatar, goals & preferences</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+
             {/* Sound */}
             <div className="flex items-center justify-between p-3 hover:bg-muted rounded-xl transition-colors">
               <div className="flex items-center gap-3">
