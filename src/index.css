@@ -198,6 +198,59 @@
      transform: translateX(100%);
    }
  }
+ 
+ @keyframes sparkle {
+   0%, 100% {
+     transform: scale(1);
+     opacity: 1;
+   }
+   50% {
+     transform: scale(1.3);
+     opacity: 0.7;
+   }
+ }
+ 
+ @keyframes bounce-gentle {
+   0%, 100% {
+     transform: translateY(0);
+   }
+   50% {
+     transform: translateY(-5px);
+   }
+ }
+ 
+ @keyframes wiggle {
+   0%, 100% {
+     transform: rotate(0deg);
+   }
+   25% {
+     transform: rotate(-5deg);
+   }
+   75% {
+     transform: rotate(5deg);
+   }
+ }
+ 
+ .animate-sparkle {
+   animation: sparkle 1s ease-in-out infinite;
+ }
+ 
+ .animate-bounce-gentle {
+   animation: bounce-gentle 2s ease-in-out infinite;
+ }
+ 
+ .animate-wiggle {
+   animation: wiggle 0.5s ease-in-out;
+ }
+ 
+ /* Perspective for 3D transforms */
+ .perspective-1000 {
+   perspective: 1000px;
+ }
+ 
+ .backface-hidden {
+   backface-visibility: hidden;
+ }
 
   .text-gradient-primary {
     background: var(--sprout-gradient);
