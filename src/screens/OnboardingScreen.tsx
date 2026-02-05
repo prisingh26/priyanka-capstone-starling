@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { ArrowRight, Camera, Bot, GraduationCap, Check, Mail, X } from "lucide-react";
+import { ArrowRight, Camera, Sparkles, Trophy, Star, Mail, X, Rocket, Heart } from "lucide-react";
+import { motion } from "framer-motion";
 import StarlingMascot from "../components/StarlingMascot";
 
 interface OnboardingScreenProps {
@@ -8,12 +9,12 @@ interface OnboardingScreenProps {
 }
 
 const grades = [
-  { value: 0, label: "K", icon: "🌱" },
-  { value: 1, label: "1", icon: "🌿" },
-  { value: 2, label: "2", icon: "🌳" },
-  { value: 3, label: "3", icon: "🌲" },
-  { value: 4, label: "4", icon: "🌴" },
-  { value: 5, label: "5", icon: "🌻" },
+  { value: 0, label: "K", icon: "🐣" },
+  { value: 1, label: "1", icon: "🦋" },
+  { value: 2, label: "2", icon: "🌟" },
+  { value: 3, label: "3", icon: "🚀" },
+  { value: 4, label: "4", icon: "🎨" },
+  { value: 5, label: "5", icon: "🏆" },
 ];
 
 const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip }) => {
@@ -84,37 +85,132 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
 
       case 2:
         return (
-          <div className="space-y-8 animate-fade-in">
-            <div className="text-center space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">How It Works</h2>
-              <p className="text-muted-foreground">Learning is easy with Sprout!</p>
+          <div className="space-y-6 animate-fade-in relative overflow-hidden">
+            {/* Floating decorative elements */}
+            <motion.div 
+              className="absolute -top-4 -right-4 text-4xl"
+              animate={{ y: [0, -10, 0], rotate: [0, 10, 0] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              ✨
+            </motion.div>
+            <motion.div 
+              className="absolute top-20 -left-6 text-3xl"
+              animate={{ y: [0, -8, 0], rotate: [0, -10, 0] }}
+              transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+            >
+              🌈
+            </motion.div>
+            <motion.div 
+              className="absolute bottom-32 -right-4 text-3xl"
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+            >
+              ⭐
+            </motion.div>
+
+            <div className="text-center space-y-3">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", delay: 0.2 }}
+                className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-semibold"
+              >
+                <Sparkles className="w-4 h-4" />
+                Magic Learning
+              </motion.div>
+              <h2 className="text-3xl font-bold">
+                <span className="text-foreground">How </span>
+                <span className="text-gradient-primary">Starling</span>
+                <span className="text-foreground"> Works</span>
+              </h2>
+              <p className="text-muted-foreground">Learning is fun and easy! 🎉</p>
             </div>
 
+            {/* Step cards with vibrant design */}
             <div className="space-y-4">
               {[
-                { icon: Camera, emoji: "📸", title: "Take a photo of your homework", desc: "Just snap a picture!" },
-                { icon: Bot, emoji: "🤖", title: "I'll check your answers", desc: "Super fast analysis!" },
-                { icon: GraduationCap, emoji: "🎓", title: "We'll learn together!", desc: "Step by step help!" },
+                { 
+                  emoji: "📸", 
+                  color: "from-violet-500 to-purple-600",
+                  bgColor: "bg-violet-50",
+                  title: "Snap Your Homework", 
+                  desc: "Take a quick photo!",
+                  badge: "Easy!",
+                  badgeColor: "bg-violet-100 text-violet-700"
+                },
+                { 
+                  emoji: "🪄", 
+                  color: "from-pink-500 to-rose-500",
+                  bgColor: "bg-pink-50",
+                  title: "Magic Analysis", 
+                  desc: "I find what needs help!",
+                  badge: "Smart AI",
+                  badgeColor: "bg-pink-100 text-pink-700"
+                },
+                { 
+                  emoji: "🎓", 
+                  color: "from-amber-400 to-orange-500",
+                  bgColor: "bg-amber-50",
+                  title: "Learn Together!", 
+                  desc: "Step-by-step guidance!",
+                  badge: "Fun!",
+                  badgeColor: "bg-amber-100 text-amber-700"
+                },
               ].map((item, index) => (
-                <div
+                <motion.div
                   key={index}
-                  className="starling-card flex items-center gap-4 animate-fade-in-up"
-                  style={{ animationDelay: `${index * 0.15}s` }}
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + index * 0.15, type: "spring" }}
+                  className={`relative ${item.bgColor} rounded-3xl p-4 flex items-center gap-4 border-2 border-white shadow-float`}
                 >
-                  <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center text-3xl shadow-soft">
+                  {/* Step number */}
+                  <div className="absolute -top-2 -left-2 w-7 h-7 bg-white rounded-full shadow-soft flex items-center justify-center text-sm font-bold text-primary">
+                    {index + 1}
+                  </div>
+                  
+                  {/* Icon */}
+                  <motion.div 
+                    className={`w-16 h-16 bg-gradient-to-br ${item.color} rounded-2xl flex items-center justify-center text-3xl shadow-lg`}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                  >
                     {item.emoji}
-                  </div>
+                  </motion.div>
+                  
+                  {/* Content */}
                   <div className="flex-1">
-                    <h3 className="font-bold text-lg text-foreground">{item.title}</h3>
-                    <p className="text-muted-foreground">{item.desc}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-bold text-lg text-foreground">{item.title}</h3>
+                    </div>
+                    <p className="text-muted-foreground text-sm">{item.desc}</p>
                   </div>
-                  <Check className="w-6 h-6 text-success" />
-                </div>
+                  
+                  {/* Badge */}
+                  <span className={`${item.badgeColor} px-3 py-1 rounded-full text-xs font-bold`}>
+                    {item.badge}
+                  </span>
+                </motion.div>
               ))}
             </div>
 
-            <div className="flex justify-center">
-              <StarlingMascot size="md" animate={true} expression="happy" />
+            {/* Mascot with floating hearts */}
+            <div className="flex justify-center relative pt-2">
+              <motion.div
+                className="absolute -top-2 left-1/4 text-xl"
+                animate={{ y: [0, -20], opacity: [1, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                💜
+              </motion.div>
+              <motion.div
+                className="absolute top-0 right-1/4 text-xl"
+                animate={{ y: [0, -20], opacity: [1, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+              >
+                💖
+              </motion.div>
+              <StarlingMascot size="md" animate={true} expression="excited" />
             </div>
           </div>
         );
