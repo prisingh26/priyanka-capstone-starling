@@ -1,5 +1,7 @@
- import React, { useState, useMemo } from "react";
+ import React, { useState, useMemo, useCallback } from "react";
  import { AnimatePresence } from "framer-motion";
+ import { useAccessibility } from "@/contexts/AccessibilityContext";
+ import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
 import Navigation from "../components/Navigation";
 import HomeScreen from "../screens/HomeScreen";
 import CameraScreen from "../screens/CameraScreen";
@@ -140,6 +142,43 @@ type Screen =
     setCurrentScreen("processing");
   };
 
+   // Accessibility context
+   const { announce } = useAccessibility();
+ 
+   // Keyboard shortcuts
+   const navigateWithAnnounce = useCallback((screen: Screen, message: string) => {
+     setPreviousScreen(currentScreen);
+     setCurrentScreen(screen);
+     announce(message);
+   }, [currentScreen, announce]);
+ 
+   useKeyboardShortcuts({
+     enabled: hasOnboarded && !isAppLoading,
+     shortcuts: [
+       {
+         key: "u",
+         ctrl: true,
+         action: () => navigateWithAnnounce("camera", "Opening camera to upload homework"),
+         description: "Upload homework",
+       },
+       {
+         key: "p",
+         ctrl: true,
+         action: () => navigateWithAnnounce("practice-sets", "Opening practice problems"),
+         description: "Practice problems",
+       },
+       {
+         key: "h",
+         ctrl: true,
+         action: () => {
+           setShowTutorial(true);
+           announce("Opening help tutorial");
+         },
+         description: "Help/Tutorial",
+       },
+     ],
+   });
+ 
    const handleViewProblem = (problem: Problem, index: number) => {
      setPreviousScreen(currentScreen);
     setSelectedProblem({ problem, index });
@@ -325,7 +364,7 @@ type Screen =
    }
  
    return (
-     <div className="min-h-screen bg-background overflow-hidden">
+     <div className="min-h-screen bg-background overflow-hidden" role="application" aria-label="Sprout Learning App">
       {/* Tutorial Overlay */}
       <TutorialOverlay
         isOpen={showTutorial && currentScreen === "home"}
@@ -337,7 +376,7 @@ type Screen =
       {!hideNavigation && (
         <Navigation currentScreen={currentScreen} onNavigate={handleNavigate} />
       )}
-       <main className="transition-all duration-300">
+       <main id="main-content" className="transition-all duration-300" tabIndex={-1} role="main" aria-label="Main content area">
          <AnimatePresence mode="wait">
            <PageTransition
              key={currentScreen}
