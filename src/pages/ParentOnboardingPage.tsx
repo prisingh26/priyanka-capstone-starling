@@ -28,7 +28,7 @@
    SelectValue,
  } from "@/components/ui/select";
  import { useNavigate } from "react-router-dom";
- import { supabase } from "@/integrations/supabase/client";
+ import { secureDb } from "@/lib/secureDb";
  import { onAuthStateChanged } from "firebase/auth";
  import { auth } from "@/lib/firebase";
  
@@ -127,65 +127,32 @@
      setIsLoading(true);
      
      try {
-      // Use Firebase user ID for database operations
-      if (userId) {
+        // Use secure database proxy for all operations
          // Save children to database
          const validChildren = children.filter(c => c.name.trim() !== "");
          
          for (const child of validChildren) {
-           await supabase.from("children").insert({
-            parent_id: userId,
+            await secureDb.children.create({
              name: child.name.trim(),
              grade: child.grade,
              avatar: child.avatar,
-             learning_goals: child.learningGoals || null,
+              learning_goals: child.learningGoals || null
            });
          }
          
-        // Create or update notification preferences
-        const { data: existingPrefs } = await supabase
-          .from("notification_preferences")
-          .select("id")
-          .eq("user_id", userId)
-          .single();
-        
-        if (existingPrefs) {
-          await supabase.from("notification_preferences").update({
-            daily_progress: notifications.dailyProgress,
-            weekly_summary: notifications.weeklySummary,
-            homework_completed: notifications.homeworkCompleted,
-            learning_tips: notifications.learningTips,
-          }).eq("user_id", userId);
-        } else {
-          await supabase.from("notification_preferences").insert({
-            user_id: userId,
+          // Upsert notification preferences
+          await secureDb.notificationPreferences.upsert({
             daily_progress: notifications.dailyProgress,
             weekly_summary: notifications.weeklySummary,
             homework_completed: notifications.homeworkCompleted,
             learning_tips: notifications.learningTips,
           });
-        }
-        
-        // Create or update profile
-        const { data: existingProfile } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("user_id", userId)
-          .single();
-        
-        if (existingProfile) {
-          await supabase.from("profiles").update({
-            onboarding_completed: true,
-            onboarding_step: 4,
-          }).eq("user_id", userId);
-        } else {
-          await supabase.from("profiles").insert({
-            user_id: userId,
+          
+          // Upsert profile
+          await secureDb.profiles.upsert({
             onboarding_completed: true,
             onboarding_step: 4,
           });
-        }
-       }
        
        setShowConfetti(true);
        
