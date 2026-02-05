@@ -25,7 +25,8 @@ import { useNavigate } from "react-router-dom";
 import { 
   createUserWithEmailAndPassword, 
   sendEmailVerification,
-  signInWithPopup 
+  signInWithPopup,
+  onAuthStateChanged
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 
@@ -58,6 +59,16 @@ const SignUpPage = () => {
   // Email verification
   const [resendCountdown, setResendCountdown] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user && step !== 3) {
+        navigate("/app");
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate, step]);
 
   // Countdown timer for resend
   useEffect(() => {
