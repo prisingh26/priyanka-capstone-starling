@@ -185,9 +185,19 @@
     background: var(--sprout-gradient-blue);
   }
 
-  .gradient-warm {
-    background: var(--sprout-gradient-warm);
-  }
+ .gradient-warm {
+   background: var(--sprout-gradient-warm);
+ }
+ 
+ /* Shimmer animation for skeletons */
+ @keyframes shimmer {
+   0% {
+     transform: translateX(-100%);
+   }
+   100% {
+     transform: translateX(100%);
+   }
+ }
 
   .text-gradient-primary {
     background: var(--sprout-gradient);
