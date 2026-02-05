@@ -58,11 +58,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        sprout: {
-          "green-light": "hsl(var(--sprout-green-light))",
-          "green-medium": "hsl(var(--sprout-green-medium))",
-          "blue-light": "hsl(var(--sprout-blue-light))",
-          "yellow-light": "hsl(var(--sprout-yellow-light))",
+        starling: {
+          "purple-light": "hsl(var(--starling-purple-light))",
+          "purple-medium": "hsl(var(--starling-purple-medium))",
+          "blue-light": "hsl(var(--starling-blue-light))",
+          "yellow-light": "hsl(var(--starling-yellow-light))",
+          "pink-light": "hsl(var(--starling-pink-light))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -83,9 +84,9 @@ export default {
         "3xl": "2rem",
       },
       boxShadow: {
-        soft: "0 4px 20px -4px hsla(122, 39%, 49%, 0.2)",
-        float: "0 8px 30px -8px hsla(122, 39%, 49%, 0.25)",
-        glow: "0 0 40px -10px hsla(122, 39%, 49%, 0.4)",
+        soft: "0 4px 20px -4px hsla(280, 85%, 60%, 0.2)",
+        float: "0 8px 30px -8px hsla(280, 85%, 60%, 0.25)",
+        glow: "0 0 40px -10px hsla(280, 85%, 60%, 0.4)",
       },
       keyframes: {
         "accordion-down": {
@@ -111,11 +112,11 @@ export default {
         "pulse-glow": {
           "0%, 100%": { 
             transform: "scale(1)", 
-            boxShadow: "0 4px 20px -4px hsla(122, 39%, 49%, 0.3)" 
+            boxShadow: "0 4px 20px -4px hsla(280, 85%, 60%, 0.3)" 
           },
           "50%": { 
             transform: "scale(1.02)", 
-            boxShadow: "0 8px 40px -4px hsla(122, 39%, 49%, 0.5)" 
+            boxShadow: "0 8px 40px -4px hsla(280, 85%, 60%, 0.5)" 
           },
         },
         "fade-in": {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ArrowRight, Camera, Bot, GraduationCap, Check, Mail, X } from "lucide-react";
-import SproutMascot from "../components/SproutMascot";
+import StarlingMascot from "../components/StarlingMascot";
 
 interface OnboardingScreenProps {
   onComplete: (profile: { name: string; grade: number; parentEmail?: string; weeklyEmail: boolean }) => void;
@@ -59,13 +59,13 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
         return (
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-8 animate-fade-in">
             <div className="relative">
-              <SproutMascot size="xl" animate={true} expression="excited" />
+              <StarlingMascot size="xl" animate={true} expression="excited" />
               <div className="absolute -bottom-2 -right-2 text-4xl animate-bounce">✨</div>
             </div>
             
             <div className="space-y-4">
               <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-                Hi! I'm <span className="text-gradient-primary">Sprout</span> 🌱
+                Hi! I'm <span className="text-gradient-primary">Starling</span> ⭐
               </h1>
               <p className="text-xl text-muted-foreground max-w-md">
                 I'm here to help you learn from your homework mistakes and become a superstar! ⭐
@@ -74,7 +74,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
 
             <button
               onClick={handleNext}
-              className="sprout-button-primary text-xl px-10 py-4 flex items-center gap-3 animate-pulse-glow"
+              className="starling-button-primary text-xl px-10 py-4 flex items-center gap-3 animate-pulse-glow"
             >
               <span>Let's Get Started!</span>
               <ArrowRight className="w-6 h-6" />
@@ -98,7 +98,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
               ].map((item, index) => (
                 <div
                   key={index}
-                  className="sprout-card flex items-center gap-4 animate-fade-in-up"
+                  className="starling-card flex items-center gap-4 animate-fade-in-up"
                   style={{ animationDelay: `${index * 0.15}s` }}
                 >
                   <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center text-3xl shadow-soft">
@@ -114,7 +114,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
             </div>
 
             <div className="flex justify-center">
-              <SproutMascot size="md" animate={true} expression="happy" />
+              <StarlingMascot size="md" animate={true} expression="happy" />
             </div>
           </div>
         );
@@ -136,7 +136,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
                 placeholder="Enter your name..."
-                className="sprout-input w-full"
+                className="starling-input w-full"
               />
             </div>
 
@@ -161,7 +161,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
             </div>
 
             <div className="flex justify-center">
-              <SproutMascot size="md" animate={selectedGrade !== null} expression={selectedGrade !== null ? "excited" : "thinking"} />
+              <StarlingMascot size="md" animate={selectedGrade !== null} expression={selectedGrade !== null ? "excited" : "thinking"} />
             </div>
           </div>
         );
@@ -174,7 +174,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
               <p className="text-muted-foreground">Get weekly progress reports (optional)</p>
             </div>
 
-            <div className="sprout-card space-y-6">
+            <div className="starling-card space-y-6">
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Mail className="w-4 h-4" />
@@ -185,7 +185,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
                   value={parentEmail}
                   onChange={(e) => setParentEmail(e.target.value)}
                   placeholder="parent@email.com"
-                  className="sprout-input w-full"
+                  className="starling-input w-full"
                 />
               </div>
 
@@ -210,7 +210,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
             </div>
 
             <div className="flex justify-center">
-              <SproutMascot size="lg" animate={true} expression="encouraging" />
+              <StarlingMascot size="lg" animate={true} expression="encouraging" />
             </div>
           </div>
         );
@@ -264,7 +264,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
             <button
               onClick={handleNext}
               disabled={!canProceed()}
-              className="w-full sprout-button-primary flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full starling-button-primary flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <span>{step === totalSteps ? "Start Learning! 🚀" : "Next"}</span>
               <ArrowRight className="w-5 h-5" />

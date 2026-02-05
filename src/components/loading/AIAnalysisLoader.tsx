@@ -1,6 +1,6 @@
  import React, { useEffect, useState } from "react";
  import { motion } from "framer-motion";
- import SproutMascot from "@/components/SproutMascot";
+ import StarlingMascot from "@/components/StarlingMascot";
  
  interface AIAnalysisLoaderProps {
    estimatedTime?: number;
@@ -61,7 +61,7 @@
          animate={{ y: [0, -8, 0] }}
          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
        >
-         <SproutMascot size="lg" animate expression="thinking" />
+          <StarlingMascot size="lg" animate expression="thinking" />
        </motion.div>
  
        {/* Message */}
@@ -111,7 +111,7 @@
          animate={{ opacity: 1 }}
          transition={{ delay: 1 }}
        >
-         Please wait while Sprout analyzes your work
+          Please wait while Starling analyzes your work
        </motion.p>
      </motion.div>
    );

@@ -1,6 +1,6 @@
 import React from "react";
 import { Home, PenLine, BarChart3, Settings } from "lucide-react";
-import SproutMascot from "./SproutMascot";
+import StarlingMascot from "./StarlingMascot";
 
 interface NavigationProps {
   currentScreen: string;
@@ -34,11 +34,11 @@ const Navigation: React.FC<NavigationProps> = ({ currentScreen, onNavigate }) =>
             onClick={() => onNavigate("home")}
             className="flex items-center gap-2 hover:scale-105 transition-transform"
           >
-            <SproutMascot size="sm" animate={false} expression="happy" />
-            <span className="text-2xl font-bold text-gradient-primary">Sprout</span>
+            <StarlingMascot size="sm" animate={false} expression="happy" />
+            <span className="text-2xl font-bold text-gradient-primary">Starling</span>
           </button>
           <div className="text-sm text-muted-foreground font-medium">
-            Your Homework Helper 🌱
+            Your Homework Helper ⭐
           </div>
         </div>
       </header>
@@ -57,7 +57,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentScreen, onNavigate }) =>
                   onClick={() => onNavigate(item.id)}
                   className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200 ${
                     active
-                      ? "text-primary bg-sprout-green-light"
+                      ? "text-primary bg-starling-purple-light"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   }`}
                 >

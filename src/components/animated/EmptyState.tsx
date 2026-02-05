@@ -1,7 +1,7 @@
  import React from "react";
  import { motion } from "framer-motion";
  import AnimatedButton from "./AnimatedButton";
- import SproutMascot from "@/components/SproutMascot";
+ import StarlingMascot from "@/components/StarlingMascot";
  
  interface EmptyStateProps {
    title: string;
@@ -35,7 +35,7 @@
            ease: "easeInOut",
          }}
        >
-         {icon || <SproutMascot size="lg" expression="encouraging" />}
+          {icon || <StarlingMascot size="lg" expression="encouraging" />}
        </motion.div>
  
        {/* Title */}

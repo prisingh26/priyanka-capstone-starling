@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ArrowRight, Send } from "lucide-react";
-import SproutMascot from "../components/SproutMascot";
+import StarlingMascot from "../components/StarlingMascot";
 import ChatMessage from "../components/ChatMessage";
 import TypingIndicator from "../components/TypingIndicator";
 import ConfettiAnimation from "../components/ConfettiAnimation";
@@ -153,13 +153,13 @@ const TutoringScreen: React.FC<TutoringScreenProps> = ({ onComplete }) => {
         </div>
 
         {/* Problem Display */}
-        <div className="sprout-card bg-sprout-blue-light mb-6 animate-fade-in-up">
+        <div className="starling-card bg-starling-blue-light mb-6 animate-fade-in-up">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Let's solve:</p>
               <p className="text-4xl font-bold text-foreground mt-1">73 - 38 = ?</p>
             </div>
-            <SproutMascot size="md" animate={!isComplete} expression={isComplete ? "excited" : "thinking"} />
+            <StarlingMascot size="md" animate={!isComplete} expression={isComplete ? "excited" : "thinking"} />
           </div>
         </div>
 
@@ -189,13 +189,13 @@ const TutoringScreen: React.FC<TutoringScreenProps> = ({ onComplete }) => {
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   placeholder={getPlaceholder()}
-                  className="flex-1 sprout-input text-left"
+                  className="flex-1 starling-input text-left"
                   disabled={isTyping}
                 />
                 <button
                   type="submit"
                   disabled={isTyping || !userInput.trim()}
-                  className="sprout-button-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="starling-button-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send className="w-6 h-6" />
                 </button>
@@ -204,7 +204,7 @@ const TutoringScreen: React.FC<TutoringScreenProps> = ({ onComplete }) => {
               <div className="space-y-3">
                 <button
                   onClick={onComplete}
-                  className="w-full sprout-button-primary flex items-center justify-center gap-3"
+                  className="w-full starling-button-primary flex items-center justify-center gap-3"
                 >
                   <span>Yes, let's practice! 💪</span>
                   <ArrowRight className="w-6 h-6" />

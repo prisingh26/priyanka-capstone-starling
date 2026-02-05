@@ -1,6 +1,6 @@
 import React from "react";
 import { Trophy, Star, Target, Flame, BookOpen } from "lucide-react";
-import SproutMascot from "../components/SproutMascot";
+import StarlingMascot from "../components/StarlingMascot";
 import ProgressChart from "../components/ProgressChart";
 
 interface ProgressScreenProps {
@@ -39,7 +39,7 @@ const ProgressScreen: React.FC<ProgressScreenProps> = ({ onNavigate }) => {
         </div>
 
         {/* Streak Card */}
-        <div className="sprout-card gradient-warm text-accent-foreground animate-fade-in-up">
+        <div className="starling-card gradient-warm text-accent-foreground animate-fade-in-up">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Flame className="w-12 h-12" />
@@ -48,18 +48,18 @@ const ProgressScreen: React.FC<ProgressScreenProps> = ({ onNavigate }) => {
                 <p className="text-4xl font-bold">4 days 🔥</p>
               </div>
             </div>
-            <SproutMascot size="md" animate={true} expression="excited" />
+            <StarlingMascot size="md" animate={true} expression="excited" />
           </div>
         </div>
 
         {/* Overall Progress */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="sprout-card text-center animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+          <div className="starling-card text-center animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
             <Target className="w-8 h-8 mx-auto text-primary mb-2" />
             <p className="text-3xl font-bold text-foreground">35</p>
             <p className="text-sm text-muted-foreground">Problems Solved</p>
           </div>
-          <div className="sprout-card text-center animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+          <div className="starling-card text-center animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
             <BookOpen className="w-8 h-8 mx-auto text-secondary mb-2" />
             <p className="text-3xl font-bold text-foreground">3</p>
             <p className="text-sm text-muted-foreground">Skills Learned</p>
@@ -67,7 +67,7 @@ const ProgressScreen: React.FC<ProgressScreenProps> = ({ onNavigate }) => {
         </div>
 
         {/* Weekly Chart */}
-        <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+        <div className="starling-card animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
           <h3 className="font-bold text-foreground mb-4">This Week</h3>
           <div className="flex items-end justify-between gap-2 h-32">
             {weeklyStats.map((day, index) => (
@@ -87,7 +87,7 @@ const ProgressScreen: React.FC<ProgressScreenProps> = ({ onNavigate }) => {
         </div>
 
         {/* Accuracy */}
-        <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+        <div className="starling-card animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-foreground">Overall Accuracy</h3>
@@ -98,7 +98,7 @@ const ProgressScreen: React.FC<ProgressScreenProps> = ({ onNavigate }) => {
         </div>
 
         {/* Badges */}
-        <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.5s" }}>
+        <div className="starling-card animate-fade-in-up" style={{ animationDelay: "0.5s" }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-foreground flex items-center gap-2">
               <Trophy className="w-5 h-5 text-accent" />
@@ -114,7 +114,7 @@ const ProgressScreen: React.FC<ProgressScreenProps> = ({ onNavigate }) => {
                 key={badge.name}
                 className={`p-3 rounded-xl text-center transition-all ${
                   badge.earned
-                    ? "bg-sprout-yellow-light"
+                    ? "bg-starling-yellow-light"
                     : "bg-muted opacity-50"
                 }`}
               >
@@ -128,7 +128,7 @@ const ProgressScreen: React.FC<ProgressScreenProps> = ({ onNavigate }) => {
         {/* CTA */}
         <button
           onClick={() => onNavigate("upload")}
-          className="w-full sprout-button-primary animate-fade-in-up"
+          className="w-full starling-button-primary animate-fade-in-up"
           style={{ animationDelay: "0.6s" }}
         >
           Keep Learning! 🚀

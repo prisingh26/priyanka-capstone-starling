@@ -1,6 +1,6 @@
 import React from "react";
 import { Camera, PenLine, BarChart3, ArrowRight, Sparkles, Clock, TrendingUp, FileText } from "lucide-react";
-import SproutMascot from "../components/SproutMascot";
+import StarlingMascot from "../components/StarlingMascot";
 import { recentWorksheets, weeklyStats } from "../data/mockData";
 
 interface HomeScreenProps {
@@ -20,7 +20,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName = "Stud
             </h1>
             <p className="text-muted-foreground">Ready to learn something new?</p>
           </div>
-          <SproutMascot size="md" animate={true} expression="happy" />
+          <StarlingMascot size="md" animate={true} expression="happy" />
         </div>
 
         {/* Primary Action - Scan Homework */}
@@ -50,7 +50,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName = "Stud
         </button>
 
         {/* Quick Stats */}
-        <div className="sprout-card bg-sprout-blue-light animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+        <div className="starling-card bg-starling-blue-light animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-secondary" />
             <h3 className="font-bold text-foreground">This Week</h3>
@@ -83,7 +83,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName = "Stud
               {recentWorksheets.map((worksheet) => (
                 <div
                   key={worksheet.id}
-                  className="flex-shrink-0 w-28 sprout-card p-3 text-center cursor-pointer hover:shadow-float transition-shadow"
+                  className="flex-shrink-0 w-28 starling-card p-3 text-center cursor-pointer hover:shadow-float transition-shadow"
                   onClick={() => onNavigate("results")}
                 >
                   <div className="w-full h-16 bg-muted rounded-lg flex items-center justify-center text-2xl mb-2">
@@ -101,7 +101,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName = "Stud
               ))}
             </div>
           ) : (
-            <div className="sprout-card bg-muted/50 text-center py-8">
+            <div className="starling-card bg-muted/50 text-center py-8">
               <p className="text-muted-foreground">Upload your first homework to get started!</p>
               <button
                 onClick={() => onNavigate("camera")}
@@ -116,7 +116,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName = "Stud
         {/* Practice Sets */}
         <button
           onClick={() => onNavigate("practice-sets")}
-          className="w-full sprout-card bg-sprout-yellow-light hover:shadow-float group transition-all animate-fade-in-up"
+          className="w-full starling-card bg-starling-yellow-light hover:shadow-float group transition-all animate-fade-in-up"
           style={{ animationDelay: "0.4s" }}
         >
           <div className="flex items-center gap-4">
@@ -141,7 +141,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName = "Stud
         {/* Wireframe Link - Dev Tool */}
         <button
           onClick={() => onNavigate("wireframe")}
-          className="w-full sprout-card bg-muted hover:shadow-float group transition-all animate-fade-in-up border-dashed border-2"
+          className="w-full starling-card bg-muted hover:shadow-float group transition-all animate-fade-in-up border-dashed border-2"
           style={{ animationDelay: "0.5s" }}
         >
           <div className="flex items-center gap-4">
@@ -157,7 +157,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName = "Stud
         </button>
 
         {/* Motivation Card */}
-        <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
+        <div className="starling-card animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
           <div className="flex items-start gap-3">
             <Sparkles className="w-6 h-6 text-warning flex-shrink-0" />
             <div>

@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowLeft, ArrowRight, HelpCircle, RotateCcw, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
-import SproutMascot from "../components/SproutMascot";
+import StarlingMascot from "../components/StarlingMascot";
 import { Problem } from "../data/mockData";
 
 interface ProblemDetailScreenProps {
@@ -65,7 +65,7 @@ const ProblemDetailScreen: React.FC<ProblemDetailScreenProps> = ({
 
       <div className="max-w-2xl mx-auto space-y-6 pt-4">
         {/* Student Work Preview */}
-        <div className="sprout-card animate-fade-in">
+        <div className="starling-card animate-fade-in">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-foreground flex items-center gap-2">
               📝 Your Work
@@ -86,7 +86,7 @@ const ProblemDetailScreen: React.FC<ProblemDetailScreenProps> = ({
         </div>
 
         {/* Problem Analysis */}
-        <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+        <div className="starling-card animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
           <div className="flex items-center gap-2 mb-4">
             <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-bold">
               #{problem.id}
@@ -123,9 +123,9 @@ const ProblemDetailScreen: React.FC<ProblemDetailScreenProps> = ({
 
         {/* Explanation (for incorrect answers) */}
         {!problem.isCorrect && problem.errorType && (
-          <div className="sprout-card bg-sprout-blue-light animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+          <div className="starling-card bg-starling-blue-light animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
             <div className="flex items-start gap-3">
-              <SproutMascot size="sm" animate={false} expression="encouraging" />
+              <StarlingMascot size="sm" animate={false} expression="encouraging" />
               <div>
                 <h4 className="font-bold text-foreground mb-2">What happened? 🤔</h4>
                 <p className="text-muted-foreground">
@@ -147,15 +147,15 @@ const ProblemDetailScreen: React.FC<ProblemDetailScreenProps> = ({
             <>
               <button
                 onClick={onGetHelp}
-                className="w-full sprout-button-primary flex items-center justify-center gap-2"
+                className="w-full starling-button-primary flex items-center justify-center gap-2"
               >
                 <HelpCircle className="w-5 h-5" />
-                <span>Get Help from Sprout</span>
+                <span>Get Help from Starling</span>
               </button>
               
               <button
                 onClick={onTryAgain}
-                className="w-full sprout-button-secondary flex items-center justify-center gap-2"
+                className="w-full starling-button-secondary flex items-center justify-center gap-2"
               >
                 <RotateCcw className="w-5 h-5" />
                 <span>Try Again</span>
@@ -166,7 +166,7 @@ const ProblemDetailScreen: React.FC<ProblemDetailScreenProps> = ({
           {canGoNext && (
             <button
               onClick={onNext}
-              className={`w-full ${problem.isCorrect ? "sprout-button-primary" : "sprout-button-secondary"} flex items-center justify-center gap-2`}
+              className={`w-full ${problem.isCorrect ? "starling-button-primary" : "starling-button-secondary"} flex items-center justify-center gap-2`}
             >
               <span>Next Problem</span>
               <ArrowRight className="w-5 h-5" />

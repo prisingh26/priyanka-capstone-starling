@@ -4,9 +4,9 @@ interface TypingIndicatorProps {
   name?: string;
 }
 
-const TypingIndicator: React.FC<TypingIndicatorProps> = ({ name = "Sprout" }) => {
+const TypingIndicator: React.FC<TypingIndicatorProps> = ({ name = "Starling" }) => {
   return (
-    <div className="flex items-center gap-3 p-4 rounded-2xl bg-sprout-green-light max-w-xs">
+    <div className="flex items-center gap-3 p-4 rounded-2xl bg-starling-purple-light max-w-xs">
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium text-muted-foreground">{name} is thinking</span>
         <div className="flex gap-1">
