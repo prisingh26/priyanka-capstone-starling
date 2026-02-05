@@ -21,6 +21,7 @@
    onAuthStateChanged
  } from "firebase/auth";
  import { auth, googleProvider } from "@/lib/firebase";
+import { supabase } from "@/integrations/supabase/client";
  
  interface FormErrors {
    email?: string;
@@ -45,9 +46,25 @@
  
    // Redirect if already authenticated
    useEffect(() => {
-     const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
        if (user) {
-         navigate("/app");
+        // Check if onboarding is completed via Supabase
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("onboarding_completed")
+            .eq("user_id", user.uid)
+            .single();
+          
+          if (profile?.onboarding_completed) {
+            navigate("/app");
+          } else {
+            navigate("/onboarding");
+          }
+        } catch {
+          // If no profile exists, go to onboarding
+          navigate("/onboarding");
+        }
        }
      });
      return () => unsubscribe();
@@ -84,7 +101,7 @@
  
      try {
        await signInWithEmailAndPassword(auth, email, password);
-       navigate("/app");
+      // Navigation handled by onAuthStateChanged
      } catch (error: any) {
        let errorMessage = "An error occurred. Please try again.";
        
@@ -112,7 +129,7 @@
  
      try {
        await signInWithPopup(auth, googleProvider);
-       navigate("/app");
+      // Navigation handled by onAuthStateChanged
      } catch (error: any) {
        let errorMessage = "Google sign-in failed. Please try again.";
        

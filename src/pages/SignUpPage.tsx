@@ -166,7 +166,7 @@ const SignUpPage = () => {
 
     try {
       await signInWithPopup(auth, googleProvider);
-      navigate("/app");
+      navigate("/onboarding");
     } catch (error: any) {
       let errorMessage = "Google sign-in failed. Please try again.";
       

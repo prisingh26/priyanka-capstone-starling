@@ -14,7 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      children: {
+        Row: {
+          avatar: string
+          created_at: string
+          grade: number
+          id: string
+          learning_goals: string | null
+          name: string
+          parent_id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string
+          created_at?: string
+          grade: number
+          id?: string
+          learning_goals?: string | null
+          name: string
+          parent_id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string
+          created_at?: string
+          grade?: number
+          id?: string
+          learning_goals?: string | null
+          name?: string
+          parent_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          daily_progress: boolean
+          homework_completed: boolean
+          id: string
+          learning_tips: boolean
+          updated_at: string
+          user_id: string
+          weekly_summary: boolean
+        }
+        Insert: {
+          created_at?: string
+          daily_progress?: boolean
+          homework_completed?: boolean
+          id?: string
+          learning_tips?: boolean
+          updated_at?: string
+          user_id: string
+          weekly_summary?: boolean
+        }
+        Update: {
+          created_at?: string
+          daily_progress?: boolean
+          homework_completed?: boolean
+          id?: string
+          learning_tips?: boolean
+          updated_at?: string
+          user_id?: string
+          weekly_summary?: boolean
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          onboarding_completed: boolean
+          onboarding_step: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          onboarding_step?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          onboarding_step?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
