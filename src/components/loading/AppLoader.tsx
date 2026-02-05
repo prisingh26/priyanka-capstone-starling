@@ -1,6 +1,6 @@
  import React, { useEffect, useState } from "react";
  import { motion } from "framer-motion";
- import SproutMascot from "@/components/SproutMascot";
+ import StarlingMascot from "@/components/StarlingMascot";
  
  interface AppLoaderProps {
    onComplete: () => void;
@@ -8,10 +8,10 @@
  }
  
  const loadingMessages = [
-   "Growing your learning garden...",
-   "Watering the seeds of knowledge...",
+    "Spreading your learning wings...",
+    "Gathering sparkles of knowledge...",
    "Preparing fun activities...",
-   "Almost ready to learn!",
+    "Almost ready to soar!",
  ];
  
  const AppLoader: React.FC<AppLoaderProps> = ({
@@ -65,7 +65,7 @@
            delay: 0.2,
          }}
        >
-         <SproutMascot size="xl" animate expression="excited" />
+          <StarlingMascot size="xl" animate expression="excited" />
        </motion.div>
  
        {/* App Name */}
@@ -75,7 +75,7 @@
          animate={{ opacity: 1, y: 0 }}
          transition={{ delay: 0.5 }}
        >
-         Sprout
+          Starling
        </motion.h1>
  
        {/* Loading Message */}

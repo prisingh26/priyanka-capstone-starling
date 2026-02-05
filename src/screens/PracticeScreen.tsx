@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Check, HelpCircle, RefreshCw, ArrowRight, Lightbulb } from "lucide-react";
-import SproutMascot from "../components/SproutMascot";
+import StarlingMascot from "../components/StarlingMascot";
 import ConfettiAnimation from "../components/ConfettiAnimation";
 
 interface PracticeScreenProps {
@@ -159,7 +159,7 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ onComplete }) => {
 
         {/* Mascot */}
         <div className="flex justify-center">
-          <SproutMascot 
+          <StarlingMascot 
             size="lg" 
             animate={statuses[currentProblemIndex] === "correct"} 
             expression={getExpression()}
@@ -167,7 +167,7 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ onComplete }) => {
         </div>
 
         {/* Problem Card */}
-        <div className="sprout-card animate-scale-in" key={currentProblemIndex}>
+        <div className="starling-card animate-scale-in" key={currentProblemIndex}>
           <div className="text-center space-y-6">
             <p className="text-sm font-medium text-muted-foreground">
               Problem {currentProblemIndex + 1} of 3
@@ -179,7 +179,7 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ onComplete }) => {
                 type="number"
                 value={answers[currentProblemIndex]}
                 onChange={(e) => handleAnswerChange(e.target.value)}
-                className="sprout-input w-24 ml-3 inline-block"
+                className="starling-input w-24 ml-3 inline-block"
                 placeholder="?"
                 disabled={statuses[currentProblemIndex] === "correct"}
               />
@@ -187,7 +187,7 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ onComplete }) => {
 
             {/* Feedback Messages */}
             {statuses[currentProblemIndex] === "correct" && (
-              <div className="bg-sprout-green-light p-4 rounded-xl animate-pop-in">
+              <div className="bg-starling-purple-light p-4 rounded-xl animate-pop-in">
                 <p className="text-lg font-bold text-success flex items-center justify-center gap-2">
                   <span>🎉</span> Perfect! You remembered to regroup!
                 </p>
@@ -195,7 +195,7 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ onComplete }) => {
             )}
 
             {statuses[currentProblemIndex] === "incorrect" && (
-              <div className="bg-sprout-yellow-light p-4 rounded-xl animate-shake">
+              <div className="bg-starling-yellow-light p-4 rounded-xl animate-shake">
                 <p className="text-lg font-bold text-warning">
                   Not quite. Remember to borrow from the tens place!
                 </p>
@@ -206,7 +206,7 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ onComplete }) => {
             {hintSteps[currentProblemIndex] > 0 && (
               <div className="space-y-2 animate-fade-in">
                 {currentProblem.hint.slice(0, hintSteps[currentProblemIndex]).map((hint, i) => (
-                  <div key={i} className="bg-sprout-blue-light p-3 rounded-xl flex items-start gap-2">
+                  <div key={i} className="bg-starling-blue-light p-3 rounded-xl flex items-start gap-2">
                     <Lightbulb className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
                     <p className="text-foreground text-left">{hint}</p>
                   </div>
@@ -221,7 +221,7 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ onComplete }) => {
                   <button
                     onClick={checkAnswer}
                     disabled={!answers[currentProblemIndex]}
-                    className="sprout-button-primary flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="starling-button-primary flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <Check className="w-5 h-5" />
                     <span>Check Answer</span>
@@ -234,14 +234,14 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ onComplete }) => {
                   <button
                     onClick={showHint}
                     disabled={hintSteps[currentProblemIndex] >= currentProblem.hint.length}
-                    className="sprout-button-secondary flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="starling-button-secondary flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <HelpCircle className="w-5 h-5" />
                     <span>Want a hint?</span>
                   </button>
                   <button
                     onClick={tryAgain}
-                    className="sprout-button-primary flex items-center justify-center gap-2"
+                    className="starling-button-primary flex items-center justify-center gap-2"
                   >
                     <RefreshCw className="w-5 h-5" />
                     <span>Try Again</span>
@@ -252,7 +252,7 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ onComplete }) => {
               {statuses[currentProblemIndex] === "correct" && currentProblemIndex < 2 && (
                 <button
                   onClick={() => setCurrentProblemIndex(currentProblemIndex + 1)}
-                  className="sprout-button-primary flex items-center justify-center gap-2"
+                  className="starling-button-primary flex items-center justify-center gap-2"
                 >
                   <span>Next Problem</span>
                   <ArrowRight className="w-5 h-5" />
@@ -265,7 +265,7 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ onComplete }) => {
         {/* Completion */}
         {allCorrect && (
           <div className="space-y-4 animate-fade-in-up">
-            <div className="sprout-card bg-gradient-to-r from-primary to-success text-primary-foreground text-center">
+            <div className="starling-card bg-gradient-to-r from-primary to-secondary text-primary-foreground text-center">
               <h2 className="text-2xl font-bold">⭐ Regrouping Master! ⭐</h2>
               <p className="mt-2">You solved 3/3 problems correctly!</p>
               <div className="mt-4 inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full">
@@ -277,13 +277,13 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ onComplete }) => {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => onComplete()}
-                className="flex-1 sprout-button-secondary"
+                className="flex-1 starling-button-secondary"
               >
                 Check more homework
               </button>
               <button
                 onClick={onComplete}
-                className="flex-1 sprout-button-primary"
+                className="flex-1 starling-button-primary"
               >
                 Done for today 🌟
               </button>

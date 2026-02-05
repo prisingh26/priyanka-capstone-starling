@@ -3,7 +3,7 @@
  import { Button } from "@/components/ui/button";
  import { Card } from "@/components/ui/card";
  import { RefreshCw, MessageCircle, WifiOff, Camera, AlertTriangle } from "lucide-react";
- import SproutMascot from "@/components/SproutMascot";
+ import StarlingMascot from "@/components/StarlingMascot";
  
  interface ErrorStateProps {
    type?: "generic" | "network" | "image" | "server";
@@ -59,7 +59,7 @@
          animate={{ scale: 1 }}
          transition={{ type: "spring", stiffness: 200 }}
        >
-         <SproutMascot size="lg" expression="encouraging" />
+          <StarlingMascot size="lg" expression="encouraging" />
        </motion.div>
  
        {/* Error card */}

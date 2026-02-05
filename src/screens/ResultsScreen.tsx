@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ArrowRight, Sparkles, ChevronRight, Target } from "lucide-react";
-import SproutMascot from "../components/SproutMascot";
+import StarlingMascot from "../components/StarlingMascot";
 import ProgressChart from "../components/ProgressChart";
 import { sampleWorksheet, Problem } from "../data/mockData";
 
@@ -39,7 +39,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
     <div className="min-h-screen pt-20 pb-24 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Hero Score Card */}
-        <div className="sprout-card bg-gradient-to-br from-primary/10 to-secondary/10 animate-fade-in">
+        <div className="starling-card bg-gradient-to-br from-primary/10 to-secondary/10 animate-fade-in">
           <div className="flex items-center gap-6">
             <ProgressChart percentage={percentage} animate={true} />
             <div className="flex-1">
@@ -54,7 +54,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
         {/* Worksheet Preview */}
         {uploadedImage && (
-          <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+          <div className="starling-card animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
             <h3 className="font-bold text-foreground mb-3">Your Worksheet</h3>
             <div className="relative rounded-xl overflow-hidden">
               <img 
@@ -70,7 +70,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
         {/* Pattern Insight */}
         {Object.keys(worksheet.errorPatterns).some(k => worksheet.errorPatterns[k] > 0) && (
           <div 
-            className="sprout-card bg-sprout-blue-light animate-fade-in-up"
+            className="starling-card bg-starling-blue-light animate-fade-in-up"
             style={{ animationDelay: "0.2s" }}
           >
             <div className="flex items-start gap-4">
@@ -115,11 +115,11 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 gap-4 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-          <div className="sprout-card bg-sprout-green-light text-center">
+          <div className="starling-card bg-starling-purple-light text-center">
             <div className="text-4xl font-bold text-success">{correctCount}</div>
             <div className="text-sm text-muted-foreground">Correct ✅</div>
           </div>
-          <div className="sprout-card bg-sprout-yellow-light text-center">
+          <div className="starling-card bg-starling-yellow-light text-center">
             <div className="text-4xl font-bold text-warning">{worksheet.totalProblems - correctCount}</div>
             <div className="text-sm text-muted-foreground">Needs Review 🔶</div>
           </div>
@@ -134,7 +134,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
                 <button
                   key={problem.id}
                   onClick={() => onViewProblem?.(problem, index)}
-                  className={`w-full sprout-card flex items-center gap-3 p-4 hover:shadow-float transition-all ${
+                  className={`w-full starling-card flex items-center gap-3 p-4 hover:shadow-float transition-all ${
                     !problem.isCorrect ? "border-l-4 border-warning" : ""
                   }`}
                 >
@@ -177,7 +177,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
         <div className="space-y-3 pt-4 animate-fade-in-up" style={{ animationDelay: "0.5s" }}>
           <button
             onClick={onStartTutoring}
-            className="w-full sprout-button-primary flex items-center justify-center gap-3"
+            className="w-full starling-button-primary flex items-center justify-center gap-3"
           >
             <span>Practice Problem Areas</span>
             <ArrowRight className="w-6 h-6" />
@@ -185,7 +185,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           
           <button
             onClick={() => {}}
-            className="w-full sprout-button-secondary flex items-center justify-center gap-2"
+            className="w-full starling-button-secondary flex items-center justify-center gap-2"
           >
             Review All Problems
           </button>

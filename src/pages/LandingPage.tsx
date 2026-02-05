@@ -40,7 +40,7 @@ const LandingPage = () => {
       icon: Camera,
       emoji: "📸",
       title: "Upload Homework Photos",
-      description: "Simply snap a photo of any math problem and let Sprout analyze it instantly.",
+      description: "Simply snap a photo of any math problem and let Starling analyze it instantly.",
     },
     {
       icon: Bot,
@@ -58,19 +58,19 @@ const LandingPage = () => {
 
   const testimonials = [
     {
-      quote: "Sprout turned our nightly homework battles into fun learning sessions. My daughter actually asks to practice math now!",
+      quote: "Starling turned our nightly homework battles into fun learning sessions. My daughter actually asks to practice math now!",
       author: "Sarah M.",
       role: "Parent of 4th grader",
       rating: 5,
     },
     {
-      quote: "The way Sprout explains things step-by-step really clicks with my son. He's gone from struggling to confident in just weeks.",
+      quote: "The way Starling explains things step-by-step really clicks with my son. He's gone from struggling to confident in just weeks.",
       author: "Michael T.",
       role: "Parent of 3rd grader",
       rating: 5,
     },
     {
-      quote: "As a busy parent, I love that Sprout gives my kids instant help when I can't. It's like having a patient tutor available 24/7.",
+      quote: "As a busy parent, I love that Starling gives my kids instant help when I can't. It's like having a patient tutor available 24/7.",
       author: "Jennifer L.",
       role: "Parent of 5th grader",
       rating: 5,
@@ -82,7 +82,7 @@ const LandingPage = () => {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-emerald-50 to-blue-50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50" />
         
         {/* Floating decorative elements */}
         <motion.div
@@ -210,11 +210,11 @@ const LandingPage = () => {
               variants={itemVariants}
               className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight"
             >
-              <span className="bg-gradient-to-r from-primary via-green-500 to-emerald-500 bg-clip-text text-transparent">
-                Sprout
+              <span className="bg-gradient-to-r from-primary via-pink-500 to-blue-500 bg-clip-text text-transparent">
+                Starling
               </span>
               <span className="block text-3xl md:text-4xl lg:text-5xl mt-2 text-foreground/90">
-                Your Friendly Math Homework Helper 🌱
+                Your Friendly Math Homework Helper ⭐
               </span>
             </motion.h1>
 
@@ -306,7 +306,7 @@ const LandingPage = () => {
 
       {/* Features Section */}
       <section className="py-24 bg-background relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-green-50/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-50/50 to-transparent" />
         
         <div className="container mx-auto px-4 relative z-10">
           <motion.div
@@ -317,8 +317,8 @@ const LandingPage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-              How Sprout Helps Your Child{" "}
-              <span className="text-primary">Bloom</span> 🌸
+              How Starling Helps Your Child{" "}
+              <span className="text-primary">Soar</span> ✨
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Three simple steps to transform homework time into growth time
@@ -363,7 +363,7 @@ const LandingPage = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-24 bg-gradient-to-b from-background to-green-50/30">
+      <section className="py-24 bg-gradient-to-b from-background to-purple-50/30">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -374,7 +374,7 @@ const LandingPage = () => {
           >
             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
               Families{" "}
-              <span className="text-primary">Love</span> Sprout 💚
+              <span className="text-primary">Love</span> Starling 💜
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Join thousands of happy parents and confident kids
@@ -444,10 +444,10 @@ const LandingPage = () => {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-              Ready to Help Your Child Grow? 🌱
+              Ready to Help Your Child Soar? ⭐
             </h2>
             <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-              Start your free trial today and watch your child's confidence bloom
+              Start your free trial today and watch your child's confidence soar
             </p>
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -476,12 +476,12 @@ const LandingPage = () => {
             <div className="md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">🌱</span>
+                  <span className="text-white text-lg">⭐</span>
                 </div>
-                <span className="text-2xl font-bold">Sprout</span>
+                <span className="text-2xl font-bold">Starling</span>
               </div>
               <p className="text-background/70 leading-relaxed">
-                Growing confident mathematicians, one problem at a time.
+                Helping kids soar to new heights, one problem at a time.
               </p>
             </div>
 
@@ -521,7 +521,7 @@ const LandingPage = () => {
 
           <div className="pt-8 border-t border-background/10 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-background/50 text-sm">
-              © 2024 Sprout Learning. All rights reserved.
+              © 2024 Starling Learning. All rights reserved.
             </p>
             <div className="flex gap-6 text-background/50 text-sm">
               <a href="#" className="hover:text-primary transition-colors">Terms</a>

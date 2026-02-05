@@ -3,7 +3,7 @@
  import { Volume2, VolumeX, Pause, Play } from "lucide-react";
  import { Button } from "@/components/ui/button";
  import { Card } from "@/components/ui/card";
- import SproutMascot from "@/components/SproutMascot";
+ import StarlingMascot from "@/components/StarlingMascot";
  
  interface AITutorFeedbackProps {
    encouragement: string;
@@ -99,7 +99,7 @@
            animate={isTyping ? { y: [0, -5, 0] } : {}}
            transition={{ duration: 0.5, repeat: isTyping ? Infinity : 0 }}
          >
-           <SproutMascot 
+            <StarlingMascot 
              size="md" 
              animate={isTyping} 
              expression={getMascotExpression()} 

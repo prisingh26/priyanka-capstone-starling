@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { User, Bell, Volume2, Moon, Shield, HelpCircle, ChevronRight, Lock, Star, Edit2, BookOpen, UserCircle } from "lucide-react";
-import SproutMascot from "../components/SproutMascot";
+import StarlingMascot from "../components/StarlingMascot";
 
 interface SettingsScreenProps {
   studentName: string;
@@ -45,10 +45,10 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
     <div className="min-h-screen pt-20 pb-24 px-4">
       <div className="max-w-lg mx-auto space-y-6">
         {/* Profile Card */}
-        <div className="sprout-card animate-fade-in">
+        <div className="starling-card animate-fade-in">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <SproutMascot size="lg" animate={false} expression="happy" />
+              <StarlingMascot size="lg" animate={false} expression="happy" />
               <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm font-bold border-2 border-card">
                 {grade === 0 ? "K" : grade}
               </div>
@@ -60,12 +60,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     type="text"
                     value={editedName}
                     onChange={(e) => setEditedName(e.target.value)}
-                    className="sprout-input flex-1"
+                    className="starling-input flex-1"
                     autoFocus
                   />
                   <button
                     onClick={handleNameSave}
-                    className="sprout-button-primary px-4 py-2"
+                    className="starling-button-primary px-4 py-2"
                   >
                     Save
                   </button>
@@ -116,7 +116,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
 
         {/* App Settings */}
-        <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+        <div className="starling-card animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
           <h3 className="font-bold text-foreground mb-4">App Settings</h3>
           
           <div className="space-y-1">
@@ -207,7 +207,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
 
         {/* Parent Access */}
-        <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+        <div className="starling-card animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
           <h3 className="font-bold text-foreground mb-4">For Parents</h3>
           
           <button
@@ -226,7 +226,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
 
         {/* Help & Support */}
-        <div className="sprout-card animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+        <div className="starling-card animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
           <h3 className="font-bold text-foreground mb-4">Help & Support</h3>
           
           <div className="space-y-1">
@@ -240,7 +240,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </button>
             <button className="w-full flex items-center gap-3 p-3 hover:bg-muted rounded-xl transition-colors">
               <HelpCircle className="w-5 h-5 text-muted-foreground" />
-              <span className="flex-1 text-left text-foreground">How to Use Sprout</span>
+              <span className="flex-1 text-left text-foreground">How to Use Starling</span>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
             <button className="w-full flex items-center gap-3 p-3 hover:bg-muted rounded-xl transition-colors">
@@ -253,7 +253,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
         {/* Version */}
         <p className="text-center text-sm text-muted-foreground">
-          Sprout v1.0.0 🌱
+          Starling v1.0.0 ⭐
         </p>
       </div>
 
@@ -274,7 +274,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 value={pin}
                 onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
                 placeholder="• • • •"
-                className="sprout-input text-center text-2xl tracking-widest"
+                  className="starling-input text-center text-2xl tracking-widest"
                 maxLength={4}
               />
               <div className="flex gap-3">
@@ -283,14 +283,14 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     setShowPinModal(false);
                     setPin("");
                   }}
-                  className="flex-1 sprout-button-secondary"
+                    className="flex-1 starling-button-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handlePinSubmit}
                   disabled={pin.length !== 4}
-                  className="flex-1 sprout-button-primary disabled:opacity-50"
+                    className="flex-1 starling-button-primary disabled:opacity-50"
                 >
                   Enter
                 </button>

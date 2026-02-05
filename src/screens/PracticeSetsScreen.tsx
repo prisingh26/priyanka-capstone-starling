@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowRight, Clock, Star, Target } from "lucide-react";
-import SproutMascot from "../components/SproutMascot";
+import StarlingMascot from "../components/StarlingMascot";
 import { practiceSets, PracticeSet } from "../data/mockData";
 
 interface PracticeSetsScreenProps {
@@ -41,7 +41,7 @@ const PracticeSetsScreen: React.FC<PracticeSetsScreenProps> = ({ onNavigate, onS
         {/* Header */}
         <div className="text-center space-y-4 animate-fade-in">
           <div className="flex justify-center">
-            <SproutMascot size="lg" animate={true} expression="encouraging" />
+            <StarlingMascot size="lg" animate={true} expression="encouraging" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">
             Practice Makes Perfect! 💪
@@ -59,7 +59,7 @@ const PracticeSetsScreen: React.FC<PracticeSetsScreenProps> = ({ onNavigate, onS
           </div>
           <button
             onClick={() => onSelectSet(1)}
-            className="w-full sprout-card bg-sprout-green-light hover:shadow-float transition-all group"
+            className="w-full starling-card bg-starling-purple-light hover:shadow-float transition-all group"
           >
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center text-3xl shadow-soft">
@@ -98,7 +98,7 @@ const PracticeSetsScreen: React.FC<PracticeSetsScreenProps> = ({ onNavigate, onS
               <button
                 key={set.id}
                 onClick={() => onSelectSet(set.id)}
-                className="w-full sprout-card hover:shadow-float transition-all group animate-fade-in-up"
+                className="w-full starling-card hover:shadow-float transition-all group animate-fade-in-up"
                 style={{ animationDelay: `${0.3 + index * 0.1}s` }}
               >
                 <div className="flex items-center gap-4">
@@ -131,7 +131,7 @@ const PracticeSetsScreen: React.FC<PracticeSetsScreenProps> = ({ onNavigate, onS
         </div>
 
         {/* Stats */}
-        <div className="sprout-card bg-muted/50 animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
+        <div className="starling-card bg-muted/50 animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-2xl font-bold text-primary">12</p>
