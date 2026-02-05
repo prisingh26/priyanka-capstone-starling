@@ -64,7 +64,7 @@ const SignUpPage = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && step !== 3) {
-        navigate("/app");
+        navigate("/onboarding");
       }
     });
     return () => unsubscribe();
