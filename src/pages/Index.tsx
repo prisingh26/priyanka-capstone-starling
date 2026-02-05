@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+ import React, { useState, useMemo } from "react";
+ import { AnimatePresence } from "framer-motion";
 import Navigation from "../components/Navigation";
 import HomeScreen from "../screens/HomeScreen";
 import CameraScreen from "../screens/CameraScreen";
@@ -16,7 +17,9 @@ import ParentDashboardScreen from "../screens/ParentDashboardScreen";
 import WireframeScreen from "../screens/WireframeScreen";
 import TutoringResponseScreen from "../screens/TutoringResponseScreen";
 import StudentProfileScreen from "../screens/StudentProfileScreen";
-import TutorialOverlay from "../components/TutorialOverlay";
+ import TutorialOverlay from "../components/TutorialOverlay";
+ import PageTransition from "../components/transitions/PageTransition";
+ import AppLoader from "../components/loading/AppLoader";
 import { sampleWorksheet, Problem } from "../data/mockData";
 
 type Screen = 
@@ -37,13 +40,39 @@ type Screen =
   | "student-profile"
   | "wireframe";
 
-const Index = () => {
+ // Define screen order for transition direction
+ const screenOrder: Screen[] = [
+   "onboarding",
+   "home",
+   "camera",
+   "processing",
+   "results",
+   "problem-detail",
+   "tutoring",
+   "tutoring-response",
+   "practice-sets",
+   "practice",
+   "completion",
+   "progress",
+   "settings",
+   "parent-dashboard",
+   "student-profile",
+   "wireframe",
+ ];
+ 
+ const Index = () => {
+   // App loading state
+   const [isAppLoading, setIsAppLoading] = useState(() => {
+     // Only show app loader on first visit of the session
+     return sessionStorage.getItem("sprout_app_loaded") !== "true";
+   });
   // Check if user has completed onboarding
   const [hasOnboarded, setHasOnboarded] = useState(() => {
     return localStorage.getItem("sprout_onboarded") === "true";
   });
   
-  const [currentScreen, setCurrentScreen] = useState<Screen>(hasOnboarded ? "home" : "onboarding");
+   const [currentScreen, setCurrentScreen] = useState<Screen>(hasOnboarded ? "home" : "onboarding");
+   const [previousScreen, setPreviousScreen] = useState<Screen | null>(null);
   const [userProfile, setUserProfile] = useState(() => {
     const saved = localStorage.getItem("sprout_profile");
     return saved ? JSON.parse(saved) : { name: "Student", grade: 3 };
@@ -60,20 +89,37 @@ const Index = () => {
     return localStorage.getItem("sprout_tutorial_completed") !== "true";
   });
 
-  const handleNavigate = (screen: string) => {
+   // Determine transition direction based on screen order
+   const transitionDirection = useMemo(() => {
+     if (!previousScreen) return "fade";
+     const prevIndex = screenOrder.indexOf(previousScreen);
+     const currIndex = screenOrder.indexOf(currentScreen);
+     if (prevIndex < currIndex) return "forward";
+     if (prevIndex > currIndex) return "back";
+     return "fade";
+   }, [currentScreen, previousScreen]) as "forward" | "back" | "fade";
+ 
+   const handleAppLoadComplete = () => {
+     sessionStorage.setItem("sprout_app_loaded", "true");
+     setIsAppLoading(false);
+   };
+ 
+   const handleNavigate = (screen: string) => {
     // Handle special navigation for tutorial replay
     if (screen === "show-tutorial") {
       setShowTutorial(true);
       return;
     }
-    setCurrentScreen(screen as Screen);
+     setPreviousScreen(currentScreen);
+     setCurrentScreen(screen as Screen);
   };
 
   const handleTutorialComplete = () => {
     setShowTutorial(false);
   };
 
-  const handleOnboardingComplete = (profile: { name: string; grade: number; parentEmail?: string; weeklyEmail: boolean }) => {
+   const handleOnboardingComplete = (profile: { name: string; grade: number; parentEmail?: string; weeklyEmail: boolean }) => {
+     setPreviousScreen(currentScreen);
     setUserProfile({ name: profile.name, grade: profile.grade });
     localStorage.setItem("sprout_profile", JSON.stringify({ name: profile.name, grade: profile.grade }));
     localStorage.setItem("sprout_onboarded", "true");
@@ -81,18 +127,21 @@ const Index = () => {
     setCurrentScreen("home");
   };
 
-  const handleOnboardingSkip = () => {
+   const handleOnboardingSkip = () => {
+     setPreviousScreen(currentScreen);
     localStorage.setItem("sprout_onboarded", "true");
     setHasOnboarded(true);
     setCurrentScreen("home");
   };
 
-  const handleCameraCapture = (imageData: string) => {
+   const handleCameraCapture = (imageData: string) => {
+     setPreviousScreen(currentScreen);
     setUploadedImage(imageData);
     setCurrentScreen("processing");
   };
 
-  const handleViewProblem = (problem: Problem, index: number) => {
+   const handleViewProblem = (problem: Problem, index: number) => {
+     setPreviousScreen(currentScreen);
     setSelectedProblem({ problem, index });
     setCurrentScreen("problem-detail");
   };
@@ -270,8 +319,13 @@ const Index = () => {
   // Don't show navigation during onboarding or camera view
   const hideNavigation = currentScreen === "onboarding" || currentScreen === "camera" || currentScreen === "parent-dashboard" || currentScreen === "student-profile";
 
-  return (
-    <div className="min-h-screen bg-background">
+   // Show app loader on first load
+   if (isAppLoading) {
+     return <AppLoader onComplete={handleAppLoadComplete} />;
+   }
+ 
+   return (
+     <div className="min-h-screen bg-background overflow-hidden">
       {/* Tutorial Overlay */}
       <TutorialOverlay
         isOpen={showTutorial && currentScreen === "home"}
@@ -283,9 +337,17 @@ const Index = () => {
       {!hideNavigation && (
         <Navigation currentScreen={currentScreen} onNavigate={handleNavigate} />
       )}
-      <main className={`transition-all duration-300 ${hideNavigation ? "" : ""}`}>
-        {renderScreen()}
-      </main>
+       <main className="transition-all duration-300">
+         <AnimatePresence mode="wait">
+           <PageTransition
+             key={currentScreen}
+             transitionKey={currentScreen}
+             direction={transitionDirection}
+           >
+             {renderScreen()}
+           </PageTransition>
+         </AnimatePresence>
+       </main>
     </div>
   );
 };
