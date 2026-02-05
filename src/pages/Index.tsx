@@ -14,6 +14,7 @@ import PracticeSetsScreen from "../screens/PracticeSetsScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import ParentDashboardScreen from "../screens/ParentDashboardScreen";
 import WireframeScreen from "../screens/WireframeScreen";
+import TutoringResponseScreen from "../screens/TutoringResponseScreen";
 import TutorialOverlay from "../components/TutorialOverlay";
 import { sampleWorksheet, Problem } from "../data/mockData";
 
@@ -25,6 +26,7 @@ type Screen =
   | "results" 
   | "problem-detail"
   | "tutoring" 
+  | "tutoring-response"
   | "practice-sets"
   | "practice" 
   | "completion" 
@@ -135,7 +137,7 @@ const Index = () => {
       case "results":
         return (
           <ResultsScreen 
-            onStartTutoring={() => setCurrentScreen("tutoring")}
+            onStartTutoring={() => setCurrentScreen("tutoring-response")}
             onViewProblem={handleViewProblem}
             uploadedImage={uploadedImage}
           />
@@ -179,6 +181,15 @@ const Index = () => {
         return (
           <TutoringScreen 
             onComplete={() => setCurrentScreen("practice")} 
+          />
+        );
+
+      case "tutoring-response":
+        return (
+          <TutoringResponseScreen
+            uploadedImage={uploadedImage || undefined}
+            onTryAnother={() => setCurrentScreen("camera")}
+            onComplete={() => setCurrentScreen("completion")}
           />
         );
       
