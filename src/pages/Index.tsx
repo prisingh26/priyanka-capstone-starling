@@ -14,6 +14,7 @@ import PracticeSetsScreen from "../screens/PracticeSetsScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import ParentDashboardScreen from "../screens/ParentDashboardScreen";
 import WireframeScreen from "../screens/WireframeScreen";
+import TutorialOverlay from "../components/TutorialOverlay";
 import { sampleWorksheet, Problem } from "../data/mockData";
 
 type Screen = 
@@ -50,8 +51,22 @@ const Index = () => {
   // State for problem detail view
   const [selectedProblem, setSelectedProblem] = useState<{ problem: Problem; index: number } | null>(null);
 
+  // Tutorial state
+  const [showTutorial, setShowTutorial] = useState(() => {
+    return localStorage.getItem("sprout_tutorial_completed") !== "true";
+  });
+
   const handleNavigate = (screen: string) => {
+    // Handle special navigation for tutorial replay
+    if (screen === "show-tutorial") {
+      setShowTutorial(true);
+      return;
+    }
     setCurrentScreen(screen as Screen);
+  };
+
+  const handleTutorialComplete = () => {
+    setShowTutorial(false);
   };
 
   const handleOnboardingComplete = (profile: { name: string; grade: number; parentEmail?: string; weeklyEmail: boolean }) => {
@@ -236,6 +251,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Tutorial Overlay */}
+      <TutorialOverlay
+        isOpen={showTutorial && currentScreen === "home"}
+        onClose={() => setShowTutorial(false)}
+        onComplete={handleTutorialComplete}
+        currentScreen={currentScreen}
+      />
+      
       {!hideNavigation && (
         <Navigation currentScreen={currentScreen} onNavigate={handleNavigate} />
       )}
