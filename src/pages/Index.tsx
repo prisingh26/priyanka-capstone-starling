@@ -15,6 +15,7 @@ import SettingsScreen from "../screens/SettingsScreen";
 import ParentDashboardScreen from "../screens/ParentDashboardScreen";
 import WireframeScreen from "../screens/WireframeScreen";
 import TutoringResponseScreen from "../screens/TutoringResponseScreen";
+import StudentProfileScreen from "../screens/StudentProfileScreen";
 import TutorialOverlay from "../components/TutorialOverlay";
 import { sampleWorksheet, Problem } from "../data/mockData";
 
@@ -33,6 +34,7 @@ type Screen =
   | "progress"
   | "settings"
   | "parent-dashboard"
+  | "student-profile"
   | "wireframe";
 
 const Index = () => {
@@ -237,6 +239,14 @@ const Index = () => {
         <ParentDashboardScreen
             studentName={userProfile.name}
             onBack={() => setCurrentScreen("settings")}
+            onUploadHomework={() => setCurrentScreen("camera")}
+          />
+        );
+
+      case "student-profile":
+        return (
+          <StudentProfileScreen
+            onBack={() => setCurrentScreen("settings")}
           />
         );
       
@@ -258,7 +268,7 @@ const Index = () => {
   };
 
   // Don't show navigation during onboarding or camera view
-  const hideNavigation = currentScreen === "onboarding" || currentScreen === "camera" || currentScreen === "parent-dashboard";
+  const hideNavigation = currentScreen === "onboarding" || currentScreen === "camera" || currentScreen === "parent-dashboard" || currentScreen === "student-profile";
 
   return (
     <div className="min-h-screen bg-background">
