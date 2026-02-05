@@ -64,6 +64,8 @@ export default {
           "blue-light": "hsl(var(--starling-blue-light))",
           "yellow-light": "hsl(var(--starling-yellow-light))",
           "pink-light": "hsl(var(--starling-pink-light))",
+          "coral": "hsl(var(--starling-coral))",
+          "teal": "hsl(var(--starling-teal))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -84,9 +86,10 @@ export default {
         "3xl": "2rem",
       },
       boxShadow: {
-        soft: "0 4px 20px -4px hsla(280, 85%, 60%, 0.2)",
-        float: "0 8px 30px -8px hsla(280, 85%, 60%, 0.25)",
-        glow: "0 0 40px -10px hsla(280, 85%, 60%, 0.4)",
+        soft: "0 4px 20px -4px hsla(270, 90%, 60%, 0.15)",
+        float: "0 12px 40px -8px hsla(270, 90%, 60%, 0.2)",
+        glow: "0 0 50px -10px hsla(270, 90%, 60%, 0.35)",
+        magical: "0 8px 30px -6px hsla(350, 85%, 65%, 0.25)",
       },
       keyframes: {
         "accordion-down": {
@@ -112,11 +115,11 @@ export default {
         "pulse-glow": {
           "0%, 100%": { 
             transform: "scale(1)", 
-            boxShadow: "0 4px 20px -4px hsla(280, 85%, 60%, 0.3)" 
+            boxShadow: "0 4px 20px -4px hsla(270, 90%, 60%, 0.3)" 
           },
           "50%": { 
             transform: "scale(1.02)", 
-            boxShadow: "0 8px 40px -4px hsla(280, 85%, 60%, 0.5)" 
+            boxShadow: "0 8px 40px -4px hsla(270, 90%, 60%, 0.5)" 
           },
         },
         "fade-in": {
