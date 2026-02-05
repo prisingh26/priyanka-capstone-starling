@@ -127,16 +127,14 @@
      setIsLoading(true);
      
      try {
-       // Get current Supabase session for database operations
-       const { data: { session } } = await supabase.auth.getSession();
-       
-       if (session?.user) {
+      // Use Firebase user ID for database operations
+      if (userId) {
          // Save children to database
          const validChildren = children.filter(c => c.name.trim() !== "");
          
          for (const child of validChildren) {
            await supabase.from("children").insert({
-             parent_id: session.user.id,
+            parent_id: userId,
              name: child.name.trim(),
              grade: child.grade,
              avatar: child.avatar,
@@ -144,20 +142,49 @@
            });
          }
          
-         // Update notification preferences
-         await supabase.from("notification_preferences").upsert({
-           user_id: session.user.id,
-           daily_progress: notifications.dailyProgress,
-           weekly_summary: notifications.weeklySummary,
-           homework_completed: notifications.homeworkCompleted,
-           learning_tips: notifications.learningTips,
-         });
-         
-         // Mark onboarding as complete
-         await supabase.from("profiles").update({
-           onboarding_completed: true,
-           onboarding_step: 4,
-         }).eq("user_id", session.user.id);
+        // Create or update notification preferences
+        const { data: existingPrefs } = await supabase
+          .from("notification_preferences")
+          .select("id")
+          .eq("user_id", userId)
+          .single();
+        
+        if (existingPrefs) {
+          await supabase.from("notification_preferences").update({
+            daily_progress: notifications.dailyProgress,
+            weekly_summary: notifications.weeklySummary,
+            homework_completed: notifications.homeworkCompleted,
+            learning_tips: notifications.learningTips,
+          }).eq("user_id", userId);
+        } else {
+          await supabase.from("notification_preferences").insert({
+            user_id: userId,
+            daily_progress: notifications.dailyProgress,
+            weekly_summary: notifications.weeklySummary,
+            homework_completed: notifications.homeworkCompleted,
+            learning_tips: notifications.learningTips,
+          });
+        }
+        
+        // Create or update profile
+        const { data: existingProfile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("user_id", userId)
+          .single();
+        
+        if (existingProfile) {
+          await supabase.from("profiles").update({
+            onboarding_completed: true,
+            onboarding_step: 4,
+          }).eq("user_id", userId);
+        } else {
+          await supabase.from("profiles").insert({
+            user_id: userId,
+            onboarding_completed: true,
+            onboarding_step: 4,
+          });
+        }
        }
        
        setShowConfetti(true);
