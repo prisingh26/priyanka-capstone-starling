@@ -4,6 +4,12 @@ import { ArrowRight, Play, Camera, Bot, BarChart3, Shield, Lock, Users, ChevronD
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-illustration.jpg";
+import featureConfidence from "@/assets/feature-confidence.jpg";
+import featureTutor from "@/assets/feature-tutor.jpg";
+import featureProgress from "@/assets/feature-progress.jpg";
+import stepUpload from "@/assets/step-upload.jpg";
+import stepAnalyze from "@/assets/step-analyze.jpg";
+import stepPractice from "@/assets/step-practice.jpg";
 import ShootingStarIcon from "@/components/ShootingStarIcon";
 
 const LandingPage = () => {
@@ -22,28 +28,28 @@ const LandingPage = () => {
       title: "Builds Real Confidence",
       description: "Watch your child go from 'I can't do this' to 'I got this!' Our AI tutor celebrates every step, turning frustration into pride.",
       gradient: "from-rose-400 to-pink-500",
-      accent: "bg-rose-100",
+      image: featureConfidence,
     },
     {
       icon: Bot,
       title: "Patient AI Tutor, Always Ready",
       description: "No more homework battles. Starling explains concepts step-by-step with infinite patience — just like the best teacher your child ever had.",
       gradient: "from-emerald-400 to-green-500",
-      accent: "bg-emerald-100",
+      image: featureTutor,
     },
     {
       icon: BarChart3,
       title: "You See Everything",
       description: "Detailed progress reports show exactly where your child excels and where they need support. No guessing, just clarity.",
       gradient: "from-violet-400 to-purple-500",
-      accent: "bg-violet-100",
+      image: featureProgress,
     },
   ];
 
   const howItWorks = [
-    { step: 1, title: "Upload Homework", description: "Snap a photo of any math or writing assignment from your phone", color: "bg-violet-100 text-violet-600" },
-    { step: 2, title: "AI Analyzes Instantly", description: "Starling reads handwriting, checks answers, and finds patterns", color: "bg-rose-100 text-rose-600" },
-    { step: 3, title: "Learn & Practice", description: "Get personalized explanations and practice problems that target weak spots", color: "bg-emerald-100 text-emerald-600" },
+    { step: 1, title: "Upload or Practice", description: "Snap a photo of any math or writing assignment, or jump straight into practice by choosing a skill", color: "bg-violet-100 text-violet-600", image: stepUpload },
+    { step: 2, title: "AI Analyzes Instantly", description: "Starling reads handwriting, checks answers, and finds patterns", color: "bg-rose-100 text-rose-600", image: stepAnalyze },
+    { step: 3, title: "Learn & Master", description: "Get personalized explanations and practice problems that target weak spots", color: "bg-emerald-100 text-emerald-600", image: stepPractice },
   ];
 
   const faqs = [
@@ -77,15 +83,8 @@ const LandingPage = () => {
             </span>
           </button>
 
-          {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-8">
-            <button onClick={() => scrollTo("how-it-works")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              How it works
-            </button>
-            <button onClick={() => scrollTo("faq")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              FAQs
-            </button>
-          </div>
+          {/* Spacer for layout balance */}
+          <div className="hidden md:block" />
 
           {/* CTA */}
           <div className="hidden md:flex items-center gap-3">
@@ -116,8 +115,6 @@ const LandingPage = () => {
               className="md:hidden bg-amber-50 border-b border-amber-100 overflow-hidden"
             >
               <div className="px-4 py-4 space-y-3">
-                <button onClick={() => scrollTo("how-it-works")} className="block w-full text-left text-sm font-medium text-muted-foreground">How it works</button>
-                <button onClick={() => scrollTo("faq")} className="block w-full text-left text-sm font-medium text-muted-foreground">FAQs</button>
                 <hr className="border-amber-200" />
                 <Button variant="ghost" onClick={() => navigate("/login")} className="w-full justify-start text-sm">Log in</Button>
                 <Button onClick={() => navigate("/signup")} className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-full">Request Early Access</Button>
@@ -277,17 +274,15 @@ const LandingPage = () => {
               >
                 <motion.div
                   whileHover={{ y: -6 }}
-                  className={`relative h-full rounded-3xl bg-gradient-to-br ${feature.gradient} p-8 text-white shadow-xl overflow-hidden`}
+                  className={`relative h-full rounded-3xl bg-gradient-to-br ${feature.gradient} text-white shadow-xl overflow-hidden`}
                 >
-                  {/* Decorative circles */}
-                  <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-white/10" />
-                  <div className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/10" />
+                  {/* Feature image */}
+                  <div className="w-full h-40 overflow-hidden">
+                    <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
+                  </div>
 
-                  <div className="relative z-10">
-                    <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-5">
-                      <feature.icon className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                  <div className="relative z-10 p-6">
+                    <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
                     <p className="text-white/90 leading-relaxed text-sm">{feature.description}</p>
                   </div>
                 </motion.div>
@@ -295,42 +290,6 @@ const LandingPage = () => {
             ))}
           </div>
 
-          {/* Two small cards below */}
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mt-6">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100 flex items-start gap-4"
-            >
-              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <Camera className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <h4 className="font-bold text-foreground">Works With Any Handwriting</h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Our AI reads even the messiest handwriting. Just snap and go — no typing needed.
-                </p>
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100 flex items-start gap-4"
-            >
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <Shield className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h4 className="font-bold text-foreground">Safe & Ad-Free</h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  No ads, no distractions, no data selling. Built with kids' safety as our #1 priority.
-                </p>
-              </div>
-            </motion.div>
-          </div>
         </div>
       </section>
 
@@ -358,13 +317,19 @@ const LandingPage = () => {
                   className="text-center flex-1"
                 >
                   <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    className={`w-20 h-20 rounded-full ${item.color} mx-auto flex items-center justify-center mb-5`}
+                    whileHover={{ scale: 1.05 }}
+                    className="w-32 h-32 rounded-2xl overflow-hidden mx-auto mb-4 shadow-lg"
                   >
-                    <span className="text-3xl font-bold">{item.step}</span>
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                  </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    className={`w-10 h-10 rounded-full ${item.color} mx-auto flex items-center justify-center mb-3`}
+                  >
+                    <span className="text-lg font-bold">{item.step}</span>
                   </motion.div>
                   <h3 className="text-xl font-bold text-foreground mb-2">{item.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{item.description}</p>
+                  <p className="text-muted-foreground leading-relaxed text-sm">{item.description}</p>
                 </motion.div>
                 {index < howItWorks.length - 1 && (
                   <motion.div
