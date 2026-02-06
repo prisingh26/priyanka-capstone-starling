@@ -17,6 +17,13 @@ export interface FocusArea {
   description: string;
 }
 
+export interface PracticeProblem {
+  id: number;
+  problem: string;
+  answer: number;
+  hint: string;
+}
+
 export interface HomeworkAnalysis {
   subject: string;
   grade: number;
@@ -29,6 +36,7 @@ export interface HomeworkAnalysis {
   classifyReason: string;
   modelUsed: string;
   focusAreas?: FocusArea[];
+  practiceProblems?: PracticeProblem[];
 }
 
 export interface AnalysisError {
