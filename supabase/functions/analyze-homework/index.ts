@@ -35,7 +35,7 @@ For EACH problem visible in the image:
 4. Check if the student's answer is correct
 5. If incorrect, identify the error type (e.g., "Regrouping", "Carrying", "Basic fact", "Place value")
 
-Respond with ONLY a valid JSON object (no markdown fences):
+CRITICAL: Output ONLY raw JSON. Do NOT wrap in markdown code fences. No \`\`\`json.
 {
   "subject": "Math",
   "grade": <estimated grade level 1-5>,
@@ -63,11 +63,15 @@ For EACH problem visible in the image:
 4. Check if the student's answer is correct
 5. If incorrect:
    - Identify the specific error type
-   - Diagnose the ROOT CAUSE (why the student likely made this mistake)
-   - Create a step-by-step explanation that would help the student understand
-   - Suggest a visual aid or analogy
+   - Diagnose the ROOT CAUSE briefly
+   - Create a BRIEF step-by-step explanation (max 3 short steps, under 15 words each)
+   - Suggest a visual aid (one sentence)
 
-Respond with ONLY a valid JSON object (no markdown fences):
+CRITICAL RULES:
+- Output ONLY raw JSON. Do NOT wrap in markdown code fences. No \`\`\`json.
+- Keep all text fields SHORT and concise.
+- If a problem is correct, set stepByStep to [] and optional fields to null.
+
 {
   "subject": "Math",
   "grade": <estimated grade level 1-5>,
@@ -79,17 +83,17 @@ Respond with ONLY a valid JSON object (no markdown fences):
       "correctAnswer": "<the actual correct answer>",
       "isCorrect": <true/false>,
       "errorType": "<error category if incorrect, null if correct>",
-      "rootCause": "<why the student likely made this error, null if correct>",
-      "stepByStep": ["<step 1>", "<step 2>", "..."],
-      "visualAid": "<suggested visual aid or analogy, null if correct>"
+      "rootCause": "<brief root cause, null if correct>",
+      "stepByStep": ["<short step>", "<short step>"],
+      "visualAid": "<one sentence, null if correct>"
     }
   ],
   "errorPatterns": { "<error type>": <count> },
-  "encouragement": "<warm, specific encouraging message>",
+  "encouragement": "<warm encouraging message>",
   "focusAreas": [
     {
       "title": "<skill to practice>",
-      "description": "<why and how to practice this>"
+      "description": "<brief description>"
     }
   ]
 }`;
