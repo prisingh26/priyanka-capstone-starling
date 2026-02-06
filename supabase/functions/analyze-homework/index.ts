@@ -171,7 +171,64 @@ function parseJSON(raw: string) {
   if (cleaned.startsWith("```")) {
     cleaned = cleaned.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
   }
-  return JSON.parse(cleaned);
+
+  // Try parsing as-is first
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Response may be truncated — try to recover
+  }
+
+  // Attempt to repair truncated JSON by closing open structures
+  // Find the last complete problem object by looking for the last "},"
+  const lastCompleteComma = cleaned.lastIndexOf("},");
+  if (lastCompleteComma > 0) {
+    // Close the problems array and the outer object
+    const truncated = cleaned.substring(0, lastCompleteComma + 1);
+    // Try closing with ], errorPatterns, etc.
+    const repaired = truncated + '], "errorPatterns": {}, "encouragement": "Great effort!" }';
+    try {
+      return JSON.parse(repaired);
+    } catch {
+      // Try another repair strategy
+    }
+  }
+
+  // Last resort: try to extract just the problems array
+  const problemsMatch = cleaned.match(/"problems"\s*:\s*\[/);
+  if (problemsMatch) {
+    const startIdx = (problemsMatch.index ?? 0) + problemsMatch[0].length;
+    // Find all complete problem objects
+    const problemObjects: any[] = [];
+    let depth = 0;
+    let objStart = -1;
+    for (let i = startIdx; i < cleaned.length; i++) {
+      if (cleaned[i] === "{") {
+        if (depth === 0) objStart = i;
+        depth++;
+      } else if (cleaned[i] === "}") {
+        depth--;
+        if (depth === 0 && objStart >= 0) {
+          try {
+            const obj = JSON.parse(cleaned.substring(objStart, i + 1));
+            problemObjects.push(obj);
+          } catch { /* skip malformed */ }
+          objStart = -1;
+        }
+      }
+    }
+    if (problemObjects.length > 0) {
+      return {
+        subject: "Math",
+        grade: 3,
+        problems: problemObjects,
+        errorPatterns: {},
+        encouragement: "Great effort!",
+      };
+    }
+  }
+
+  throw new Error("Could not parse or recover AI response");
 }
 
 // ── Main handler ─────────────────────────────────────────────────────
@@ -228,7 +285,7 @@ serve(async (req) => {
     const isSimple = complexity === "simple";
     const model = isSimple ? FAST_MODEL : DEEP_MODEL;
     const prompt = isSimple ? SIMPLE_ANALYSIS_PROMPT : COMPLEX_ANALYSIS_PROMPT;
-    const maxTokens = isSimple ? 1500 : 3000;
+    const maxTokens = isSimple ? 4000 : 8000;
     const temperature = isSimple ? 0.3 : 0.5;
 
     console.log(`Step 2: Analyzing with ${model}...`);
