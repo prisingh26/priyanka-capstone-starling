@@ -1,22 +1,25 @@
- import React, { useState } from "react";
- import { motion } from "framer-motion";
- import StudentWorkSection from "@/components/tutoring/StudentWorkSection";
- import AITutorFeedback from "@/components/tutoring/AITutorFeedback";
- import StepByStepSolution from "@/components/tutoring/StepByStepSolution";
- import PracticeProblemsSection from "@/components/tutoring/PracticeProblemsSection";
- import FeedbackActions from "@/components/tutoring/FeedbackActions";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import StudentWorkSection from "@/components/tutoring/StudentWorkSection";
+import AITutorFeedback from "@/components/tutoring/AITutorFeedback";
+import StepByStepSolution from "@/components/tutoring/StepByStepSolution";
+import PracticeProblemsSection from "@/components/tutoring/PracticeProblemsSection";
+import FeedbackActions from "@/components/tutoring/FeedbackActions";
+import { HomeworkAnalysis } from "@/types/homework";
+
+interface TutoringResponseScreenProps {
+  uploadedImage?: string;
+  analysis?: HomeworkAnalysis;
+  onTryAnother: () => void;
+  onComplete?: () => void;
+}
  
- interface TutoringResponseScreenProps {
-   uploadedImage?: string;
-   onTryAnother: () => void;
-   onComplete?: () => void;
- }
- 
- const TutoringResponseScreen: React.FC<TutoringResponseScreenProps> = ({
-   uploadedImage,
-   onTryAnother,
-   onComplete,
- }) => {
+const TutoringResponseScreen: React.FC<TutoringResponseScreenProps> = ({
+  uploadedImage,
+  analysis,
+  onTryAnother,
+  onComplete,
+}) => {
    const [showSolution, setShowSolution] = useState(false);
    const [showPractice, setShowPractice] = useState(false);
    const [showActions, setShowActions] = useState(false);
@@ -83,15 +86,19 @@
                Sprout's Feedback
              </h2>
              
-             <AITutorFeedback
-               encouragement="Great effort on this subtraction problem! 👍 I can see you worked hard on it. Let's look at where we can improve together!"
-               errorDiagnosis={{
-                 mistake: "I noticed you wrote 45 instead of 35 for 73 - 38.",
-                 explanation: "When subtracting in the ones place, 3 is smaller than 8, so we need to 'borrow' or 'regroup' from the tens place. This is a super common mistake - let's learn it together!"
-               }}
-               isCorrect={false}
-               onComplete={handleFeedbackComplete}
-             />
+              <AITutorFeedback
+                encouragement={analysis?.encouragement || "Great effort! Let's look at where we can improve together!"}
+                errorDiagnosis={(() => {
+                  const firstError = analysis?.problems.find(p => !p.isCorrect);
+                  if (!firstError) return undefined;
+                  return {
+                    mistake: `I noticed the answer for "${firstError.question}" was ${firstError.studentAnswer} instead of ${firstError.correctAnswer}.`,
+                    explanation: firstError.rootCause || `This involves ${firstError.errorType || "a tricky concept"} — let's practice it together!`,
+                  };
+                })()}
+                isCorrect={analysis ? analysis.correctAnswers === analysis.totalProblems : false}
+                onComplete={handleFeedbackComplete}
+              />
            </motion.div>
          </div>
  
@@ -113,7 +120,10 @@
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
            >
-             <PracticeProblemsSection onAllComplete={onComplete} />
+              <PracticeProblemsSection
+                problems={analysis?.practiceProblems}
+                onAllComplete={onComplete}
+              />
            </motion.div>
          )}
  

@@ -1,22 +1,16 @@
- import React, { useState } from "react";
- import { motion, AnimatePresence } from "framer-motion";
- import { ChevronDown, ChevronUp, Lightbulb, Check, X, RotateCcw } from "lucide-react";
- import { Button } from "@/components/ui/button";
- import { Card } from "@/components/ui/card";
- import { Input } from "@/components/ui/input";
- import ConfettiAnimation from "@/components/ConfettiAnimation";
- 
- interface PracticeProblem {
-   id: number;
-   problem: string;
-   answer: number;
-   hint: string;
- }
- 
- interface PracticeProblemsSectionProps {
-   problems?: PracticeProblem[];
-   onAllComplete?: () => void;
- }
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, ChevronUp, Lightbulb, Check, X, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import ConfettiAnimation from "@/components/ConfettiAnimation";
+import { PracticeProblem } from "@/types/homework";
+
+interface PracticeProblemsSectionProps {
+  problems?: PracticeProblem[];
+  onAllComplete?: () => void;
+}
  
  const defaultProblems: PracticeProblem[] = [
    { id: 1, problem: "82 - 47 = ?", answer: 35, hint: "You'll need to borrow! 2 is less than 7." },

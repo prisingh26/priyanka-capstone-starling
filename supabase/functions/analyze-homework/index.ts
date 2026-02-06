@@ -35,6 +35,9 @@ For EACH problem visible in the image:
 4. Check if the student's answer is correct
 5. If incorrect, identify the error type (e.g., "Regrouping", "Carrying", "Basic fact", "Place value")
 
+ALSO: Generate 3 practice problems focused on the ERROR TYPES found. If all correct, generate 3 problems of the same type at slightly harder difficulty.
+Each practice problem must have: problem text, numeric answer, and a short hint.
+
 CRITICAL: Output ONLY raw JSON. Do NOT wrap in markdown code fences. No \`\`\`json.
 {
   "subject": "Math",
@@ -50,7 +53,12 @@ CRITICAL: Output ONLY raw JSON. Do NOT wrap in markdown code fences. No \`\`\`js
     }
   ],
   "errorPatterns": { "<error type>": <count> },
-  "encouragement": "<brief encouraging message about their work>"
+  "encouragement": "<brief encouraging message about their work>",
+  "practiceProblems": [
+    { "id": 1, "problem": "<e.g. 63 - 28 = ?>", "answer": 35, "hint": "<short hint targeting the error>" },
+    { "id": 2, "problem": "...", "answer": 0, "hint": "..." },
+    { "id": 3, "problem": "...", "answer": 0, "hint": "..." }
+  ]
 }`;
 
 const COMPLEX_ANALYSIS_PROMPT = `You are an expert, caring math tutor for elementary school students (grades 1-5).
@@ -66,6 +74,9 @@ For EACH problem visible in the image:
    - Diagnose the ROOT CAUSE briefly
    - Create a BRIEF step-by-step explanation (max 3 short steps, under 15 words each)
    - Suggest a visual aid (one sentence)
+
+ALSO: Generate 3 practice problems FOCUSED ON THE SPECIFIC ERROR TYPES found. Target the student's weakest areas. If all correct, generate 3 slightly harder problems of the same type.
+Each practice problem must have: problem text, numeric answer, and a short hint addressing the error pattern.
 
 CRITICAL RULES:
 - Output ONLY raw JSON. Do NOT wrap in markdown code fences. No \`\`\`json.
@@ -95,6 +106,11 @@ CRITICAL RULES:
       "title": "<skill to practice>",
       "description": "<brief description>"
     }
+  ],
+  "practiceProblems": [
+    { "id": 1, "problem": "<targets the most common error>", "answer": 0, "hint": "<hint addressing the error>" },
+    { "id": 2, "problem": "...", "answer": 0, "hint": "..." },
+    { "id": 3, "problem": "...", "answer": 0, "hint": "..." }
   ]
 }`;
 

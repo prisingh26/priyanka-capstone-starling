@@ -302,6 +302,7 @@ type Screen =
         return (
           <TutoringResponseScreen
             uploadedImage={uploadedImage || undefined}
+            analysis={analysisResult || undefined}
             onTryAnother={() => setCurrentScreen("camera")}
             onComplete={() => setCurrentScreen("completion")}
           />
