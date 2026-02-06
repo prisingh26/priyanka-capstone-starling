@@ -1,10 +1,10 @@
 import React from "react";
 import { ArrowLeft, ArrowRight, HelpCircle, RotateCcw, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 import StarlingMascot from "../components/StarlingMascot";
-import { Problem } from "../data/mockData";
+import { AnalyzedProblem } from "@/types/homework";
 
 interface ProblemDetailScreenProps {
-  problem: Problem;
+  problem: AnalyzedProblem;
   problemIndex: number;
   totalProblems: number;
   onBack: () => void;
