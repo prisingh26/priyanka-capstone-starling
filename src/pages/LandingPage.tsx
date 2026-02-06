@@ -455,7 +455,7 @@ const LandingPage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <span className="text-6xl mb-6 block">⭐</span>
+            <div className="mb-6"><ShootingStarIcon size={56} /></div>
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
               Learn where your child needs help, practice what makes it click, watch confidence bloom.
             </h2>
@@ -476,9 +476,8 @@ const LandingPage = () => {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                 <Button
                   size="lg"
-                  variant="outline"
                   onClick={() => navigate("/app")}
-                  className="border-2 border-white text-white hover:bg-white/20 rounded-full px-8 py-6 text-lg font-semibold"
+                  className="bg-white text-violet-600 hover:bg-white/90 rounded-full px-8 py-6 text-lg font-semibold shadow-xl"
                 >
                   Try It Free
                 </Button>
