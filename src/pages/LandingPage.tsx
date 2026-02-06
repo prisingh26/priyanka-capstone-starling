@@ -19,14 +19,14 @@ const LandingPage = () => {
     {
       icon: Heart,
       title: "Builds Real Confidence",
-      description: "Watch your child go from 'I can't do math' to 'I got this!' Our AI tutor celebrates every step, turning frustration into pride.",
+      description: "Watch your child go from 'I can't do this' to 'I got this!' Our AI tutor celebrates every step, turning frustration into pride.",
       gradient: "from-rose-400 to-pink-500",
       accent: "bg-rose-100",
     },
     {
       icon: Bot,
       title: "Patient AI Tutor, Always Ready",
-      description: "No more homework battles. Sprout explains concepts step-by-step with infinite patience — just like the best teacher your child ever had.",
+      description: "No more homework battles. Starling explains concepts step-by-step with infinite patience — just like the best teacher your child ever had.",
       gradient: "from-emerald-400 to-green-500",
       accent: "bg-emerald-100",
     },
@@ -40,17 +40,18 @@ const LandingPage = () => {
   ];
 
   const howItWorks = [
-    { step: 1, title: "Snap a Photo", description: "Take a picture of any math homework with your phone", color: "bg-violet-100 text-violet-600" },
-    { step: 2, title: "AI Analyzes Instantly", description: "Sprout reads handwriting, checks answers, and finds patterns", color: "bg-rose-100 text-rose-600" },
+    { step: 1, title: "Upload Homework", description: "Snap a photo of any math or writing assignment from your phone", color: "bg-violet-100 text-violet-600" },
+    { step: 2, title: "AI Analyzes Instantly", description: "Starling reads handwriting, checks answers, and finds patterns", color: "bg-rose-100 text-rose-600" },
     { step: 3, title: "Learn & Practice", description: "Get personalized explanations and practice problems that target weak spots", color: "bg-emerald-100 text-emerald-600" },
   ];
 
   const faqs = [
-    { q: "What ages is Sprout designed for?", a: "Sprout is built for elementary students in grades 1–5, covering basic arithmetic through early algebra and fractions." },
+    { q: "What ages is Starling designed for?", a: "Starling is built for elementary students in grades 1–5, covering math (arithmetic through early algebra) and writing skills." },
     { q: "How does the AI analyze homework?", a: "Simply take a photo of your child's worksheet. Our AI reads their handwriting, checks each answer, identifies error patterns, and generates personalized practice problems." },
+    { q: "Does it only work for math?", a: "No! Starling supports both math and writing assignments. Upload any homework and our AI adapts to the subject." },
     { q: "Is my child's data safe?", a: "Absolutely. We use end-to-end encryption, never share data with third parties, and comply with COPPA regulations. Your child's privacy is our top priority." },
-    { q: "Do I need to be there while my child uses it?", a: "Sprout is designed to be safe for independent use, but we encourage parents to review progress reports together. It's a great bonding moment!" },
-    { q: "How is this different from other homework apps?", a: "Sprout doesn't just give answers — it diagnoses WHY your child made a mistake and teaches the underlying concept. It's like having a private tutor who truly understands your child." },
+    { q: "Do I need to be there while my child uses it?", a: "Starling is designed to be safe for independent use, but we encourage parents to review progress reports together. It's a great bonding moment!" },
+    { q: "How is this different from other homework apps?", a: "Starling doesn't just give answers — it diagnoses WHY your child made a mistake and teaches the underlying concept. It's like having a private tutor who truly understands your child." },
   ];
 
   const containerVariants = {
@@ -69,9 +70,8 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
           <button onClick={() => scrollTo("hero")} className="flex items-center gap-2 group">
-            <span className="text-2xl">🌱</span>
-            <span className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-              Sprout
+            <span className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent group-hover:from-violet-700 group-hover:to-purple-600 transition-all">
+              Starling
             </span>
           </button>
 
@@ -157,9 +157,9 @@ const LandingPage = () => {
                 variants={itemVariants}
                 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground"
               >
-                Homework help that{" "}
+                Learn, practice, master —{" "}
                 <span className="bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                  makes kids smile
+                  at your own pace
                 </span>
               </motion.h1>
 
@@ -167,7 +167,7 @@ const LandingPage = () => {
                 variants={itemVariants}
                 className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed"
               >
-                Snap a photo of any math problem and watch your child light up as Sprout explains it step-by-step. Building confidence, one problem at a time.
+                Stuck on homework? Upload it for help. Ready to practice? Choose your skill. Starling adapts to your child's needs, providing patient explanations and perfectly-matched practice.
               </motion.p>
 
               <motion.div variants={itemVariants} className="mt-8 flex flex-col sm:flex-row gap-4">
@@ -211,7 +211,7 @@ const LandingPage = () => {
               <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/20">
                 <img
                   src={heroImage}
-                  alt="A happy child doing math homework with Sprout, a friendly AI tutor"
+                  alt="A happy child doing homework with Starling, a friendly AI tutor"
                   className="w-full h-auto"
                 />
                 {/* Floating badge overlays */}
@@ -250,7 +250,7 @@ const LandingPage = () => {
           >
             <h2 className="text-3xl md:text-5xl font-bold text-foreground">
               Why Parents Love{" "}
-              <span className="text-violet-600">Sprout</span>
+              <span className="text-violet-600">Starling</span>
             </h2>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
               More than just homework help — it's a new way to build confidence, understanding, and a love of learning.
@@ -469,7 +469,7 @@ const LandingPage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <span className="text-6xl mb-6 block">🌱</span>
+            <span className="text-6xl mb-6 block">⭐</span>
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
               Ready to grow together?
             </h2>
@@ -507,11 +507,10 @@ const LandingPage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-xl">🌱</span>
-              <span className="font-bold text-foreground">Sprout</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent">Starling</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Sprout Learning. Made with 💜 for curious kids.
+              © {new Date().getFullYear()} Starling Learning. Made with 💜 for curious kids.
             </p>
             <div className="flex gap-6 text-sm text-muted-foreground">
               <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
