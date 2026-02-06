@@ -11,6 +11,30 @@ interface ProcessingScreenProps {
   uploadedImage: string | null;
 }
 
+/**
+ * Convert any image data URL to JPEG via canvas.
+ * This handles HEIC and other formats that AI providers can't process directly.
+ */
+async function convertToJpeg(dataUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Could not create canvas context"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => reject(new Error("Failed to load image for conversion"));
+    img.src = dataUrl;
+  });
+}
+
 const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError, uploadedImage }) => {
   const [status, setStatus] = useState("Scanning your homework...");
   const [hasCompleted, setHasCompleted] = useState(false);
@@ -20,28 +44,43 @@ const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError
 
     const analyze = async () => {
       try {
-        setStatus("Scanning your homework...");
-
-        const { data, error } = await supabase.functions.invoke("analyze-homework", {
-          body: { imageBase64: uploadedImage },
-        });
-
-        if (error) {
-          console.error("Edge function error:", error);
-          onError("Failed to analyze homework. Please try again.");
-          return;
+        // Convert to JPEG if not already (handles HEIC, PNG, etc.)
+        let imageToSend = uploadedImage;
+        if (!uploadedImage.startsWith("data:image/jpeg")) {
+          setStatus("Preparing image...");
+          try {
+            imageToSend = await convertToJpeg(uploadedImage);
+          } catch (convErr) {
+            console.warn("Image conversion failed, sending as-is:", convErr);
+          }
         }
 
-        if (isAnalysisError(data as HomeworkAnalysis | AnalysisError)) {
-          const err = data as AnalysisError;
-          if (err.error === "rate_limited") {
+        setStatus("Analyzing your homework with AI...");
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-homework`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ imageBase64: imageToSend }),
+          },
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("Edge function error:", data);
+          if (data.error === "rate_limited") {
             toast.error("Too many requests — please wait a moment and try again.");
-          } else if (err.error === "payment_required") {
+          } else if (data.error === "payment_required") {
             toast.error("AI credits exhausted. Please add credits in workspace settings.");
           } else {
-            toast.error(err.message || "Analysis failed. Try a clearer photo.");
+            toast.error(data.message || "Analysis failed. Try a clearer photo.");
           }
-          onError(err.message);
+          onError(data.message || "Analysis failed");
           return;
         }
 
@@ -55,7 +94,6 @@ const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError
         setStatus(`Found ${analysis.totalProblems} problems! Preparing results...`);
         setHasCompleted(true);
 
-        // Small delay so user sees the "found" message
         setTimeout(() => onComplete(analysis), 800);
       } catch (e) {
         console.error("Analysis error:", e);
