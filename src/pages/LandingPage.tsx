@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Play, Camera, Bot, BarChart3, Shield, Lock, Users, ChevronDown, Sparkles, Heart, Menu, X, Star } from "lucide-react";
+import { ArrowRight, Play, Camera, Bot, BarChart3, Shield, Lock, Users, ChevronDown, Sparkles, Heart, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-illustration.jpg";
+import ShootingStarIcon from "@/components/ShootingStarIcon";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
           <button onClick={() => scrollTo("hero")} className="flex items-center gap-2 group">
-            <Star className="w-6 h-6 text-violet-500 fill-violet-400" />
+            <ShootingStarIcon size={28} />
             <span className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent group-hover:from-violet-700 group-hover:to-purple-600 transition-all">
               Starling
             </span>
@@ -527,7 +528,7 @@ const LandingPage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Star className="w-5 h-5 text-violet-500 fill-violet-400" />
+              <ShootingStarIcon size={24} />
               <span className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent">Starling</span>
             </div>
             <p className="text-sm text-muted-foreground">
