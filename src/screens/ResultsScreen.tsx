@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { ArrowRight, Sparkles, ChevronRight, Target } from "lucide-react";
 import StarlingMascot from "../components/StarlingMascot";
 import ProgressChart from "../components/ProgressChart";
-import { sampleWorksheet, Problem } from "../data/mockData";
+import { HomeworkAnalysis, AnalyzedProblem } from "@/types/homework";
 
 interface ResultsScreenProps {
   onStartTutoring: () => void;
-  onViewProblem?: (problem: Problem, index: number) => void;
+  onViewProblem?: (problem: AnalyzedProblem, index: number) => void;
   uploadedImage?: string | null;
+  analysis: HomeworkAnalysis;
 }
 
 const getEncouragingMessage = (percentage: number) => {
@@ -20,15 +21,17 @@ const getEncouragingMessage = (percentage: number) => {
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ 
   onStartTutoring, 
   onViewProblem,
-  uploadedImage 
+  uploadedImage,
+  analysis,
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   
-  const worksheet = sampleWorksheet;
-  const correctCount = worksheet.correctAnswers;
-  const percentage = (correctCount / worksheet.totalProblems) * 100;
+  const correctCount = analysis.correctAnswers;
+  const totalProblems = analysis.totalProblems;
+  const percentage = totalProblems > 0 ? (correctCount / totalProblems) * 100 : 0;
   const message = getEncouragingMessage(percentage);
-  const incorrectProblems = worksheet.problems.filter(p => !p.isCorrect);
+  const errorPatterns = analysis.errorPatterns ?? {};
+  const topErrorType = Object.entries(errorPatterns).sort((a, b) => b[1] - a[1])[0];
 
   useEffect(() => {
     const timer = setTimeout(() => setShowDetails(true), 800);
@@ -38,6 +41,13 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
   return (
     <div className="min-h-screen pt-20 pb-24 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
+        {/* Model badge */}
+        <div className="flex justify-center">
+          <span className="text-xs bg-muted text-muted-foreground px-3 py-1 rounded-full">
+            Analyzed with {analysis.complexity === "simple" ? "⚡ Fast" : "🧠 Deep"} AI
+          </span>
+        </div>
+
         {/* Hero Score Card */}
         <div className="starling-card bg-gradient-to-br from-primary/10 to-secondary/10 animate-fade-in">
           <div className="flex items-center gap-6">
@@ -46,8 +56,13 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
               <div className="text-5xl mb-2">{message.emoji}</div>
               <h2 className="text-xl font-bold text-foreground">{message.text}</h2>
               <p className="text-muted-foreground">
-                {correctCount}/{worksheet.totalProblems} correct
+                {correctCount}/{totalProblems} correct
               </p>
+              {analysis.encouragement && (
+                <p className="text-sm text-muted-foreground mt-1 italic">
+                  {analysis.encouragement}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -68,7 +83,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
         )}
 
         {/* Pattern Insight */}
-        {Object.keys(worksheet.errorPatterns).some(k => worksheet.errorPatterns[k] > 0) && (
+        {topErrorType && topErrorType[1] > 0 && (
           <div 
             className="starling-card bg-starling-blue-light animate-fade-in-up"
             style={{ animationDelay: "0.2s" }}
@@ -82,18 +97,17 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
                   I noticed a pattern! 🔍
                 </h3>
                 <p className="text-muted-foreground mt-1">
-                  <strong>{worksheet.errorPatterns["Regrouping"]}</strong> problems had regrouping errors
+                  <strong>{topErrorType[1]}</strong> problems had <strong>{topErrorType[0]}</strong> errors
                 </p>
-                {/* Mini bar chart */}
                 <div className="mt-3 space-y-2">
-                  {Object.entries(worksheet.errorPatterns).map(([type, count]) => (
+                  {Object.entries(errorPatterns).map(([type, count]) => (
                     count > 0 && (
                       <div key={type} className="flex items-center gap-2">
                         <span className="text-sm text-muted-foreground w-24">{type}</span>
                         <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                           <div 
                             className="h-full bg-warning rounded-full"
-                            style={{ width: `${(count / worksheet.totalProblems) * 100}%` }}
+                            style={{ width: `${(count / totalProblems) * 100}%` }}
                           />
                         </div>
                         <span className="text-sm font-medium text-foreground">{count}</span>
@@ -105,10 +119,28 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
                   onClick={onStartTutoring}
                   className="mt-3 text-secondary font-medium flex items-center gap-1 hover:gap-2 transition-all"
                 >
-                  Practice Regrouping (5 problems)
+                  Practice {topErrorType[0]}
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Focus Areas (from deep analysis) */}
+        {analysis.focusAreas && analysis.focusAreas.length > 0 && (
+          <div className="starling-card animate-fade-in-up" style={{ animationDelay: "0.25s" }}>
+            <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Recommended Focus Areas
+            </h3>
+            <div className="space-y-3">
+              {analysis.focusAreas.map((area, i) => (
+                <div key={i} className="p-3 bg-muted/50 rounded-lg">
+                  <p className="font-medium text-foreground text-sm">{area.title}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{area.description}</p>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -120,7 +152,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
             <div className="text-sm text-muted-foreground">Correct ✅</div>
           </div>
           <div className="starling-card bg-starling-yellow-light text-center">
-            <div className="text-4xl font-bold text-warning">{worksheet.totalProblems - correctCount}</div>
+            <div className="text-4xl font-bold text-warning">{totalProblems - correctCount}</div>
             <div className="text-sm text-muted-foreground">Needs Review 🔶</div>
           </div>
         </div>
@@ -130,7 +162,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           <div className="animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
             <h3 className="font-bold text-foreground mb-3">All Problems</h3>
             <div className="space-y-2">
-              {worksheet.problems.map((problem, index) => (
+              {analysis.problems.map((problem, index) => (
                 <button
                   key={problem.id}
                   onClick={() => onViewProblem?.(problem, index)}
@@ -153,6 +185,11 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
                         <span className="text-muted-foreground"> (Correct: {problem.correctAnswer})</span>
                       )}
                     </p>
+                    {!problem.isCorrect && problem.rootCause && (
+                      <p className="text-xs text-muted-foreground mt-1 italic">
+                        💡 {problem.rootCause}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     {!problem.isCorrect && problem.errorType && (
@@ -181,13 +218,6 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           >
             <span>Practice Problem Areas</span>
             <ArrowRight className="w-6 h-6" />
-          </button>
-          
-          <button
-            onClick={() => {}}
-            className="w-full starling-button-secondary flex items-center justify-center gap-2"
-          >
-            Review All Problems
           </button>
         </div>
       </div>

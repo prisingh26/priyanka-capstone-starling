@@ -1,1 +1,7 @@
 project_id = "dtanpcuhlvvycsljofpy"
+
+[functions.db-proxy]
+verify_jwt = false
+
+[functions.analyze-homework]
+verify_jwt = false

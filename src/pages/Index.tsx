@@ -22,7 +22,8 @@ import StudentProfileScreen from "../screens/StudentProfileScreen";
  import TutorialOverlay from "../components/TutorialOverlay";
  import PageTransition from "../components/transitions/PageTransition";
  import AppLoader from "../components/loading/AppLoader";
-import { sampleWorksheet, Problem } from "../data/mockData";
+import { HomeworkAnalysis, AnalyzedProblem } from "@/types/homework";
+import { toast } from "sonner";
 
 type Screen = 
   | "onboarding"
@@ -83,8 +84,11 @@ type Screen =
   // State for uploaded image
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   
+  // State for AI analysis results
+  const [analysisResult, setAnalysisResult] = useState<HomeworkAnalysis | null>(null);
+
   // State for problem detail view
-  const [selectedProblem, setSelectedProblem] = useState<{ problem: Problem; index: number } | null>(null);
+  const [selectedProblem, setSelectedProblem] = useState<{ problem: AnalyzedProblem; index: number } | null>(null);
 
   // Tutorial state
   const [showTutorial, setShowTutorial] = useState(() => {
@@ -136,10 +140,23 @@ type Screen =
     setCurrentScreen("home");
   };
 
-   const handleCameraCapture = (imageData: string) => {
-     setPreviousScreen(currentScreen);
+  const handleCameraCapture = (imageData: string) => {
+    setPreviousScreen(currentScreen);
     setUploadedImage(imageData);
+    setAnalysisResult(null); // Reset previous analysis
     setCurrentScreen("processing");
+  };
+
+  const handleAnalysisComplete = (analysis: HomeworkAnalysis) => {
+    setAnalysisResult(analysis);
+    setPreviousScreen(currentScreen);
+    setCurrentScreen("results");
+  };
+
+  const handleAnalysisError = (errorMsg: string) => {
+    toast.error(errorMsg);
+    setPreviousScreen(currentScreen);
+    setCurrentScreen("camera");
   };
 
    // Accessibility context
@@ -179,8 +196,8 @@ type Screen =
      ],
    });
  
-   const handleViewProblem = (problem: Problem, index: number) => {
-     setPreviousScreen(currentScreen);
+  const handleViewProblem = (problem: AnalyzedProblem, index: number) => {
+    setPreviousScreen(currentScreen);
     setSelectedProblem({ problem, index });
     setCurrentScreen("problem-detail");
   };
@@ -219,22 +236,29 @@ type Screen =
       
       case "processing":
         return (
-          <ProcessingScreen 
-            onComplete={() => setCurrentScreen("results")} 
+          <ProcessingScreen
+            uploadedImage={uploadedImage}
+            onComplete={handleAnalysisComplete}
+            onError={handleAnalysisError}
           />
         );
       
       case "results":
+        if (!analysisResult) {
+          setCurrentScreen("home");
+          return null;
+        }
         return (
           <ResultsScreen 
             onStartTutoring={() => setCurrentScreen("tutoring-response")}
             onViewProblem={handleViewProblem}
             uploadedImage={uploadedImage}
+            analysis={analysisResult}
           />
         );
       
       case "problem-detail":
-        if (!selectedProblem) {
+        if (!selectedProblem || !analysisResult) {
           setCurrentScreen("results");
           return null;
         }
@@ -242,7 +266,7 @@ type Screen =
           <ProblemDetailScreen
             problem={selectedProblem.problem}
             problemIndex={selectedProblem.index}
-            totalProblems={sampleWorksheet.problems.length}
+            totalProblems={analysisResult.problems.length}
             onBack={() => setCurrentScreen("results")}
             onGetHelp={() => setCurrentScreen("tutoring")}
             onTryAgain={() => {}}
@@ -250,16 +274,16 @@ type Screen =
               const newIndex = selectedProblem.index - 1;
               if (newIndex >= 0) {
                 setSelectedProblem({ 
-                  problem: sampleWorksheet.problems[newIndex], 
+                  problem: analysisResult.problems[newIndex], 
                   index: newIndex 
                 });
               }
             }}
             onNext={() => {
               const newIndex = selectedProblem.index + 1;
-              if (newIndex < sampleWorksheet.problems.length) {
+              if (newIndex < analysisResult.problems.length) {
                 setSelectedProblem({ 
-                  problem: sampleWorksheet.problems[newIndex], 
+                  problem: analysisResult.problems[newIndex], 
                   index: newIndex 
                 });
               }
