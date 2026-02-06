@@ -1,532 +1,522 @@
-import React, { useEffect, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Camera, Bot, BarChart3, Star, ArrowRight, Play, Sparkles, Heart, Shield, Clock } from "lucide-react";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Play, Camera, Bot, BarChart3, Shield, Lock, Users, ChevronDown, Sparkles, Heart, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import heroImage from "@/assets/hero-illustration.jpg";
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [isLoaded, setIsLoaded] = useState(false);
-  const { scrollYProgress } = useScroll();
-  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as const },
-    },
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    setMobileMenuOpen(false);
   };
 
   const features = [
     {
-      icon: Camera,
-      emoji: "📸",
-      title: "Upload Homework Photos",
-      description: "Simply snap a photo of any math problem and let Starling analyze it instantly.",
+      icon: Heart,
+      title: "Builds Real Confidence",
+      description: "Watch your child go from 'I can't do math' to 'I got this!' Our AI tutor celebrates every step, turning frustration into pride.",
+      gradient: "from-rose-400 to-pink-500",
+      accent: "bg-rose-100",
     },
     {
       icon: Bot,
-      emoji: "🤖",
-      title: "Get Instant AI Help",
-      description: "Our friendly AI tutor explains concepts step-by-step, just like a patient teacher.",
+      title: "Patient AI Tutor, Always Ready",
+      description: "No more homework battles. Sprout explains concepts step-by-step with infinite patience — just like the best teacher your child ever had.",
+      gradient: "from-emerald-400 to-green-500",
+      accent: "bg-emerald-100",
     },
     {
       icon: BarChart3,
-      emoji: "📊",
-      title: "Track Progress",
-      description: "Watch your child grow with detailed progress reports and skill tracking.",
+      title: "You See Everything",
+      description: "Detailed progress reports show exactly where your child excels and where they need support. No guessing, just clarity.",
+      gradient: "from-violet-400 to-purple-500",
+      accent: "bg-violet-100",
     },
   ];
 
-  const testimonials = [
-    {
-      quote: "Starling turned our nightly homework battles into fun learning sessions. My daughter actually asks to practice math now!",
-      author: "Sarah M.",
-      role: "Parent of 4th grader",
-      rating: 5,
-    },
-    {
-      quote: "The way Starling explains things step-by-step really clicks with my son. He's gone from struggling to confident in just weeks.",
-      author: "Michael T.",
-      role: "Parent of 3rd grader",
-      rating: 5,
-    },
-    {
-      quote: "As a busy parent, I love that Starling gives my kids instant help when I can't. It's like having a patient tutor available 24/7.",
-      author: "Jennifer L.",
-      role: "Parent of 5th grader",
-      rating: 5,
-    },
+  const howItWorks = [
+    { step: 1, title: "Snap a Photo", description: "Take a picture of any math homework with your phone", color: "bg-violet-100 text-violet-600" },
+    { step: 2, title: "AI Analyzes Instantly", description: "Sprout reads handwriting, checks answers, and finds patterns", color: "bg-rose-100 text-rose-600" },
+    { step: 3, title: "Learn & Practice", description: "Get personalized explanations and practice problems that target weak spots", color: "bg-emerald-100 text-emerald-600" },
   ];
+
+  const faqs = [
+    { q: "What ages is Sprout designed for?", a: "Sprout is built for elementary students in grades 1–5, covering basic arithmetic through early algebra and fractions." },
+    { q: "How does the AI analyze homework?", a: "Simply take a photo of your child's worksheet. Our AI reads their handwriting, checks each answer, identifies error patterns, and generates personalized practice problems." },
+    { q: "Is my child's data safe?", a: "Absolutely. We use end-to-end encryption, never share data with third parties, and comply with COPPA regulations. Your child's privacy is our top priority." },
+    { q: "Do I need to be there while my child uses it?", a: "Sprout is designed to be safe for independent use, but we encourage parents to review progress reports together. It's a great bonding moment!" },
+    { q: "How is this different from other homework apps?", a: "Sprout doesn't just give answers — it diagnoses WHY your child made a mistake and teaches the underlying concept. It's like having a private tutor who truly understands your child." },
+  ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50" />
-        
-        {/* Floating decorative elements */}
-        <motion.div
-          className="absolute top-20 left-10 w-20 h-20 rounded-full bg-primary/10 blur-xl"
-          animate={{
-            y: [0, -20, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute bottom-32 right-20 w-32 h-32 rounded-full bg-blue-200/30 blur-2xl"
-          animate={{
-            y: [0, 20, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        />
-        <motion.div
-          className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full bg-yellow-200/40 blur-xl"
-          animate={{
-            x: [0, 15, 0],
-            y: [0, -10, 0],
-          }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        />
+    <div className="min-h-screen bg-amber-50/40 overflow-x-hidden">
+      {/* ─── Sticky Nav ─────────────────────────────────────────── */}
+      <nav className="sticky top-0 z-50 bg-amber-50/80 backdrop-blur-xl border-b border-amber-100/50">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <button onClick={() => scrollTo("hero")} className="flex items-center gap-2 group">
+            <span className="text-2xl">🌱</span>
+            <span className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+              Sprout
+            </span>
+          </button>
 
-        <div className="relative z-10 container mx-auto px-4 py-20 text-center">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate={isLoaded ? "visible" : "hidden"}
-            className="max-w-4xl mx-auto"
-          >
-            {/* Animated Sprout Logo */}
-            <motion.div
-              className="mb-8 flex justify-center"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 200, 
-                damping: 15,
-                delay: 0.2 
-              }}
-            >
-              <div className="relative">
-                <motion.div
-                  className="w-32 h-32 bg-gradient-to-br from-primary to-green-400 rounded-full flex items-center justify-center shadow-2xl shadow-primary/30"
-                  animate={{
-                    boxShadow: [
-                      "0 25px 50px -12px rgba(76, 175, 80, 0.3)",
-                      "0 25px 50px -12px rgba(76, 175, 80, 0.5)",
-                      "0 25px 50px -12px rgba(76, 175, 80, 0.3)",
-                    ],
-                  }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  {/* Sprout SVG */}
-                  <motion.svg
-                    viewBox="0 0 100 100"
-                    className="w-20 h-20"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 1.5, delay: 0.5 }}
-                  >
-                    {/* Stem */}
-                    <motion.path
-                      d="M 50 80 Q 50 60 50 45"
-                      stroke="white"
-                      strokeWidth="4"
-                      fill="none"
-                      strokeLinecap="round"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ duration: 0.8, delay: 0.5 }}
-                    />
-                    {/* Left leaf */}
-                    <motion.path
-                      d="M 50 55 Q 30 50 25 35 Q 40 40 50 55"
-                      fill="white"
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 1.2 }}
-                    />
-                    {/* Right leaf */}
-                    <motion.path
-                      d="M 50 45 Q 70 40 75 25 Q 60 30 50 45"
-                      fill="white"
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 1.4 }}
-                    />
-                    {/* Top sprout */}
-                    <motion.path
-                      d="M 50 45 Q 50 30 55 20 Q 45 25 50 45"
-                      fill="white"
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 1.6 }}
-                    />
-                  </motion.svg>
-                </motion.div>
-                
-                {/* Sparkles around logo */}
-                <motion.div
-                  className="absolute -top-2 -right-2"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                >
-                  <Sparkles className="w-6 h-6 text-yellow-400" />
-                </motion.div>
-                <motion.div
-                  className="absolute -bottom-1 -left-3"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Sparkles className="w-5 h-5 text-yellow-300" />
-                </motion.div>
-              </div>
-            </motion.div>
+          {/* Desktop links */}
+          <div className="hidden md:flex items-center gap-8">
+            <button onClick={() => scrollTo("how-it-works")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              How it works
+            </button>
+            <button onClick={() => scrollTo("faq")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              FAQs
+            </button>
+          </div>
 
-            {/* Main Heading */}
-            <motion.h1
-              variants={itemVariants}
-              className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight"
+          {/* CTA */}
+          <div className="hidden md:flex items-center gap-3">
+            <Button variant="ghost" onClick={() => navigate("/login")} className="text-sm font-medium">
+              Log in
+            </Button>
+            <Button
+              onClick={() => navigate("/signup")}
+              className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-6"
             >
-              <span className="bg-gradient-to-r from-primary via-pink-500 to-blue-500 bg-clip-text text-transparent">
-                Starling
-              </span>
-              <span className="block text-3xl md:text-4xl lg:text-5xl mt-2 text-foreground/90">
-                Your Friendly Math Homework Helper ⭐
-              </span>
-            </motion.h1>
+              Request Early Access
+            </Button>
+          </div>
 
-            {/* Subheading */}
-            <motion.p
-              variants={itemVariants}
-              className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed"
-            >
-              Turn homework struggles into learning victories with AI-powered tutoring that grows with your child
-            </motion.p>
-
-            {/* CTA Buttons */}
-            <motion.div
-              variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  size="lg"
-                  className="text-lg px-8 py-6 bg-gradient-to-r from-primary to-green-500 hover:from-primary/90 hover:to-green-500/90 shadow-xl shadow-primary/30 group"
-                  onClick={() => navigate("/signup")}
-                >
-                  Start Free
-                  <motion.span
-                    className="ml-2"
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <ArrowRight className="w-5 h-5" />
-                  </motion.span>
-                </Button>
-              </motion.div>
-              
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="text-lg px-8 py-6 border-2 border-primary/30 hover:bg-primary/5 group"
-                >
-                  <Play className="w-5 h-5 mr-2 text-primary" />
-                  Watch Demo
-                </Button>
-              </motion.div>
-            </motion.div>
-
-            {/* Trust badges */}
-            <motion.div
-              variants={itemVariants}
-              className="mt-12 flex flex-wrap justify-center items-center gap-6 text-muted-foreground"
-            >
-              <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-primary" />
-                <span className="text-sm">Safe for kids</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Heart className="w-5 h-5 text-red-400" />
-                <span className="text-sm">Loved by 10,000+ families</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-blue-400" />
-                <span className="text-sm">24/7 available</span>
-              </div>
-            </motion.div>
-          </motion.div>
+          {/* Mobile menu toggle */}
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2">
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          style={{ opacity }}
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <div className="w-6 h-10 rounded-full border-2 border-primary/30 flex justify-center pt-2">
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
             <motion.div
-              className="w-1.5 h-1.5 rounded-full bg-primary"
-              animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="md:hidden bg-amber-50 border-b border-amber-100 overflow-hidden"
+            >
+              <div className="px-4 py-4 space-y-3">
+                <button onClick={() => scrollTo("how-it-works")} className="block w-full text-left text-sm font-medium text-muted-foreground">How it works</button>
+                <button onClick={() => scrollTo("faq")} className="block w-full text-left text-sm font-medium text-muted-foreground">FAQs</button>
+                <hr className="border-amber-200" />
+                <Button variant="ghost" onClick={() => navigate("/login")} className="w-full justify-start text-sm">Log in</Button>
+                <Button onClick={() => navigate("/signup")} className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-full">Request Early Access</Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+
+      {/* ─── Hero Section ───────────────────────────────────────── */}
+      <section id="hero" className="relative py-16 md:py-24 overflow-hidden">
+        {/* Floating decorative blobs */}
+        <motion.div
+          className="absolute top-20 left-10 w-40 h-40 rounded-full bg-violet-200/40 blur-3xl"
+          animate={{ y: [0, -20, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-20 right-10 w-56 h-56 rounded-full bg-rose-200/30 blur-3xl"
+          animate={{ y: [0, 15, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        <motion.div
+          className="absolute top-1/2 left-1/3 w-24 h-24 rounded-full bg-emerald-200/30 blur-2xl"
+          animate={{ x: [0, 20, 0], y: [0, -15, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left: Text */}
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="max-w-xl"
+            >
+              <motion.h1
+                variants={itemVariants}
+                className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground"
+              >
+                Homework help that{" "}
+                <span className="bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                  makes kids smile
+                </span>
+              </motion.h1>
+
+              <motion.p
+                variants={itemVariants}
+                className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed"
+              >
+                Snap a photo of any math problem and watch your child light up as Sprout explains it step-by-step. Building confidence, one problem at a time.
+              </motion.p>
+
+              <motion.div variants={itemVariants} className="mt-8 flex flex-col sm:flex-row gap-4">
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Button
+                    size="lg"
+                    onClick={() => navigate("/signup")}
+                    className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-8 py-6 text-lg shadow-xl shadow-violet-500/25 group"
+                  >
+                    Request Early Access
+                    <motion.span
+                      className="ml-2"
+                      animate={{ x: [0, 4, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <ArrowRight className="w-5 h-5" />
+                    </motion.span>
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => navigate("/app")}
+                    className="rounded-full px-8 py-6 text-lg border-2 border-violet-200 hover:bg-violet-50 group"
+                  >
+                    <Play className="w-5 h-5 mr-2 text-violet-600 group-hover:text-violet-700" />
+                    Try It Free
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+
+            {/* Right: Hero Image */}
+            <motion.div
+              initial={{ opacity: 0, x: 40, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="relative"
+            >
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/20">
+                <img
+                  src={heroImage}
+                  alt="A happy child doing math homework with Sprout, a friendly AI tutor"
+                  className="w-full h-auto"
+                />
+                {/* Floating badge overlays */}
+                <motion.div
+                  className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center gap-2"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1 }}
+                >
+                  <Sparkles className="w-4 h-4 text-violet-500" />
+                  <span className="text-sm font-medium text-foreground">AI-Powered</span>
+                </motion.div>
+                <motion.div
+                  className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center gap-2"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.3 }}
+                >
+                  <Heart className="w-4 h-4 text-rose-500" />
+                  <span className="text-sm font-medium text-foreground">Grades 1–5</span>
+                </motion.div>
+              </div>
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-24 bg-background relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-50/50 to-transparent" />
-        
-        <div className="container mx-auto px-4 relative z-10">
+      {/* ─── Why Parents Love Sprout ────────────────────────────── */}
+      <section className="py-20 md:py-28">
+        <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true, margin: "-80px" }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-              How Starling Helps Your Child{" "}
-              <span className="text-primary">Soar</span> ✨
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">
+              Why Parents Love{" "}
+              <span className="text-violet-600">Sprout</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Three simple steps to transform homework time into growth time
+            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              More than just homework help — it's a new way to build confidence, understanding, and a love of learning.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, y: 50 }}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.15 }}
+                transition={{ delay: index * 0.12 }}
                 viewport={{ once: true, margin: "-50px" }}
               >
                 <motion.div
-                  whileHover={{ y: -8, scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300 }}
+                  whileHover={{ y: -6 }}
+                  className={`relative h-full rounded-3xl bg-gradient-to-br ${feature.gradient} p-8 text-white shadow-xl overflow-hidden`}
                 >
-                  <Card className="h-full border-2 border-transparent hover:border-primary/20 transition-all duration-300 bg-card/50 backdrop-blur-sm shadow-lg hover:shadow-xl">
-                    <CardContent className="p-8 text-center">
-                      <motion.div
-                        className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center"
-                        whileHover={{ rotate: [0, -5, 5, 0] }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <span className="text-4xl">{feature.emoji}</span>
-                      </motion.div>
-                      <h3 className="text-xl font-bold text-foreground mb-3">
-                        {feature.title}
-                      </h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {feature.description}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  {/* Decorative circles */}
+                  <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-white/10" />
+                  <div className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/10" />
+
+                  <div className="relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-5">
+                      <feature.icon className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                    <p className="text-white/90 leading-relaxed text-sm">{feature.description}</p>
+                  </div>
                 </motion.div>
               </motion.div>
             ))}
           </div>
+
+          {/* Two small cards below */}
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mt-6">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100 flex items-start gap-4"
+            >
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <Camera className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-foreground">Works With Any Handwriting</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Our AI reads even the messiest handwriting. Just snap and go — no typing needed.
+                </p>
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100 flex items-start gap-4"
+            >
+              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <Shield className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-foreground">Safe & Ad-Free</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  No ads, no distractions, no data selling. Built with kids' safety as our #1 priority.
+                </p>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-24 bg-gradient-to-b from-background to-purple-50/30">
+      {/* ─── How It Works ───────────────────────────────────────── */}
+      <section id="how-it-works" className="py-20 md:py-28 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true, margin: "-80px" }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-              Families{" "}
-              <span className="text-primary">Love</span> Starling 💜
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Join thousands of happy parents and confident kids
-            </p>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">How It Works</h2>
+            <p className="mt-4 text-lg text-muted-foreground">Three simple steps to homework confidence</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {testimonials.map((testimonial, index) => (
+          <div className="grid md:grid-cols-3 gap-10 max-w-4xl mx-auto">
+            {howItWorks.map((item, index) => (
               <motion.div
-                key={testimonial.author}
-                initial={{ opacity: 0, y: 50 }}
+                key={item.step}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.15 }}
-                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: index * 0.15 }}
+                viewport={{ once: true }}
+                className="text-center"
               >
-                <Card className="h-full bg-card shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <CardContent className="p-8">
-                    <div className="flex gap-1 mb-4">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className="w-5 h-5 fill-yellow-400 text-yellow-400"
-                        />
-                      ))}
-                    </div>
-                    <p className="text-foreground/80 leading-relaxed mb-6 italic">
-                      "{testimonial.quote}"
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                        <span className="text-lg font-bold text-primary">
-                          {testimonial.author.charAt(0)}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground">
-                          {testimonial.author}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {testimonial.role}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  className={`w-20 h-20 rounded-full ${item.color} mx-auto flex items-center justify-center mb-5`}
+                >
+                  <span className="text-3xl font-bold">{item.step}</span>
+                </motion.div>
+                <h3 className="text-xl font-bold text-foreground mb-2">{item.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{item.description}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* ─── Safe & Trusted ─────────────────────────────────────── */}
+      <section className="py-20 md:py-28">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">Safe & Trusted</h2>
+            <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
+              Built for kids: all content is filtered, with no third-party ads and private data by default.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+            {[
+              { icon: Shield, title: "Kid-Safe Content", desc: "All AI responses are filtered for age-appropriate, encouraging language" },
+              { icon: Lock, title: "Private & Ad-Free", desc: "No third-party ads and your data is never shared or sold" },
+              { icon: Users, title: "Built for Parents", desc: "Parent dashboard with full visibility into your child's progress" },
+            ].map((item, index) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="text-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-rose-50 mx-auto flex items-center justify-center mb-4">
+                  <item.icon className="w-7 h-7 text-rose-400" />
+                </div>
+                <h4 className="font-bold text-foreground mb-2">{item.title}</h4>
+                <p className="text-sm text-muted-foreground">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── FAQ ────────────────────────────────────────────────── */}
+      <section id="faq" className="py-20 md:py-28 bg-white">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">Frequently Asked Questions</h2>
+          </motion.div>
+
+          <div className="space-y-3">
+            {faqs.map((faq, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                viewport={{ once: true }}
+                className="border border-amber-100 rounded-2xl overflow-hidden bg-amber-50/50"
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                  className="w-full flex items-center justify-between p-5 text-left hover:bg-amber-50 transition-colors"
+                >
+                  <span className="font-medium text-foreground pr-4">{faq.q}</span>
+                  <motion.div
+                    animate={{ rotate: openFaq === index ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                  </motion.div>
+                </button>
+                <AnimatePresence>
+                  {openFaq === index && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <p className="px-5 pb-5 text-muted-foreground leading-relaxed">{faq.a}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Final CTA ──────────────────────────────────────────── */}
       <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary to-green-500" />
+        <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600" />
         <motion.div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
+          className="absolute top-0 right-0 w-96 h-96 rounded-full bg-white/10 blur-3xl -translate-y-1/2 translate-x-1/2"
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 4, repeat: Infinity }}
         />
-        
+
         <div className="container mx-auto px-4 relative z-10 text-center">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-              Ready to Help Your Child Soar? ⭐
+            <span className="text-6xl mb-6 block">🌱</span>
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+              Ready to grow together?
             </h2>
-            <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-              Start your free trial today and watch your child's confidence soar
+            <p className="text-xl text-white/80 max-w-lg mx-auto mb-8">
+              Join thousands of families turning homework time into confidence time.
             </p>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Button
-                size="lg"
-                className="text-lg px-10 py-7 bg-white text-primary hover:bg-white/90 shadow-2xl"
-              >
-                Get Started Free
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </motion.div>
-            <p className="mt-6 text-white/70 text-sm">
-              No credit card required • Cancel anytime
-            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+                <Button
+                  size="lg"
+                  onClick={() => navigate("/signup")}
+                  className="bg-white text-violet-700 hover:bg-white/90 rounded-full px-8 py-6 text-lg font-bold shadow-xl"
+                >
+                  Request Early Access
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => navigate("/app")}
+                  className="border-2 border-white/30 text-white hover:bg-white/10 rounded-full px-8 py-6 text-lg"
+                >
+                  Try It Free
+                </Button>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-16 bg-foreground text-background">
+      {/* ─── Footer ─────────────────────────────────────────────── */}
+      <footer className="py-10 bg-foreground/5 border-t border-amber-100">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            {/* Brand */}
-            <div className="md:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">⭐</span>
-                </div>
-                <span className="text-2xl font-bold">Starling</span>
-              </div>
-              <p className="text-background/70 leading-relaxed">
-                Helping kids soar to new heights, one problem at a time.
-              </p>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🌱</span>
+              <span className="font-bold text-foreground">Sprout</span>
             </div>
-
-            {/* Product Links */}
-            <div>
-              <h4 className="font-semibold mb-4 text-lg">Product</h4>
-              <ul className="space-y-3 text-background/70">
-                <li><a href="#" className="hover:text-primary transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">For Schools</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Demo</a></li>
-              </ul>
-            </div>
-
-            {/* Support Links */}
-            <div>
-              <h4 className="font-semibold mb-4 text-lg">Support</h4>
-              <ul className="space-y-3 text-background/70">
-                <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Parent Guide</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">FAQs</a></li>
-              </ul>
-            </div>
-
-            {/* Company Links */}
-            <div>
-              <h4 className="font-semibold mb-4 text-lg">Company</h4>
-              <ul className="space-y-3 text-background/70">
-                <li><a href="#" className="hover:text-primary transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-8 border-t border-background/10 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-background/50 text-sm">
-              © 2024 Starling Learning. All rights reserved.
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} Sprout Learning. Made with 💜 for curious kids.
             </p>
-            <div className="flex gap-6 text-background/50 text-sm">
-              <a href="#" className="hover:text-primary transition-colors">Terms</a>
-              <a href="#" className="hover:text-primary transition-colors">Privacy</a>
-              <a href="#" className="hover:text-primary transition-colors">Cookies</a>
+            <div className="flex gap-6 text-sm text-muted-foreground">
+              <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+              <a href="#" className="hover:text-foreground transition-colors">Terms</a>
+              <a href="#" className="hover:text-foreground transition-colors">Contact</a>
             </div>
           </div>
         </div>
