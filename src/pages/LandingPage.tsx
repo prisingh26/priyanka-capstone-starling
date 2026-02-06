@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Play, Camera, Bot, BarChart3, Shield, Lock, Users, ChevronDown, Sparkles, Heart, Menu, X } from "lucide-react";
+import { ArrowRight, Play, Camera, Bot, BarChart3, Shield, Lock, Users, ChevronDown, Sparkles, Heart, Menu, X, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-illustration.jpg";
@@ -70,7 +70,7 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
           <button onClick={() => scrollTo("hero")} className="flex items-center gap-2 group">
-            <span className="text-2xl">🌟</span>
+            <Star className="w-6 h-6 text-violet-500 fill-violet-400" />
             <span className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent group-hover:from-violet-700 group-hover:to-purple-600 transition-all">
               Starling
             </span>
@@ -346,25 +346,37 @@ const LandingPage = () => {
             <p className="mt-4 text-lg text-muted-foreground">Three simple steps to homework confidence</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-10 max-w-4xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-4 max-w-5xl mx-auto">
             {howItWorks.map((item, index) => (
-              <motion.div
-                key={item.step}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.15 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
+              <React.Fragment key={item.step}>
                 <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  className={`w-20 h-20 rounded-full ${item.color} mx-auto flex items-center justify-center mb-5`}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.15 }}
+                  viewport={{ once: true }}
+                  className="text-center flex-1"
                 >
-                  <span className="text-3xl font-bold">{item.step}</span>
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    className={`w-20 h-20 rounded-full ${item.color} mx-auto flex items-center justify-center mb-5`}
+                  >
+                    <span className="text-3xl font-bold">{item.step}</span>
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-foreground mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{item.description}</p>
                 </motion.div>
-                <h3 className="text-xl font-bold text-foreground mb-2">{item.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{item.description}</p>
-              </motion.div>
+                {index < howItWorks.length - 1 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.15 + 0.1 }}
+                    viewport={{ once: true }}
+                    className="hidden md:flex items-center justify-center flex-shrink-0"
+                  >
+                    <ArrowRight className="w-8 h-8 text-violet-300" />
+                  </motion.div>
+                )}
+              </React.Fragment>
             ))}
           </div>
         </div>
@@ -515,7 +527,7 @@ const LandingPage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-xl">🌟</span>
+              <Star className="w-5 h-5 text-violet-500 fill-violet-400" />
               <span className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent">Starling</span>
             </div>
             <p className="text-sm text-muted-foreground">
