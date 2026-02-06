@@ -457,7 +457,7 @@ const LandingPage = () => {
           >
             <span className="text-6xl mb-6 block">⭐</span>
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-              Ready to grow together?
+              Learn where your child needs help, practice what makes it click, watch confidence bloom.
             </h2>
             <p className="text-xl text-white/80 max-w-lg mx-auto mb-8">
               Join thousands of families turning homework time into confidence time.
@@ -478,7 +478,7 @@ const LandingPage = () => {
                   size="lg"
                   variant="outline"
                   onClick={() => navigate("/app")}
-                  className="border-2 border-white/30 text-white hover:bg-white/10 rounded-full px-8 py-6 text-lg"
+                  className="border-2 border-white text-white hover:bg-white/20 rounded-full px-8 py-6 text-lg font-semibold"
                 >
                   Try It Free
                 </Button>
