@@ -70,6 +70,7 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
           <button onClick={() => scrollTo("hero")} className="flex items-center gap-2 group">
+            <span className="text-2xl">🌟</span>
             <span className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent group-hover:from-violet-700 group-hover:to-purple-600 transition-all">
               Starling
             </span>
@@ -168,6 +169,13 @@ const LandingPage = () => {
                 className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed"
               >
                 Stuck on homework? Upload it for help. Ready to practice? Choose your skill. Starling adapts to your child's needs, providing patient explanations and perfectly-matched practice.
+              </motion.p>
+
+              <motion.p
+                variants={itemVariants}
+                className="mt-4 text-base md:text-lg font-medium text-violet-600/80 italic"
+              >
+                Learn where your child needs help, practice what makes it click, watch confidence bloom.
               </motion.p>
 
               <motion.div variants={itemVariants} className="mt-8 flex flex-col sm:flex-row gap-4">
@@ -507,6 +515,7 @@ const LandingPage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
+              <span className="text-xl">🌟</span>
               <span className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent">Starling</span>
             </div>
             <p className="text-sm text-muted-foreground">
