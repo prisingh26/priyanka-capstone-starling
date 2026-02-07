@@ -25,22 +25,22 @@ const LandingPage = () => {
   const features = [
     {
       icon: Heart,
-      title: "Turn homework papers into personalized lessons",
-      description: "No more reviewing graded homework line by line. Upload the marked-up paper and Starling identifies patterns in their mistakes, explains what went wrong, and creates practice targeting exactly those gaps.",
+      title: "Turn homework papers into targeted lessons",
+      description: "No more reviewing graded homework line by line. Upload the marked-up paper and Starling identifies patterns in their mistakes, shows what went wrong, and creates practice targeting exactly those gaps.",
       gradient: "from-rose-400 to-pink-500",
       image: featureConfidence,
     },
     {
       icon: Bot,
-      title: "Get feedback that meets them where they are",
-      description: "Starling analyzes their approach in real-time and provides patient, personalized help—explaining concepts in ways that actually click.",
+      title: "💬 Get guidance that adapts as they work",
+      description: "Starling analyzes their approach in real-time and adjusts support on the fly—meeting them right where they are with clear, patient nudges in the right direction.",
       gradient: "from-emerald-400 to-green-500",
       image: featureTutor,
     },
     {
       icon: BarChart3,
-      title: "Build real understanding, not just right answers",
-      description: "Watch concept mastery grow from confusion to clarity to confidence. Skills that stick, not facts that fade.",
+      title: "🌱 Build deep mastery, not surface-level success",
+      description: "Watch understanding grow from confusion to clarity to confidence. Skills that become second nature, not memorized tricks that disappear after the test.",
       gradient: "from-violet-400 to-purple-500",
       image: featureProgress,
     },
