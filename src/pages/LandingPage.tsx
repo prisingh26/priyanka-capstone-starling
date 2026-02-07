@@ -363,7 +363,13 @@ const LandingPage = () => {
                   <motion.div whileHover={{
                 scale: 1.05
               }} className="w-32 h-32 rounded-2xl overflow-hidden mx-auto mb-4 shadow-lg">
-                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                    {item.step === 2 ? (
+                      <div className="w-full h-full bg-gradient-to-br from-violet-100 to-rose-100 flex items-center justify-center">
+                        <ShootingStarIcon className="w-20 h-20" />
+                      </div>
+                    ) : (
+                      <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                    )}
                   </motion.div>
                   <motion.div whileHover={{
                 scale: 1.1
