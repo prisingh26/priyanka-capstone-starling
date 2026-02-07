@@ -259,7 +259,7 @@ const LandingPage = () => {
                     key={heroIndex}
                     src={heroImages[heroIndex]}
                     alt="A happy child doing homework with Starling, a friendly AI tutor"
-                    className="w-full h-auto"
+                    className="w-full max-w-sm mx-auto h-auto"
                     initial={{ opacity: 0, x: 80 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -80 }}
