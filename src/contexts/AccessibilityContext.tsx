@@ -30,11 +30,22 @@
  export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
    children,
  }) => {
-   const [settings, setSettings] = useState<AccessibilitySettings>(() => {
-     const saved = localStorage.getItem("sprout_accessibility");
-     if (saved) {
-       return { ...defaultSettings, ...JSON.parse(saved) };
-     }
+  const [settings, setSettings] = useState<AccessibilitySettings>(() => {
+      const saved = localStorage.getItem("sprout_accessibility");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (typeof parsed === 'object' && parsed !== null) {
+            return {
+              fontSize: ["100", "125", "150"].includes(parsed.fontSize) ? parsed.fontSize : defaultSettings.fontSize,
+              highContrast: typeof parsed.highContrast === 'boolean' ? parsed.highContrast : defaultSettings.highContrast,
+              reducedMotion: typeof parsed.reducedMotion === 'boolean' ? parsed.reducedMotion : defaultSettings.reducedMotion,
+              dyslexiaFont: typeof parsed.dyslexiaFont === 'boolean' ? parsed.dyslexiaFont : defaultSettings.dyslexiaFont,
+              screenReaderAnnouncements: typeof parsed.screenReaderAnnouncements === 'boolean' ? parsed.screenReaderAnnouncements : defaultSettings.screenReaderAnnouncements,
+            };
+          }
+        } catch { /* ignore malformed data */ }
+      }
      // Check system preferences
      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
      const prefersHighContrast = window.matchMedia("(prefers-contrast: more)").matches;
