@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Play, Camera, Bot, BarChart3, Shield, Lock, Users, ChevronDown, Sparkles, Heart, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import heroImage from "@/assets/hero-illustration.jpg";
-import heroGirl from "@/assets/hero-girl.jpg";
+import heroParentChild from "@/assets/hero-parent-child.jpg";
 import featureConfidence from "@/assets/feature-confidence.jpg";
 import featureTutor from "@/assets/feature-tutor.jpg";
 import featureProgress from "@/assets/feature-progress.jpg";
@@ -229,18 +228,10 @@ const LandingPage = () => {
             duration: 0.8,
             delay: 0.3
           }} className="relative">
-              <div className="relative flex gap-4">
-                <div className="flex-1 rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/20">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/20">
                   <img
-                    src={heroImage}
-                    alt="A boy solving homework with Starling on an iPad"
-                    className="w-full h-auto"
-                  />
-                </div>
-                <div className="flex-1 rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/20">
-                  <img
-                    src={heroGirl}
-                    alt="A girl solving homework with Starling on an iPad"
+                    src={heroParentChild}
+                    alt="A mother and daughter sharing a proud learning moment with the Starling app"
                     className="w-full h-auto"
                   />
                 </div>
@@ -269,7 +260,6 @@ const LandingPage = () => {
                   <Heart className="w-4 h-4 text-rose-500" />
                   <span className="text-sm font-medium text-foreground">Grades 1–5</span>
                 </motion.div>
-              </div>
             </motion.div>
           </div>
         </div>
