@@ -16,15 +16,8 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [heroIndex, setHeroIndex] = useState(0);
-  const heroImages = [heroImage, heroGirl];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % heroImages.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({
       behavior: "smooth"
@@ -253,19 +246,21 @@ const LandingPage = () => {
             duration: 0.8,
             delay: 0.3
           }} className="relative">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/20">
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={heroIndex}
-                    src={heroImages[heroIndex]}
-                    alt="A happy child doing homework with Starling, a friendly AI tutor"
-                    className="w-full max-w-sm mx-auto h-auto"
-                    initial={{ opacity: 0, x: 80 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -80 }}
-                    transition={{ duration: 0.6, ease: "easeInOut" }}
+              <div className="relative flex gap-4">
+                <div className="flex-1 rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/20">
+                  <img
+                    src={heroImage}
+                    alt="A boy solving homework with Starling on an iPad"
+                    className="w-full h-auto"
                   />
-                </AnimatePresence>
+                </div>
+                <div className="flex-1 rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/20">
+                  <img
+                    src={heroGirl}
+                    alt="A girl solving homework with Starling on an iPad"
+                    className="w-full h-auto"
+                  />
+                </div>
                 {/* Floating badge overlays */}
                 <motion.div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center gap-2" initial={{
                 opacity: 0,
