@@ -78,7 +78,16 @@ type Screen =
    const [previousScreen, setPreviousScreen] = useState<Screen | null>(null);
   const [userProfile, setUserProfile] = useState(() => {
     const saved = localStorage.getItem("sprout_profile");
-    return saved ? JSON.parse(saved) : { name: "Student", grade: 3 };
+    if (!saved) return { name: "Student", grade: 3 };
+    try {
+      const parsed = JSON.parse(saved);
+      if (typeof parsed === 'object' && parsed !== null &&
+          typeof parsed.name === 'string' && parsed.name.length <= 100 &&
+          typeof parsed.grade === 'number' && parsed.grade >= 1 && parsed.grade <= 12) {
+        return { name: parsed.name, grade: parsed.grade };
+      }
+    } catch { /* ignore */ }
+    return { name: "Student", grade: 3 };
   });
   
   // State for uploaded image
