@@ -434,69 +434,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ─── Final CTA ──────────────────────────────────────────── */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600" />
-        <motion.div
-          className="absolute top-0 right-0 w-96 h-96 rounded-full bg-white/10 blur-3xl -translate-y-1/2 translate-x-1/2"
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        />
-
-        <div className="container mx-auto px-4 relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <div className="mb-6"><ShootingStarIcon size={56} /></div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-              Learn where your child needs help, practice what makes it click, watch confidence bloom.
-            </h2>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-                <Button
-                  size="lg"
-                  onClick={() => navigate("/signup")}
-                  className="bg-white text-violet-700 hover:bg-white/90 rounded-full px-8 py-6 text-lg font-bold shadow-xl"
-                >
-                  Request Early Access
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-                <Button
-                  size="lg"
-                  onClick={() => navigate("/app")}
-                  className="bg-white text-violet-600 hover:bg-white/90 rounded-full px-8 py-6 text-lg font-semibold shadow-xl"
-                >
-                  Try It Free
-                </Button>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ─── Footer ─────────────────────────────────────────────── */}
-      <footer className="py-10 bg-foreground/5 border-t border-amber-100">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <ShootingStarIcon size={24} />
-              <span className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent">Starling</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Starling Learning. Made with 💜 for curious kids.
-            </p>
-            <div className="flex gap-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-              <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-              <a href="#" className="hover:text-foreground transition-colors">Contact</a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
