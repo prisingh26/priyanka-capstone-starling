@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import StarlingMascot from "@/components/StarlingMascot";
+
 import ShootingStarIcon from "@/components/ShootingStarIcon";
 import ConfettiAnimation from "@/components/ConfettiAnimation";
 import demoHomework from "@/assets/demo-homework.jpg";
@@ -182,7 +182,7 @@ const DemoPage: React.FC = () => {
           {step === "intro" && (
             <MotionCard key="intro">
               <div className="text-center space-y-6">
-                <StarlingMascot size="lg" animate expression="happy" />
+                <ShootingStarIcon size={80} className="mx-auto" />
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                   See how Starling helps kids learn! ✨
                 </h1>
@@ -349,7 +349,7 @@ const DemoPage: React.FC = () => {
             <MotionCard key="tutoring">
               <div className="space-y-5">
                 <div className="flex items-center gap-3">
-                  <StarlingMascot size="md" animate expression="thinking" />
+                  <ShootingStarIcon size={48} />
                   <div>
                     <h2 className="text-xl font-bold text-foreground">Let's fix 73 − 38</h2>
                     <p className="text-sm text-muted-foreground">You wrote 45, but let's work through it step by step</p>
@@ -431,7 +431,7 @@ const DemoPage: React.FC = () => {
             <MotionCard key="practice">
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                  <StarlingMascot size="md" animate expression={practiceFeedback === "correct" ? "excited" : "encouraging"} />
+                  <ShootingStarIcon size={48} />
                   <div>
                     <h2 className="text-xl font-bold text-foreground">Your turn!</h2>
                     <p className="text-sm text-muted-foreground">
@@ -563,7 +563,7 @@ const DemoPage: React.FC = () => {
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", bounce: 0.5 }}
                 >
-                  <StarlingMascot size="lg" animate expression="excited" />
+                  <ShootingStarIcon size={80} className="mx-auto" />
                 </motion.div>
                 <motion.h2
                   initial={{ opacity: 0, y: 20 }}
