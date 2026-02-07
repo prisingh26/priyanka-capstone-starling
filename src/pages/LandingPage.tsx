@@ -297,7 +297,7 @@ const LandingPage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-5xl font-bold text-foreground">How It Works</h2>
-            <p className="mt-4 text-lg text-muted-foreground">Three simple steps to homework confidence</p>
+            <p className="mt-4 text-lg text-muted-foreground">Three simple steps to practice confidence</p>
           </motion.div>
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-4 max-w-5xl mx-auto">
