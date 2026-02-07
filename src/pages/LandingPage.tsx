@@ -162,12 +162,6 @@ const LandingPage = () => {
                 </span>
               </motion.h1>
 
-              <motion.p
-                variants={itemVariants}
-                className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed"
-              >
-                Stuck on homework? Upload it for help. Ready to practice? Choose your skill. Starling adapts to your child's needs, providing patient explanations and perfectly-matched practice.
-              </motion.p>
 
               <motion.p
                 variants={itemVariants}
