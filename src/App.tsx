@@ -10,25 +10,27 @@
  import SignUpPage from "./pages/SignUpPage";
  import LoginPage from "./pages/LoginPage";
  import ParentOnboardingPage from "./pages/ParentOnboardingPage";
- import NotFound from "./pages/NotFound";
+import NotFound from "./pages/NotFound";
+import DemoPage from "./pages/DemoPage";
 
 const queryClient = new QueryClient();
 
  const App = () => (
    <QueryClientProvider client={queryClient}>
-     <AccessibilityProvider>
-       <TooltipProvider>
-         <Toaster />
-         <Sonner />
-         <SkipLink />
-         <BrowserRouter>
-           <Routes>
-             <Route path="/" element={<LandingPage />} />
-             <Route path="/signup" element={<SignUpPage />} />
-             <Route path="/login" element={<LoginPage />} />
-             <Route path="/onboarding" element={<ParentOnboardingPage />} />
-             <Route path="/app" element={<Index />} />
-             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <AccessibilityProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <SkipLink />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/demo" element={<DemoPage />} />
+              <Route path="/signup" element={<SignUpPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/onboarding" element={<ParentOnboardingPage />} />
+              <Route path="/app" element={<Index />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
              <Route path="*" element={<NotFound />} />
            </Routes>
          </BrowserRouter>

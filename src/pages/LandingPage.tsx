@@ -225,9 +225,9 @@ const LandingPage = () => {
               }} whileTap={{
                 scale: 0.97
               }}>
-                  <Button size="lg" variant="outline" onClick={() => navigate("/app")} className="rounded-full px-8 py-6 text-lg border-2 border-violet-200 hover:bg-violet-50 group">
+                  <Button size="lg" variant="outline" onClick={() => navigate("/demo")} className="rounded-full px-8 py-6 text-lg border-2 border-violet-200 hover:bg-violet-50 group">
                     <Play className="w-5 h-5 mr-2 text-violet-600 group-hover:text-violet-700" />
-                    Try It Free
+                    Try It Free — See Demo
                   </Button>
                 </motion.div>
               </motion.div>
