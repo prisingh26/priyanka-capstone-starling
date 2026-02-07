@@ -25,22 +25,22 @@ const LandingPage = () => {
   const features = [
     {
       icon: Heart,
-      title: "Builds Real Confidence",
-      description: "Watch your child go from 'I can't do this' to 'I got this!' Our AI tutor celebrates every step, turning frustration into pride.",
+      title: "Turn homework papers into personalized lessons",
+      description: "No more reviewing graded homework line by line. Upload the marked-up paper and Starling identifies patterns in their mistakes, explains what went wrong, and creates practice targeting exactly those gaps.",
       gradient: "from-rose-400 to-pink-500",
       image: featureConfidence,
     },
     {
       icon: Bot,
-      title: "Patient AI Tutor, Always Ready",
-      description: "No more homework battles. Starling explains concepts step-by-step with infinite patience — just like the best teacher your child ever had.",
+      title: "Get feedback that meets them where they are",
+      description: "Starling analyzes their approach in real-time and provides patient, personalized help—explaining concepts in ways that actually click.",
       gradient: "from-emerald-400 to-green-500",
       image: featureTutor,
     },
     {
       icon: BarChart3,
-      title: "You See Everything",
-      description: "Detailed progress reports show exactly where your child excels and where they need support. No guessing, just clarity.",
+      title: "Build real understanding, not just right answers",
+      description: "Watch concept mastery grow from confusion to clarity to confidence. Skills that stick, not facts that fade.",
       gradient: "from-violet-400 to-purple-500",
       image: featureProgress,
     },
