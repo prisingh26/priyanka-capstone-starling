@@ -1,746 +1,619 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Camera, Check, Lightbulb, RotateCcw, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Check, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
-
 import ShootingStarIcon from "@/components/ShootingStarIcon";
-import ConfettiAnimation from "@/components/ConfettiAnimation";
-import demoHomework from "@/assets/demo-homework.jpg";
 
-type DemoStep =
-  | "intro"
-  | "uploading"
-  | "analyzing"
-  | "results"
-  | "tutoring"
-  | "practice"
-  | "celebrate";
+type DemoStep = "select" | "analyzing" | "results";
 
-// Demo data simulating the analysis
-const demoProblems = [
-  { id: 1, question: "73 - 38", studentAnswer: "45", correctAnswer: "35", isCorrect: false, errorType: "Regrouping" },
-  { id: 2, question: "52 - 27", studentAnswer: "25", correctAnswer: "25", isCorrect: true },
-  { id: 3, question: "84 - 49", studentAnswer: "45", correctAnswer: "35", isCorrect: false, errorType: "Regrouping" },
-  { id: 4, question: "61 - 35", studentAnswer: "26", correctAnswer: "26", isCorrect: true },
-  { id: 5, question: "90 - 56", studentAnswer: "44", correctAnswer: "34", isCorrect: false, errorType: "Regrouping" },
+interface SampleProblem {
+  id: string;
+  grade: string;
+  emoji: string;
+  subtitle: string;
+  problemDisplay: string;
+  errorNote: string;
+  popular?: boolean;
+  // Results data
+  problemText: string;
+  studentAnswer: string;
+  errorDescription: string;
+  encouragement: string;
+  understanding: string[];
+  visualHelper: React.ReactNode;
+  solution: React.ReactNode;
+  rememberTips: string[];
+}
+
+const sampleProblems: SampleProblem[] = [
+  {
+    id: "addition",
+    grade: "Grade 3",
+    emoji: "📐",
+    subtitle: "Addition with Carrying",
+    problemDisplay: "47 + 38 = 75",
+    errorNote: "(Carrying error)",
+    problemText:
+      "Solve: 47 + 38.\n\nThe student added the digits but forgot to carry the 1 from the ones place to the tens place.",
+    studentAnswer: "47 + 38 = 75",
+    errorDescription: "Forgot to carry the 1 when 7 + 8 = 15",
+    encouragement:
+      "You got really close! Adding big numbers is tricky — let's figure it out together. 😊",
+    understanding: [
+      "When digits in a column add up to 10 or more, we need to carry.",
+      "7 + 8 = 15 → write 5 in the ones, carry the 1 to tens.",
+      "Then 4 + 3 + 1 (carried) = 8 in the tens place.",
+    ],
+    visualHelper: (
+      <div className="font-mono text-xl space-y-1 text-center">
+        <div>
+          <span className="text-muted-foreground"> </span> 4{" "}
+          <span className="text-primary font-bold">7</span>
+        </div>
+        <div>
+          + 3 <span className="text-primary font-bold">8</span>
+        </div>
+        <div className="border-t border-foreground pt-1">
+          <span className="text-success font-bold">8 5</span>
+        </div>
+        <div className="text-sm text-primary mt-2">
+          ↑ Carry the 1! (7+8=15)
+        </div>
+      </div>
+    ),
+    solution: (
+      <div className="space-y-2">
+        <p className="font-semibold">Step 1: Ones place</p>
+        <p>7 + 8 = 15 → write 5, carry 1</p>
+        <p className="font-semibold">Step 2: Tens place</p>
+        <p>4 + 3 + 1 = 8</p>
+        <p className="text-success font-bold text-lg mt-2">✓ 47 + 38 = 85</p>
+      </div>
+    ),
+    rememberTips: [
+      "When ones add up to 10+, carry the ten",
+      "Always add the carried number to the tens column",
+    ],
+  },
+  {
+    id: "fractions",
+    grade: "Grade 4",
+    emoji: "🧮",
+    subtitle: "Fraction Addition",
+    problemDisplay: "1/4 + 1/2 = 2/6",
+    errorNote: "(Common denominator)",
+    problemText:
+      "Solve: 1/4 + 1/2.\n\nThe student added numerators and denominators separately instead of finding a common denominator.",
+    studentAnswer: "1/4 + 1/2 = 2/6",
+    errorDescription: "Added numerators and denominators separately",
+    encouragement:
+      "I can see you tried adding the tops and bottoms — that's a really common mistake! Let's learn the right way. 😊",
+    understanding: [
+      "To add fractions, they need the same denominator (bottom number).",
+      "1/2 = 2/4, so now both fractions have 4 as the denominator.",
+      "Now we can add: 1/4 + 2/4 = 3/4",
+    ],
+    visualHelper: (
+      <div className="space-y-3 text-center">
+        <div className="flex justify-center gap-4 items-center">
+          <div className="w-16 h-16 rounded-lg border-2 border-primary relative overflow-hidden">
+            <div className="absolute bottom-0 w-full h-1/4 bg-primary/40" />
+            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">
+              1/4
+            </span>
+          </div>
+          <span className="text-2xl font-bold">+</span>
+          <div className="w-16 h-16 rounded-lg border-2 border-primary relative overflow-hidden">
+            <div className="absolute bottom-0 w-full h-1/2 bg-primary/40" />
+            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">
+              1/2
+            </span>
+          </div>
+          <span className="text-2xl font-bold">=</span>
+          <div className="w-16 h-16 rounded-lg border-2 border-success relative overflow-hidden">
+            <div className="absolute bottom-0 w-full h-3/4 bg-success/40" />
+            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">
+              3/4
+            </span>
+          </div>
+        </div>
+        <p className="text-sm text-primary">
+          Convert 1/2 → 2/4, then add!
+        </p>
+      </div>
+    ),
+    solution: (
+      <div className="space-y-2">
+        <p className="font-semibold">Step 1: Find common denominator</p>
+        <p>LCD of 4 and 2 = 4</p>
+        <p className="font-semibold">Step 2: Convert</p>
+        <p>1/2 = 2/4</p>
+        <p className="font-semibold">Step 3: Add numerators</p>
+        <p>1/4 + 2/4 = 3/4</p>
+        <p className="text-success font-bold text-lg mt-2">
+          ✓ 1/4 + 1/2 = 3/4
+        </p>
+      </div>
+    ),
+    rememberTips: [
+      "Never add denominators — find a common one first",
+      "Only add numerators when denominators match",
+    ],
+  },
+  {
+    id: "cookies",
+    grade: "Grade 4",
+    emoji: "🍪",
+    subtitle: "Word Problem",
+    problemDisplay: "Fraction of a Whole",
+    errorNote: "(1/3 of 24 cookies)",
+    popular: true,
+    problemText:
+      "Emma baked 24 cookies. She wants to give 1/3 of them to her friend Sarah. How many cookies will Sarah get?",
+    studentAnswer: "24 - 1/3 = 23 2/3 cookies",
+    errorDescription: "Used subtraction instead of multiplication",
+    encouragement:
+      "I can see you worked hard on this! Let's figure it out together. 😊",
+    understanding: [
+      'The problem asks: "1/3 OF 24"',
+      'When we see "of" with fractions, it means multiply!',
+      "Think of it like this:",
+      "• Emma has 24 cookies total",
+      "• She's sharing 1/3 of them",
+      "• That means divide 24 into 3 equal groups",
+    ],
+    visualHelper: (
+      <div className="space-y-3">
+        <div className="grid grid-cols-8 gap-1 justify-items-center">
+          {Array.from({ length: 24 }).map((_, i) => (
+            <span key={i} className="text-lg">
+              🍪
+            </span>
+          ))}
+        </div>
+        <div className="space-y-1 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Group 1:</span>
+            <span>🍪🍪🍪🍪🍪🍪🍪🍪</span>
+            <span className="text-muted-foreground">(8)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Group 2:</span>
+            <span>🍪🍪🍪🍪🍪🍪🍪🍪</span>
+            <span className="text-muted-foreground">(8)</span>
+          </div>
+          <div className="flex items-center gap-2 bg-success/10 rounded-lg px-2 py-1">
+            <span className="text-muted-foreground">Group 3:</span>
+            <span>🍪🍪🍪🍪🍪🍪🍪🍪</span>
+            <span className="text-success font-bold">← Sarah gets these!</span>
+          </div>
+        </div>
+      </div>
+    ),
+    solution: (
+      <div className="space-y-2">
+        <p className="font-semibold">Method 1: Division</p>
+        <p>24 ÷ 3 = 8 cookies</p>
+        <p className="font-semibold">Method 2: Multiplication</p>
+        <p>1/3 × 24 = 24/3 = 8 cookies</p>
+        <p className="text-success font-bold text-lg mt-2">
+          ✓ Sarah gets 8 cookies!
+        </p>
+      </div>
+    ),
+    rememberTips: [
+      '"Of" with fractions = multiply',
+      "1/3 of something = divide by 3",
+    ],
+  },
 ];
 
-const tutoringSteps = [
-  {
-    title: "Look at the ones place",
-    content: "We need to subtract 8 from 3. But 3 is smaller than 8! We can't do that directly.",
-    visual: { top: "7 3", bottom: "− 3 8", highlight: "ones" },
-  },
-  {
-    title: "Borrow from the tens",
-    content: "We borrow 1 ten from the 7 tens, leaving 6 tens. That ten becomes 10 ones!",
-    visual: { top: "6 13", bottom: "− 3 8", highlight: "borrow" },
-  },
-  {
-    title: "Subtract the ones",
-    content: "Now 13 − 8 = 5. Write 5 in the ones place!",
-    visual: { top: "6 13", bottom: "− 3 8", result: "5", highlight: "subtract-ones" },
-  },
-  {
-    title: "Subtract the tens",
-    content: "6 − 3 = 3. Write 3 in the tens place!",
-    visual: { top: "6 13", bottom: "− 3 8", result: "35", highlight: "subtract-tens" },
-  },
+const analysisChecklist = [
+  { icon: "📸", text: "Reading the word problem" },
+  { icon: "🔍", text: "Understanding what it's asking" },
+  { icon: "🧠", text: "Checking the student's approach" },
+  { icon: "💡", text: "Creating a helpful explanation..." },
 ];
 
 const DemoPage: React.FC = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<DemoStep>("intro");
+  const [step, setStep] = useState<DemoStep>("select");
+  const [selectedProblem, setSelectedProblem] = useState<SampleProblem | null>(null);
   const [progress, setProgress] = useState(0);
-  const [tutorStep, setTutorStep] = useState(0);
-  const [typedText, setTypedText] = useState("");
-  const [practiceAnswer, setPracticeAnswer] = useState("");
-  const [practiceAttempts, setPracticeAttempts] = useState(0);
-  const [practiceFeedback, setPracticeFeedback] = useState<"none" | "wrong" | "correct">("none");
-  const [showHint, setShowHint] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [autoAdvanceTimer, setAutoAdvanceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [checklistDone, setChecklistDone] = useState<boolean[]>([false, false, false, false]);
 
-  // Cleanup timers
+  // Analysis animation
   useEffect(() => {
-    return () => {
-      if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
-    };
-  }, [autoAdvanceTimer]);
+    if (step !== "analyzing") return;
+    setProgress(0);
+    setChecklistDone([false, false, false, false]);
 
-  // Uploading animation
-  useEffect(() => {
-    if (step === "uploading") {
-      setProgress(0);
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setTimeout(() => setStep("analyzing"), 400);
-            return 100;
-          }
-          return prev + 4;
-        });
-      }, 60);
-      return () => clearInterval(interval);
-    }
-  }, [step]);
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, 40);
 
-  // Analyzing animation
-  useEffect(() => {
-    if (step === "analyzing") {
-      setProgress(0);
-      const messages = [
-        "Reading handwriting...",
-        "Checking each answer...",
-        "Finding error patterns...",
-        "Preparing your results...",
-      ];
-      let msgIndex = 0;
-      setTypedText(messages[0]);
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setTimeout(() => setStep("results"), 600);
-            return 100;
-          }
-          const newVal = prev + 2;
-          const newMsgIndex = Math.min(Math.floor(newVal / 25), messages.length - 1);
-          if (newMsgIndex !== msgIndex) {
-            msgIndex = newMsgIndex;
-            setTypedText(messages[msgIndex]);
-          }
-          return newVal;
-        });
-      }, 80);
-      return () => clearInterval(interval);
-    }
-  }, [step]);
-
-  // Auto-advance from results to tutoring
-  useEffect(() => {
-    if (step === "results") {
-      const t = setTimeout(() => setStep("tutoring"), 5000);
-      setAutoAdvanceTimer(t);
-      return () => clearTimeout(t);
-    }
-  }, [step]);
-
-  const handleCheckAnswer = () => {
-    const answer = parseInt(practiceAnswer);
-    if (answer === 37) {
-      setPracticeFeedback("correct");
-      setShowConfetti(true);
+    // Checklist items
+    const timers = analysisChecklist.map((_, i) =>
       setTimeout(() => {
-        setStep("celebrate");
-        setShowConfetti(false);
-      }, 2000);
-    } else {
-      setPracticeFeedback("wrong");
-      setPracticeAttempts((prev) => prev + 1);
-      if (practiceAttempts >= 0) setShowHint(true);
-    }
+        setChecklistDone((prev) => {
+          const next = [...prev];
+          next[i] = true;
+          return next;
+        });
+      }, (i + 1) * 1000)
+    );
+
+    // Transition to results
+    const resultTimer = setTimeout(() => setStep("results"), 4500);
+
+    return () => {
+      clearInterval(progressInterval);
+      timers.forEach(clearTimeout);
+      clearTimeout(resultTimer);
+    };
+  }, [step]);
+
+  const handleSelectProblem = (problem: SampleProblem) => {
+    setSelectedProblem(problem);
+    setStep("analyzing");
   };
 
   return (
-    <div className="min-h-screen bg-amber-50/40">
-      <ConfettiAnimation trigger={showConfetti} />
-
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <nav className="sticky top-0 z-50 bg-amber-50/80 backdrop-blur-xl border-b border-amber-100/50">
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-          <button onClick={() => navigate("/")} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+          <button
+            onClick={() => (step === "select" ? navigate("/") : setStep("select"))}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm font-medium">Back</span>
           </button>
           <div className="flex items-center gap-2">
             <ShootingStarIcon size={22} />
-            <span className="font-bold bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent">
-              Starling Demo
-            </span>
+            <span className="font-bold text-gradient-primary">Starling Demo</span>
           </div>
-          <Button size="sm" onClick={() => navigate("/signup")} className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-4 text-sm">
+          <Button
+            size="sm"
+            onClick={() => navigate("/signup")}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-4 text-sm"
+          >
             Sign Up
           </Button>
         </div>
       </nav>
 
-      {/* Step indicator */}
-      <div className="container mx-auto px-4 pt-4">
-        <DemoStepIndicator currentStep={step} />
-      </div>
+      <AnimatePresence mode="wait">
+        {/* ===== STEP 1: PROBLEM SELECTOR ===== */}
+        {step === "select" && (
+          <motion.div
+            key="select"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="container mx-auto px-4 py-8 max-w-4xl"
+          >
+            {/* Header */}
+            <div className="text-center mb-10 space-y-3">
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                Try Starling Free — See How It Works
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Experience how Starling helps with real math homework.{" "}
+                <span className="text-muted-foreground/70">No signup required • Takes 2 minutes</span>
+              </p>
+            </div>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 py-6 max-w-2xl">
-        <AnimatePresence mode="wait">
-          {/* INTRO */}
-          {step === "intro" && (
-            <MotionCard key="intro">
-              <div className="text-center space-y-6">
-                <ShootingStarIcon size={80} className="mx-auto" />
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-                  See how Starling helps kids learn! ✨
-                </h1>
-                <p className="text-muted-foreground max-w-md mx-auto">
-                  Watch a real 3rd-grade math homework get analyzed. Starling finds mistakes, 
-                  explains <em>why</em> they happened, and guides the student to the right answer — 
-                  <strong> without ever giving it away</strong>.
-                </p>
-                <div className="rounded-2xl overflow-hidden shadow-lg max-w-sm mx-auto border-4 border-white">
-                  <img src={demoHomework} alt="Sample 3rd grade math homework" className="w-full" />
-                </div>
-                <Button
-                  size="lg"
-                  onClick={() => setStep("uploading")}
-                  className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-8 py-6 text-lg shadow-xl shadow-violet-500/25"
-                >
-                  <Camera className="w-5 h-5 mr-2" />
-                  Upload This Homework
-                </Button>
-              </div>
-            </MotionCard>
-          )}
-
-          {/* UPLOADING */}
-          {step === "uploading" && (
-            <MotionCard key="uploading">
-              <div className="text-center space-y-6">
+            {/* Problem Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+              {sampleProblems.map((problem) => (
                 <motion.div
-                  className="rounded-2xl overflow-hidden shadow-lg max-w-xs mx-auto relative"
-                  animate={{ scale: [1, 0.98, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
+                  key={problem.id}
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <img src={demoHomework} alt="Uploading homework" className="w-full" />
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-t from-violet-600/40 to-transparent"
-                    style={{ top: `${100 - progress}%` }}
-                  />
-                </motion.div>
-                <div className="space-y-2 max-w-sm mx-auto">
-                  <Progress value={progress} className="h-3" />
-                  <p className="text-sm text-muted-foreground">Scanning your homework... {Math.round(progress)}%</p>
-                </div>
-              </div>
-            </MotionCard>
-          )}
-
-          {/* ANALYZING */}
-          {step === "analyzing" && (
-            <MotionCard key="analyzing">
-              <div className="text-center space-y-6">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                  className="w-20 h-20 mx-auto"
-                >
-                  <ShootingStarIcon size={80} />
-                </motion.div>
-                <h2 className="text-xl font-bold text-foreground">Starling is analyzing...</h2>
-                <div className="space-y-2 max-w-sm mx-auto">
-                  <Progress value={progress} className="h-3" />
-                  <motion.p
-                    key={typedText}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-sm text-muted-foreground"
-                  >
-                    {typedText}
-                  </motion.p>
-                </div>
-                <div className="bg-violet-50 rounded-xl p-4 max-w-sm mx-auto">
-                  <p className="text-sm text-foreground">
-                    <span className="font-bold">💡 Fun fact:</span> Your brain grows new connections every time you practice math!
-                  </p>
-                </div>
-              </div>
-            </MotionCard>
-          )}
-
-          {/* RESULTS */}
-          {step === "results" && (
-            <MotionCard key="results">
-              <div className="space-y-5">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold text-foreground">Results are in! 📊</h2>
-                  <p className="text-muted-foreground mt-1">Starling found some patterns</p>
-                </div>
-
-                {/* Score */}
-                <div className="flex items-center justify-center gap-6 p-6 bg-gradient-to-br from-violet-50 to-rose-50 rounded-2xl">
-                  <div className="relative w-20 h-20">
-                    <svg className="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
-                      <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" className="text-muted/30" strokeWidth="3" />
-                      <motion.circle
-                        cx="18" cy="18" r="15.5" fill="none" stroke="currentColor"
-                        className="text-warning" strokeWidth="3" strokeLinecap="round"
-                        strokeDasharray="97.4" initial={{ strokeDashoffset: 97.4 }}
-                        animate={{ strokeDashoffset: 97.4 * (1 - 0.4) }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      />
-                    </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-xl font-bold text-foreground">40%</span>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-foreground">2 of 5 correct</p>
-                    <p className="text-muted-foreground text-sm">Let's work on this together! 🌱</p>
-                  </div>
-                </div>
-
-                {/* Problem list */}
-                <div className="space-y-2">
-                  {demoProblems.map((p, i) => (
-                    <motion.div
-                      key={p.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.15 }}
-                      className={`flex items-center gap-3 p-3 rounded-xl ${
-                        p.isCorrect ? "bg-emerald-50" : "bg-rose-50 border-l-4 border-warning"
-                      }`}
-                    >
-                      <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
-                        p.isCorrect ? "bg-emerald-500 text-white" : "bg-rose-400 text-white"
-                      }`}>
-                        {p.isCorrect ? "✓" : "✗"}
+                  <Card className="relative p-6 h-full flex flex-col cursor-pointer hover:shadow-float transition-shadow duration-300 border-2 border-transparent hover:border-primary/20">
+                    {problem.popular && (
+                      <span className="absolute -top-3 right-4 bg-warning text-warning-foreground text-xs font-bold px-3 py-1 rounded-full">
+                        ⭐ Popular
                       </span>
-                      <span className="font-mono text-lg flex-1">{p.question} = {p.studentAnswer}</span>
-                      {!p.isCorrect && (
-                        <span className="text-xs bg-warning/20 text-warning px-2 py-1 rounded-full">{p.errorType}</span>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* Pattern insight */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1 }}
-                  className="bg-violet-50 border border-violet-200 rounded-xl p-4"
-                >
-                  <div className="flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-violet-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold text-foreground">Pattern detected: Regrouping errors</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        3 problems have the same type of mistake — forgetting to subtract the borrowed ten. Let's fix that!
-                      </p>
+                    )}
+                    <div className="space-y-3 flex-1">
+                      <p className="text-3xl">{problem.emoji}</p>
+                      <div>
+                        <h3 className="font-bold text-foreground text-lg">{problem.grade}</h3>
+                        <p className="text-muted-foreground text-sm">{problem.subtitle}</p>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <p className="font-mono font-semibold text-foreground">
+                          {problem.problemDisplay}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">{problem.errorNote}</p>
+                      </div>
                     </div>
-                  </div>
+                    <Button
+                      onClick={() => handleSelectProblem(problem)}
+                      className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
+                    >
+                      Try This Problem
+                    </Button>
+                  </Card>
                 </motion.div>
+              ))}
+            </div>
 
-                <Button
-                  onClick={() => setStep("tutoring")}
-                  className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-full py-6 text-lg"
-                >
-                  Let's Learn Together <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
+            {/* Upload option */}
+            <div className="text-center space-y-3 pt-4 border-t border-border">
+              <p className="text-muted-foreground text-sm">
+                Or upload your own homework photo (optional)
+              </p>
+              <Button variant="outline" className="gap-2 rounded-full">
+                <Camera className="w-4 h-4" />
+                <Upload className="w-4 h-4" />
+                Upload Photo
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ===== STEP 2: ANALYSIS ANIMATION ===== */}
+        {step === "analyzing" && (
+          <motion.div
+            key="analyzing"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="container mx-auto px-4 py-16 max-w-lg"
+          >
+            <div className="text-center space-y-8">
+              {/* Mascot */}
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <ShootingStarIcon size={80} className="mx-auto" />
+              </motion.div>
+
+              <h2 className="text-2xl font-bold text-foreground">
+                🌟 Starling is analyzing...
+              </h2>
+
+              {/* Progress bar */}
+              <div className="space-y-2">
+                <Progress value={progress} className="h-3" />
+                <p className="text-sm text-muted-foreground font-medium">{Math.round(progress)}%</p>
               </div>
-            </MotionCard>
-          )}
 
-          {/* TUTORING */}
-          {step === "tutoring" && (
-            <MotionCard key="tutoring">
-              <div className="space-y-5">
-                <div className="flex items-center gap-3">
-                  <ShootingStarIcon size={48} />
-                  <div>
-                    <h2 className="text-xl font-bold text-foreground">Let's fix 73 − 38</h2>
-                    <p className="text-sm text-muted-foreground">You wrote 45, but let's work through it step by step</p>
-                  </div>
-                </div>
-
-                {/* Step progress */}
-                <div className="flex gap-2">
-                  {tutoringSteps.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-1.5 flex-1 rounded-full transition-all ${
-                        i <= tutorStep ? "bg-violet-500" : "bg-muted"
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                {/* Current step */}
-                <AnimatePresence mode="wait">
+              {/* Checklist */}
+              <div className="space-y-3 text-left max-w-sm mx-auto">
+                {analysisChecklist.map((item, i) => (
                   <motion.div
-                    key={tutorStep}
-                    initial={{ opacity: 0, x: 30 }}
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -30 }}
-                    className="space-y-4"
+                    transition={{ delay: i * 0.3 }}
+                    className="flex items-center gap-3"
                   >
-                    <Card className="p-5 bg-violet-50/50 border-violet-200">
-                      <h3 className="font-bold text-foreground text-lg flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-full bg-violet-500 text-white flex items-center justify-center text-sm">
-                          {tutorStep + 1}
-                        </span>
-                        {tutoringSteps[tutorStep].title}
-                      </h3>
-                      <p className="text-muted-foreground mt-2 ml-9">
-                        {tutoringSteps[tutorStep].content}
-                      </p>
-                    </Card>
-
-                    {/* Visual */}
-                    <div className="bg-white rounded-xl p-6 text-center border-2 border-dashed border-violet-200">
-                      <TutoringVisual step={tutorStep} />
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Navigation */}
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setTutorStep(Math.max(0, tutorStep - 1))}
-                    disabled={tutorStep === 0}
-                    className="flex-1 rounded-full"
-                  >
-                    ← Previous
-                  </Button>
-                  {tutorStep < tutoringSteps.length - 1 ? (
-                    <Button
-                      onClick={() => setTutorStep(tutorStep + 1)}
-                      className="flex-1 bg-violet-600 hover:bg-violet-700 text-white rounded-full"
+                    <span className="text-lg">{item.icon}</span>
+                    <span
+                      className={`flex-1 transition-colors ${
+                        checklistDone[i] ? "text-foreground" : "text-muted-foreground"
+                      }`}
                     >
-                      Next →
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => setStep("practice")}
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full"
-                    >
-                      Now You Try! 💪
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </MotionCard>
-          )}
-
-          {/* PRACTICE */}
-          {step === "practice" && (
-            <MotionCard key="practice">
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <ShootingStarIcon size={48} />
-                  <div>
-                    <h2 className="text-xl font-bold text-foreground">Your turn!</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Use what you just learned to solve this one
-                    </p>
-                  </div>
-                </div>
-
-                {/* Practice problem */}
-                <Card className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200">
-                  <div className="text-center space-y-4">
-                    <p className="text-4xl font-mono font-bold text-foreground">65 − 28 = ?</p>
-                    
-                    <div className="flex items-center justify-center gap-3">
-                      <Input
-                        type="number"
-                        value={practiceAnswer}
-                        onChange={(e) => {
-                          setPracticeAnswer(e.target.value);
-                          setPracticeFeedback("none");
-                        }}
-                        placeholder="?"
-                        className="w-24 text-center text-2xl font-mono h-14"
-                        disabled={practiceFeedback === "correct"}
-                      />
-                      {practiceFeedback !== "correct" && (
-                        <Button
-                          onClick={handleCheckAnswer}
-                          disabled={!practiceAnswer}
-                          className="bg-violet-600 hover:bg-violet-700 text-white h-14 px-6 rounded-xl"
-                        >
-                          Check
-                        </Button>
-                      )}
-                      {practiceFeedback === "correct" && (
-                        <motion.div
+                      {item.text}
+                    </span>
+                    <AnimatePresence>
+                      {checklistDone[i] ? (
+                        <motion.span
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center"
+                          className="text-success text-lg"
                         >
-                          <Check className="w-8 h-8 text-white" />
-                        </motion.div>
-                      )}
+                          ✓
+                        </motion.span>
+                      ) : i === checklistDone.filter(Boolean).length ? (
+                        <motion.span
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="text-lg"
+                        >
+                          ⏳
+                        </motion.span>
+                      ) : null}
+                    </AnimatePresence>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ===== STEP 3: TWO-COLUMN RESULTS ===== */}
+        {step === "results" && selectedProblem && (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="container mx-auto px-4 py-6 max-w-6xl"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+              {/* LEFT COLUMN - Student's Work (40%) */}
+              <div className="lg:col-span-2 space-y-4">
+                <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                  📸 Student's Work
+                </h2>
+                <Card className="overflow-hidden">
+                  {/* Simulated lined paper */}
+                  <div
+                    className="p-6 relative"
+                    style={{
+                      backgroundImage:
+                        "repeating-linear-gradient(transparent, transparent 27px, hsl(var(--border)) 28px)",
+                      backgroundSize: "100% 28px",
+                    }}
+                  >
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-semibold text-muted-foreground mb-2">Problem:</p>
+                        <p className="text-foreground whitespace-pre-line leading-7">
+                          {selectedProblem.problemText}
+                        </p>
+                      </div>
+                      <div className="pt-2">
+                        <p className="text-sm font-semibold text-muted-foreground mb-2">
+                          Student's Answer:
+                        </p>
+                        <div className="relative inline-block">
+                          <p className="text-lg font-mono font-bold text-foreground">
+                            {selectedProblem.studentAnswer}
+                          </p>
+                          {/* Red annotation circle */}
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.5 }}
+                            className="absolute -inset-2 border-2 border-destructive rounded-full pointer-events-none"
+                          />
+                        </div>
+                      </div>
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8 }}
+                        className="flex items-start gap-2 bg-destructive/10 rounded-lg p-3 mt-2"
+                      >
+                        <span>❌</span>
+                        <div>
+                          <p className="text-sm font-semibold text-destructive">Error:</p>
+                          <p className="text-sm text-foreground">
+                            {selectedProblem.errorDescription}
+                          </p>
+                        </div>
+                      </motion.div>
                     </div>
                   </div>
                 </Card>
+              </div>
 
-                {/* Wrong feedback */}
-                <AnimatePresence>
-                  {practiceFeedback === "wrong" && (
+              {/* RIGHT COLUMN - Starling's Feedback (60%) */}
+              <div className="lg:col-span-3 space-y-4">
+                <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                  <ShootingStarIcon size={24} /> Starling's Feedback
+                </h2>
+                <ScrollArea className="h-[calc(100vh-220px)] lg:h-[calc(100vh-180px)]">
+                  <div className="space-y-4 pr-4">
+                    {/* 1. Encouragement */}
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="bg-rose-50 border border-rose-200 rounded-xl p-4"
+                      transition={{ delay: 0.2 }}
+                      className="bg-success/10 border border-success/30 rounded-xl p-4"
                     >
-                      <div className="flex items-start gap-3">
-                        <span className="text-xl">🤔</span>
-                        <div>
-                          <p className="font-medium text-foreground">Not quite — but you're close!</p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Remember the steps we just learned. Try again!
-                          </p>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setPracticeAnswer("");
-                              setPracticeFeedback("none");
-                            }}
-                            className="mt-2 gap-1"
-                          >
-                            <RotateCcw className="w-4 h-4" /> Try Again
-                          </Button>
-                        </div>
-                      </div>
+                      <p className="text-foreground font-medium">
+                        {selectedProblem.encouragement}
+                      </p>
                     </motion.div>
-                  )}
-                </AnimatePresence>
 
-                {/* Hint */}
-                <AnimatePresence>
-                  {showHint && practiceFeedback !== "correct" && (
+                    {/* 2. Understanding */}
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      className="bg-amber-50 border border-amber-200 rounded-xl p-4"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
                     >
-                      <div className="flex items-start gap-3">
-                        <Lightbulb className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <Card className="p-5 space-y-3">
+                        <h3 className="font-bold text-foreground text-lg">
+                          📖 Understanding the Question
+                        </h3>
                         <div className="space-y-2">
-                          <p className="font-medium text-foreground">💡 Hint from Starling:</p>
-                          <p className="text-sm text-muted-foreground">
-                            5 is less than 8, so you need to borrow! Borrow 1 ten from the 6, making it 5.
-                            Now the ones place becomes 15. What's 15 − 8?
-                          </p>
-                          <div className="bg-white rounded-lg p-3 font-mono text-center text-lg">
-                            <span className="text-muted-foreground line-through text-sm">6</span>{" "}
-                            <span className="text-violet-600 font-bold">5</span>{" "}
-                            <span className="text-emerald-600 font-bold">15</span>
-                            <br />
-                            <span>− 2 8</span>
-                          </div>
+                          {selectedProblem.understanding.map((line, i) => (
+                            <p key={i} className="text-muted-foreground text-sm">
+                              {line}
+                            </p>
+                          ))}
                         </div>
+                      </Card>
+                    </motion.div>
+
+                    {/* 3. Visual Helper */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 }}
+                      className="bg-success/5 border border-success/20 rounded-xl p-5"
+                    >
+                      <h3 className="font-bold text-foreground text-lg mb-3">
+                        🎨 Visual Helper
+                      </h3>
+                      {selectedProblem.visualHelper}
+                    </motion.div>
+
+                    {/* 4. The Solution */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8 }}
+                      className="bg-primary/5 border border-primary/20 rounded-xl p-5"
+                    >
+                      <h3 className="font-bold text-foreground text-lg mb-3">
+                        ✨ The Solution
+                      </h3>
+                      <div className="text-sm text-foreground">
+                        {selectedProblem.solution}
                       </div>
                     </motion.div>
-                  )}
-                </AnimatePresence>
 
-                {!showHint && practiceFeedback !== "correct" && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => setShowHint(true)}
-                    className="w-full gap-2 text-amber-600"
-                  >
-                    <Lightbulb className="w-4 h-4" /> Need a hint?
-                  </Button>
-                )}
+                    {/* 5. Remember */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1 }}
+                      className="bg-warning/10 border border-warning/30 rounded-xl p-5"
+                    >
+                      <h3 className="font-bold text-foreground text-lg mb-2">💡 Remember:</h3>
+                      <ul className="space-y-1">
+                        {selectedProblem.rememberTips.map((tip, i) => (
+                          <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                            <span className="text-warning">•</span> {tip}
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+
+                    {/* Bottom CTA */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.2 }}
+                    >
+                      <Button
+                        size="lg"
+                        onClick={() => navigate("/signup")}
+                        className="w-full bg-success hover:bg-success/90 text-success-foreground rounded-full py-6 text-lg"
+                      >
+                        Try Practice Problems <ArrowRight className="w-5 h-5 ml-2" />
+                      </Button>
+                    </motion.div>
+                  </div>
+                </ScrollArea>
               </div>
-            </MotionCard>
-          )}
-
-          {/* CELEBRATE */}
-          {step === "celebrate" && (
-            <MotionCard key="celebrate">
-              <div className="text-center space-y-6 py-4">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", bounce: 0.5 }}
-                >
-                  <ShootingStarIcon size={80} className="mx-auto" />
-                </motion.div>
-                <motion.h2
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-3xl font-bold text-foreground"
-                >
-                  🎉 Amazing work!
-                </motion.h2>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-muted-foreground max-w-md mx-auto text-lg"
-                >
-                  You solved it <strong>all by yourself</strong> — Starling just gave you the right nudge!
-                  That's how real learning happens. 🌟
-                </motion.p>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="bg-gradient-to-br from-violet-50 to-rose-50 rounded-2xl p-6 max-w-sm mx-auto"
-                >
-                  <p className="font-bold text-foreground mb-2">What just happened:</p>
-                  <ul className="text-sm text-muted-foreground space-y-2 text-left">
-                    <li className="flex gap-2"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" /> Starling identified a pattern in the mistakes</li>
-                    <li className="flex gap-2"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" /> Explained <em>why</em> the errors happened</li>
-                    <li className="flex gap-2"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" /> Guided with hints — never gave the answer</li>
-                    <li className="flex gap-2"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" /> The student solved it independently!</li>
-                  </ul>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1 }}
-                  className="space-y-3"
-                >
-                  <Button
-                    size="lg"
-                    onClick={() => navigate("/signup")}
-                    className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-8 py-6 text-lg shadow-xl shadow-violet-500/25"
-                  >
-                    Get Early Access <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                  <p className="text-xs text-muted-foreground">Free to try • No credit card needed</p>
-                </motion.div>
-              </div>
-            </MotionCard>
-          )}
-        </AnimatePresence>
-      </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
-};
-
-// Sub-components
-
-const MotionCard: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    transition={{ duration: 0.4 }}
-    className="bg-white rounded-3xl shadow-xl p-6 md:p-8"
-  >
-    {children}
-  </motion.div>
-);
-
-const stepLabels: { key: DemoStep; label: string }[] = [
-  { key: "intro", label: "Upload" },
-  { key: "analyzing", label: "Analyze" },
-  { key: "results", label: "Results" },
-  { key: "tutoring", label: "Learn" },
-  { key: "practice", label: "Practice" },
-  { key: "celebrate", label: "Master!" },
-];
-
-const DemoStepIndicator: React.FC<{ currentStep: DemoStep }> = ({ currentStep }) => {
-  const stepMap: Record<DemoStep, number> = {
-    intro: 0, uploading: 0, analyzing: 1, results: 2, tutoring: 3, practice: 4, celebrate: 5,
-  };
-  const activeIndex = stepMap[currentStep];
-
-  return (
-    <div className="flex items-center justify-center gap-1 max-w-md mx-auto">
-      {stepLabels.map((s, i) => (
-        <React.Fragment key={s.key}>
-          <div className="flex flex-col items-center gap-1">
-            <div
-              className={`w-3 h-3 rounded-full transition-all ${
-                i <= activeIndex ? "bg-violet-500 scale-110" : "bg-muted"
-              }`}
-            />
-            <span className={`text-[10px] ${i <= activeIndex ? "text-violet-600 font-medium" : "text-muted-foreground"}`}>
-              {s.label}
-            </span>
-          </div>
-          {i < stepLabels.length - 1 && (
-            <div className={`h-0.5 w-4 mt-[-12px] ${i < activeIndex ? "bg-violet-400" : "bg-muted"}`} />
-          )}
-        </React.Fragment>
-      ))}
-    </div>
-  );
-};
-
-const TutoringVisual: React.FC<{ step: number }> = ({ step }) => {
-  const visuals = [
-    // Step 1: Highlight ones
-    <div className="space-y-1">
-      <div className="text-4xl font-mono font-bold">
-        <span className="text-foreground">7</span>{" "}
-        <span className="text-rose-500 underline decoration-2">3</span>
-      </div>
-      <div className="text-4xl font-mono font-bold text-foreground">
-        − 3{" "}<span className="text-rose-500 underline decoration-2">8</span>
-      </div>
-      <div className="text-sm text-rose-500 mt-2">3 &lt; 8 — can't subtract!</div>
-    </div>,
-    // Step 2: Borrow
-    <div className="space-y-1">
-      <div className="text-sm text-muted-foreground line-through">7</div>
-      <div className="text-4xl font-mono font-bold">
-        <span className="text-amber-500">6</span>{" "}
-        <span className="text-emerald-500">13</span>
-      </div>
-      <div className="text-4xl font-mono font-bold text-foreground">− 3 8</div>
-      <motion.div
-        className="text-sm text-amber-500 mt-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        ↗ Borrowed 10 from tens!
-      </motion.div>
-    </div>,
-    // Step 3: Subtract ones
-    <div className="space-y-1">
-      <div className="text-4xl font-mono font-bold">
-        <span className="text-muted-foreground">6</span>{" "}
-        <span className="text-emerald-500">13</span>
-      </div>
-      <div className="text-4xl font-mono font-bold text-foreground">− 3{" "}<span className="text-violet-500">8</span></div>
-      <hr className="border-foreground w-24 mx-auto" />
-      <div className="text-4xl font-mono font-bold">
-        <span className="text-muted-foreground/30">_</span>{" "}
-        <motion.span
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="text-emerald-500"
-        >5</motion.span>
-      </div>
-      <div className="text-sm text-emerald-500 mt-1">13 − 8 = 5 ✓</div>
-    </div>,
-    // Step 4: Subtract tens
-    <div className="space-y-1">
-      <div className="text-4xl font-mono font-bold">
-        <span className="text-violet-500">6</span>{" "}
-        <span className="text-muted-foreground">13</span>
-      </div>
-      <div className="text-4xl font-mono font-bold text-foreground">
-        − <span className="text-violet-500">3</span> 8
-      </div>
-      <hr className="border-foreground w-24 mx-auto" />
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        className="text-4xl font-mono font-bold text-emerald-500"
-      >
-        3 5
-      </motion.div>
-      <div className="text-sm text-emerald-500 mt-1">73 − 38 = 35 🎉</div>
-    </div>,
-  ];
-  return visuals[step] || null;
 };
 
 export default DemoPage;
