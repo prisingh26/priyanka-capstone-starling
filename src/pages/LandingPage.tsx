@@ -453,9 +453,6 @@ const LandingPage = () => {
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
               Learn where your child needs help, practice what makes it click, watch confidence bloom.
             </h2>
-            <p className="text-xl text-white/80 max-w-lg mx-auto mb-8">
-              Upload homework for help or choose skills to practice. Starling adapts to your child's needs with patient explanations and perfectly-matched practice problems.
-            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                 <Button
