@@ -521,7 +521,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="border-t border-white/10 mt-4 pt-4 text-center text-foreground/40 text-sm">
-            © {new Date().getFullYear()} Starling Learning. Made with 💜 for families.
+            © {new Date().getFullYear()} Starling Learning. Made with love for families.
           </div>
         </div>
       </footer>
