@@ -25,8 +25,8 @@ const LandingPage = () => {
   const features = [
     {
       icon: Heart,
-      title: "Turn homework papers into targeted lessons",
-      description: "No more reviewing graded homework line by line. Upload the marked-up paper and Starling identifies patterns in their mistakes, shows what went wrong, and creates practice targeting exactly those gaps.",
+      title: "See exactly where they're struggling and where they're thriving",
+      description: "Delivered instantly to your fingertips.",
       gradient: "from-rose-400 to-pink-500",
       image: featureConfidence,
     },
