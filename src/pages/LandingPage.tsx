@@ -47,7 +47,7 @@ const LandingPage = () => {
   ];
 
   const howItWorks = [
-    { step: 1, title: "Upload or Practice", description: "Snap a photo of any math or writing assignment, or jump straight into practice by choosing a skill", color: "bg-violet-100 text-violet-600", image: stepUpload },
+    { step: 1, title: "Upload or Practice", description: "Snap a photo of any homework or jump straight into practice by choosing a skill", color: "bg-violet-100 text-violet-600", image: stepUpload },
     { step: 2, title: "AI Analyzes Instantly", description: "Starling reads handwriting, checks answers, and finds patterns", color: "bg-rose-100 text-rose-600", image: stepAnalyze },
     { step: 3, title: "Learn & Master", description: "Get personalized explanations and practice problems that target weak spots", color: "bg-emerald-100 text-emerald-600", image: stepPractice },
   ];
