@@ -506,6 +506,33 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
+      {/* ─── Footer ─────────────────────────────────────────────── */}
+      <footer className="bg-foreground text-foreground/60 pt-16 pb-8">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <ShootingStarIcon size={28} />
+                <span className="text-2xl font-bold text-white">Starling</span>
+              </div>
+              <p className="text-foreground/50 max-w-sm">
+                Helping every child learn with confidence through personalized practice and patient guidance.
+              </p>
+            </div>
+            <div>
+              <h4 className="text-white font-semibold mb-4">Legal</h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-white/10 pt-8 text-center text-foreground/40 text-sm">
+            © {new Date().getFullYear()} Starling Learning. Made with 💜 for families.
+          </div>
+        </div>
+      </footer>
     </div>;
 };
 export default LandingPage;
