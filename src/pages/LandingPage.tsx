@@ -35,7 +35,7 @@ const LandingPage = () => {
     image: featureTutor
   }, {
     icon: BarChart3,
-    title: "🌱 Build deep mastery, not surface-level success",
+    title: "Practice generated for their specific needs",
     description: "Watch understanding grow from confusion to clarity to confidence. Skills that become second nature, not memorized tricks that disappear after the test.",
     gradient: "from-violet-400 to-purple-500",
     image: featureProgress
