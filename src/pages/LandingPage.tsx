@@ -208,23 +208,6 @@ const LandingPage = () => {
               }} whileTap={{
                 scale: 0.97
               }}>
-                  <Button size="lg" onClick={() => navigate("/signup")} className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-8 py-6 text-lg shadow-xl shadow-violet-500/25 group">
-                    Request Early Access
-                    <motion.span className="ml-2" animate={{
-                    x: [0, 4, 0]
-                  }} transition={{
-                    duration: 1.5,
-                    repeat: Infinity
-                  }}>
-                      <ArrowRight className="w-5 h-5" />
-                    </motion.span>
-                  </Button>
-                </motion.div>
-                <motion.div whileHover={{
-                scale: 1.03
-              }} whileTap={{
-                scale: 0.97
-              }}>
                   <Button size="lg" variant="outline" onClick={() => navigate("/demo")} className="rounded-full px-8 py-6 text-lg border-2 border-violet-200 hover:bg-violet-50 group">
                     <Play className="w-5 h-5 mr-2 text-violet-600 group-hover:text-violet-700" />
                     Try It Free — See Demo
