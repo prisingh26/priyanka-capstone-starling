@@ -27,28 +27,19 @@ const analysisChecklist = [
 
 const solutionSteps = [
   {
-    title: "Understand the problem",
+    title: "Hint: Think about sharing",
     content:
-      "Each cat has exactly 2 friends who are mice. We have 3 cats. We want the SMALLEST number of mice possible.",
+      "The problem says 'smallest number of mice.' What if mice can be friends with MORE than one cat? Does the problem say they can't?",
   },
   {
-    title: "Think about sharing",
+    title: "Hint: Try it out",
     content:
-      'To minimize mice, we want the cats to share as many mouse friends as possible. The question is: can multiple cats be friends with the same mouse?',
+      "Imagine 2 mice — Mouse A and Mouse B. Could Cat 1 be friends with both? What about Cat 2 and Cat 3? Try drawing it!",
   },
   {
-    title: "Try with the fewest mice",
+    title: "Hint: Check your drawing",
     content:
-      "What if we try just 2 mice? Each cat needs 2 mouse friends. If there are only 2 mice, every cat would be friends with both mice. That works! Each cat has exactly 2 mouse friends. ✓",
-  },
-  {
-    title: "Verify the answer",
-    content:
-      "Cat 1 → Mouse A, Mouse B (2 friends ✓)\nCat 2 → Mouse A, Mouse B (2 friends ✓)\nCat 3 → Mouse A, Mouse B (2 friends ✓)\n\nAll 3 cats have exactly 2 mouse friends each!",
-  },
-  {
-    title: "The correct answer",
-    content: "The smallest number of mice is 2. The answer is (A) 2! 🎉",
+      "If every cat is friends with the same 2 mice, does each cat still have exactly 2 mouse friends? Count and see! 🤔",
   },
 ];
 
@@ -379,14 +370,14 @@ const DemoPage: React.FC = () => {
                       </p>
                     </motion.div>
 
-                    {/* Visual: Cat & Mice Diagram */}
+                    {/* Visual hint - no answer revealed */}
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
                       className="bg-primary/5 border border-primary/20 rounded-xl p-5"
                     >
-                      <h3 className="font-bold text-foreground text-lg mb-3">🎨 Let's Visualize</h3>
+                      <h3 className="font-bold text-foreground text-lg mb-3">🎨 Think About It</h3>
                       <div className="flex flex-col items-center gap-4">
                         <div className="flex gap-6 justify-center">
                           <div className="text-center">
@@ -404,17 +395,21 @@ const DemoPage: React.FC = () => {
                         </div>
                         <div className="text-muted-foreground text-sm">each needs 2 mouse friends ↓</div>
                         <div className="flex gap-8 justify-center">
-                          <div className="text-center bg-success/10 rounded-xl px-4 py-2">
+                          <div className="text-center bg-muted/50 rounded-xl px-4 py-2 border-2 border-dashed border-primary/30">
                             <span className="text-3xl">🐭</span>
-                            <p className="text-xs text-success font-bold mt-1">Mouse A</p>
+                            <p className="text-xs text-muted-foreground font-bold mt-1">?</p>
                           </div>
-                          <div className="text-center bg-success/10 rounded-xl px-4 py-2">
+                          <div className="text-center bg-muted/50 rounded-xl px-4 py-2 border-2 border-dashed border-primary/30">
                             <span className="text-3xl">🐭</span>
-                            <p className="text-xs text-success font-bold mt-1">Mouse B</p>
+                            <p className="text-xs text-muted-foreground font-bold mt-1">?</p>
+                          </div>
+                          <div className="text-center bg-muted/50 rounded-xl px-4 py-2 border-2 border-dashed border-primary/30">
+                            <span className="text-3xl">🐭</span>
+                            <p className="text-xs text-muted-foreground font-bold mt-1">?</p>
                           </div>
                         </div>
-                        <p className="text-sm text-success font-medium text-center">
-                          All 3 cats can share the same 2 mice!
+                        <p className="text-sm text-primary font-medium text-center">
+                          Can any of these mice be the same mouse? 🤔
                         </p>
                       </div>
                     </motion.div>
@@ -491,25 +486,17 @@ const DemoPage: React.FC = () => {
                       </Card>
                     </motion.div>
 
-                    {/* Remember */}
+                    {/* Nudge - no answer */}
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.8 }}
                       className="bg-warning/10 border border-warning/30 rounded-xl p-5"
                     >
-                      <h3 className="font-bold text-foreground text-lg mb-2">💡 Key Insight:</h3>
-                      <ul className="space-y-1">
-                        <li className="text-sm text-foreground flex items-start gap-2">
-                          <span className="text-warning">•</span> The problem doesn't say each cat needs UNIQUE mice
-                        </li>
-                        <li className="text-sm text-foreground flex items-start gap-2">
-                          <span className="text-warning">•</span> Sharing is the key to minimizing — mice can be friends with multiple cats
-                        </li>
-                        <li className="text-sm text-foreground flex items-start gap-2">
-                          <span className="text-warning">•</span> The correct answer is <strong>(A) 2</strong>
-                        </li>
-                      </ul>
+                      <h3 className="font-bold text-foreground text-lg mb-2">💡 Key Question:</h3>
+                      <p className="text-sm text-foreground">
+                        The problem says "smallest number." What's the fewest mice you need so that every cat still has exactly 2 mouse friends? Try it and pick your answer!
+                      </p>
                     </motion.div>
 
                     {/* Bottom CTA */}
