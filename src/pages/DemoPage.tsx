@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import ShootingStarIcon from "@/components/ShootingStarIcon";
+import StarlingLogo from "@/components/StarlingLogo";
 
 type DemoStep = "problem" | "analyzing" | "results";
 
@@ -82,10 +83,7 @@ const DemoPage: React.FC = () => {
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm font-medium">Back</span>
           </button>
-          <div className="flex items-center gap-2">
-            <ShootingStarIcon size={22} />
-            <span className="font-bold text-gradient-primary">Starling Demo</span>
-          </div>
+          <StarlingLogo suffix="Demo" />
           <Button
             size="sm"
             onClick={() => navigate("/signup")}
