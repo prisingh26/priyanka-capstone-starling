@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -426,18 +426,22 @@ const DemoPage: React.FC = () => {
                       </motion.div>
                     </motion.div>
 
-                    {/* Bottom CTA */}
+                    {/* Upload your own HW */}
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1.8 }}
+                      transition={{ delay: 3.0 }}
+                      className="bg-muted/50 border border-border rounded-xl p-5 text-center space-y-3"
                     >
+                      <p className="text-foreground font-semibold">📸 Want to try with your own homework?</p>
+                      <p className="text-sm text-muted-foreground">Upload a photo and Starling will analyze it</p>
                       <Button
                         size="lg"
                         onClick={() => navigate("/signup")}
-                        className="w-full bg-success hover:bg-success/90 text-success-foreground rounded-full py-6 text-lg"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-5 text-lg gap-2"
                       >
-                        Try Practice Problems <ArrowRight className="w-5 h-5 ml-2" />
+                        <Camera className="w-5 h-5" />
+                        Upload Homework Photo
                       </Button>
                     </motion.div>
                   </div>
