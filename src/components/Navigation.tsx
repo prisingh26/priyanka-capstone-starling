@@ -1,6 +1,6 @@
 import React from "react";
 import { Home, PenLine, BarChart3, Settings } from "lucide-react";
-import StarlingMascot from "./StarlingMascot";
+import StarlingLogo from "./StarlingLogo";
 
 interface NavigationProps {
   currentScreen: string;
@@ -30,13 +30,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentScreen, onNavigate }) =>
       {/* Top Navigation */}
       <header className="fixed top-0 left-0 right-0 bg-card/95 backdrop-blur-sm shadow-soft z-40 border-b border-border">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <button
-            onClick={() => onNavigate("home")}
-            className="flex items-center gap-2 hover:scale-105 transition-transform"
-          >
-            <StarlingMascot size="sm" animate={false} expression="happy" />
-            <span className="text-2xl font-bold text-gradient-primary">Starling</span>
-          </button>
+          <StarlingLogo onClick={() => onNavigate("home")} />
           <div className="text-sm text-muted-foreground font-medium">
             Your Homework Helper ⭐
           </div>

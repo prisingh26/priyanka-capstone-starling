@@ -11,6 +11,7 @@ import stepUpload from "@/assets/step-upload.jpg";
 import stepAnalyze from "@/assets/step-analyze.jpg";
 import stepPractice from "@/assets/step-practice.jpg";
 import ShootingStarIcon from "@/components/ShootingStarIcon";
+import StarlingLogo from "@/components/StarlingLogo";
 const LandingPage = () => {
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -109,12 +110,7 @@ const LandingPage = () => {
       <nav className="sticky top-0 z-50 bg-amber-50/80 backdrop-blur-xl border-b border-amber-100/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
-          <button onClick={() => scrollTo("hero")} className="flex items-center gap-2 group">
-            <ShootingStarIcon size={28} />
-            <span className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-500 bg-clip-text text-transparent group-hover:from-violet-700 group-hover:to-purple-600 transition-all">
-              Starling
-            </span>
-          </button>
+          <StarlingLogo onClick={() => scrollTo("hero")} />
 
           {/* Spacer for layout balance */}
           <div className="hidden md:block" />
@@ -500,10 +496,7 @@ const LandingPage = () => {
       <footer className="bg-foreground py-6">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <ShootingStarIcon size={22} />
-              <span className="text-lg font-bold text-white">Starling</span>
-            </div>
+            <StarlingLogo />
             <div className="flex gap-6 text-sm">
               <a href="#" className="text-white hover:text-white/80 transition-colors">Privacy Policy</a>
               <a href="#" className="text-white hover:text-white/80 transition-colors">Terms of Service</a>
