@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Camera, Check, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -8,223 +8,57 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import ShootingStarIcon from "@/components/ShootingStarIcon";
 
-type DemoStep = "select" | "analyzing" | "results";
+type DemoStep = "problem" | "analyzing" | "results";
 
-interface SampleProblem {
-  id: string;
-  grade: string;
-  emoji: string;
-  subtitle: string;
-  problemDisplay: string;
-  errorNote: string;
-  popular?: boolean;
-  // Results data
-  problemText: string;
-  studentAnswer: string;
-  errorDescription: string;
-  encouragement: string;
-  understanding: string[];
-  visualHelper: React.ReactNode;
-  solution: React.ReactNode;
-  rememberTips: string[];
-}
-
-const sampleProblems: SampleProblem[] = [
-  {
-    id: "addition",
-    grade: "Grade 3",
-    emoji: "📐",
-    subtitle: "Addition with Carrying",
-    problemDisplay: "47 + 38 = 75",
-    errorNote: "(Carrying error)",
-    problemText:
-      "Solve: 47 + 38.\n\nThe student added the digits but forgot to carry the 1 from the ones place to the tens place.",
-    studentAnswer: "47 + 38 = 75",
-    errorDescription: "Forgot to carry the 1 when 7 + 8 = 15",
-    encouragement:
-      "You got really close! Adding big numbers is tricky — let's figure it out together. 😊",
-    understanding: [
-      "When digits in a column add up to 10 or more, we need to carry.",
-      "7 + 8 = 15 → write 5 in the ones, carry the 1 to tens.",
-      "Then 4 + 3 + 1 (carried) = 8 in the tens place.",
-    ],
-    visualHelper: (
-      <div className="font-mono text-xl space-y-1 text-center">
-        <div>
-          <span className="text-muted-foreground"> </span> 4{" "}
-          <span className="text-primary font-bold">7</span>
-        </div>
-        <div>
-          + 3 <span className="text-primary font-bold">8</span>
-        </div>
-        <div className="border-t border-foreground pt-1">
-          <span className="text-success font-bold">8 5</span>
-        </div>
-        <div className="text-sm text-primary mt-2">
-          ↑ Carry the 1! (7+8=15)
-        </div>
-      </div>
-    ),
-    solution: (
-      <div className="space-y-2">
-        <p className="font-semibold">Step 1: Ones place</p>
-        <p>7 + 8 = 15 → write 5, carry 1</p>
-        <p className="font-semibold">Step 2: Tens place</p>
-        <p>4 + 3 + 1 = 8</p>
-        <p className="text-success font-bold text-lg mt-2">✓ 47 + 38 = 85</p>
-      </div>
-    ),
-    rememberTips: [
-      "When ones add up to 10+, carry the ten",
-      "Always add the carried number to the tens column",
-    ],
-  },
-  {
-    id: "fractions",
-    grade: "Grade 4",
-    emoji: "🧮",
-    subtitle: "Fraction Addition",
-    problemDisplay: "1/4 + 1/2 = 2/6",
-    errorNote: "(Common denominator)",
-    problemText:
-      "Solve: 1/4 + 1/2.\n\nThe student added numerators and denominators separately instead of finding a common denominator.",
-    studentAnswer: "1/4 + 1/2 = 2/6",
-    errorDescription: "Added numerators and denominators separately",
-    encouragement:
-      "I can see you tried adding the tops and bottoms — that's a really common mistake! Let's learn the right way. 😊",
-    understanding: [
-      "To add fractions, they need the same denominator (bottom number).",
-      "1/2 = 2/4, so now both fractions have 4 as the denominator.",
-      "Now we can add: 1/4 + 2/4 = 3/4",
-    ],
-    visualHelper: (
-      <div className="space-y-3 text-center">
-        <div className="flex justify-center gap-4 items-center">
-          <div className="w-16 h-16 rounded-lg border-2 border-primary relative overflow-hidden">
-            <div className="absolute bottom-0 w-full h-1/4 bg-primary/40" />
-            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">
-              1/4
-            </span>
-          </div>
-          <span className="text-2xl font-bold">+</span>
-          <div className="w-16 h-16 rounded-lg border-2 border-primary relative overflow-hidden">
-            <div className="absolute bottom-0 w-full h-1/2 bg-primary/40" />
-            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">
-              1/2
-            </span>
-          </div>
-          <span className="text-2xl font-bold">=</span>
-          <div className="w-16 h-16 rounded-lg border-2 border-success relative overflow-hidden">
-            <div className="absolute bottom-0 w-full h-3/4 bg-success/40" />
-            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">
-              3/4
-            </span>
-          </div>
-        </div>
-        <p className="text-sm text-primary">
-          Convert 1/2 → 2/4, then add!
-        </p>
-      </div>
-    ),
-    solution: (
-      <div className="space-y-2">
-        <p className="font-semibold">Step 1: Find common denominator</p>
-        <p>LCD of 4 and 2 = 4</p>
-        <p className="font-semibold">Step 2: Convert</p>
-        <p>1/2 = 2/4</p>
-        <p className="font-semibold">Step 3: Add numerators</p>
-        <p>1/4 + 2/4 = 3/4</p>
-        <p className="text-success font-bold text-lg mt-2">
-          ✓ 1/4 + 1/2 = 3/4
-        </p>
-      </div>
-    ),
-    rememberTips: [
-      "Never add denominators — find a common one first",
-      "Only add numerators when denominators match",
-    ],
-  },
-  {
-    id: "cookies",
-    grade: "Grade 4",
-    emoji: "🍪",
-    subtitle: "Word Problem",
-    problemDisplay: "Fraction of a Whole",
-    errorNote: "(1/3 of 24 cookies)",
-    popular: true,
-    problemText:
-      "Emma baked 24 cookies. She wants to give 1/3 of them to her friend Sarah. How many cookies will Sarah get?",
-    studentAnswer: "24 - 1/3 = 23 2/3 cookies",
-    errorDescription: "Used subtraction instead of multiplication",
-    encouragement:
-      "I can see you worked hard on this! Let's figure it out together. 😊",
-    understanding: [
-      'The problem asks: "1/3 OF 24"',
-      'When we see "of" with fractions, it means multiply!',
-      "Think of it like this:",
-      "• Emma has 24 cookies total",
-      "• She's sharing 1/3 of them",
-      "• That means divide 24 into 3 equal groups",
-    ],
-    visualHelper: (
-      <div className="space-y-3">
-        <div className="grid grid-cols-8 gap-1 justify-items-center">
-          {Array.from({ length: 24 }).map((_, i) => (
-            <span key={i} className="text-lg">
-              🍪
-            </span>
-          ))}
-        </div>
-        <div className="space-y-1 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Group 1:</span>
-            <span>🍪🍪🍪🍪🍪🍪🍪🍪</span>
-            <span className="text-muted-foreground">(8)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Group 2:</span>
-            <span>🍪🍪🍪🍪🍪🍪🍪🍪</span>
-            <span className="text-muted-foreground">(8)</span>
-          </div>
-          <div className="flex items-center gap-2 bg-success/10 rounded-lg px-2 py-1">
-            <span className="text-muted-foreground">Group 3:</span>
-            <span>🍪🍪🍪🍪🍪🍪🍪🍪</span>
-            <span className="text-success font-bold">← Sarah gets these!</span>
-          </div>
-        </div>
-      </div>
-    ),
-    solution: (
-      <div className="space-y-2">
-        <p className="font-semibold">Method 1: Division</p>
-        <p>24 ÷ 3 = 8 cookies</p>
-        <p className="font-semibold">Method 2: Multiplication</p>
-        <p>1/3 × 24 = 24/3 = 8 cookies</p>
-        <p className="text-success font-bold text-lg mt-2">
-          ✓ Sarah gets 8 cookies!
-        </p>
-      </div>
-    ),
-    rememberTips: [
-      '"Of" with fractions = multiply',
-      "1/3 of something = divide by 3",
-    ],
-  },
+const answerOptions = [
+  { label: "A", value: 2 },
+  { label: "B", value: 3 },
+  { label: "C", value: 4 },
+  { label: "D", value: 5 },
+  { label: "E", value: 6 },
 ];
 
 const analysisChecklist = [
-  { icon: "📸", text: "Reading the word problem" },
+  { icon: "📸", text: "Reading the problem" },
   { icon: "🔍", text: "Understanding what it's asking" },
-  { icon: "🧠", text: "Checking the student's approach" },
-  { icon: "💡", text: "Creating a helpful explanation..." },
+  { icon: "🧠", text: "Checking the student's answer" },
+  { icon: "💡", text: "Preparing step-by-step guidance..." },
+];
+
+const solutionSteps = [
+  {
+    title: "Understand the problem",
+    content:
+      "Each cat has exactly 2 friends who are mice. We have 3 cats. We want the SMALLEST number of mice possible.",
+  },
+  {
+    title: "Think about sharing",
+    content:
+      'To minimize mice, we want the cats to share as many mouse friends as possible. The question is: can multiple cats be friends with the same mouse?',
+  },
+  {
+    title: "Try with the fewest mice",
+    content:
+      "What if we try just 2 mice? Each cat needs 2 mouse friends. If there are only 2 mice, every cat would be friends with both mice. That works! Each cat has exactly 2 mouse friends. ✓",
+  },
+  {
+    title: "Verify the answer",
+    content:
+      "Cat 1 → Mouse A, Mouse B (2 friends ✓)\nCat 2 → Mouse A, Mouse B (2 friends ✓)\nCat 3 → Mouse A, Mouse B (2 friends ✓)\n\nAll 3 cats have exactly 2 mouse friends each!",
+  },
+  {
+    title: "The correct answer",
+    content: "The smallest number of mice is 2. The answer is (A) 2! 🎉",
+  },
 ];
 
 const DemoPage: React.FC = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<DemoStep>("select");
-  const [selectedProblem, setSelectedProblem] = useState<SampleProblem | null>(null);
+  const [step, setStep] = useState<DemoStep>("problem");
   const [progress, setProgress] = useState(0);
   const [checklistDone, setChecklistDone] = useState<boolean[]>([false, false, false, false]);
+  const [currentSolutionStep, setCurrentSolutionStep] = useState(0);
+  const [revealedSteps, setRevealedSteps] = useState<number[]>([0]);
 
   // Analysis animation
   useEffect(() => {
@@ -242,7 +76,6 @@ const DemoPage: React.FC = () => {
       });
     }, 40);
 
-    // Checklist items
     const timers = analysisChecklist.map((_, i) =>
       setTimeout(() => {
         setChecklistDone((prev) => {
@@ -253,8 +86,11 @@ const DemoPage: React.FC = () => {
       }, (i + 1) * 1000)
     );
 
-    // Transition to results
-    const resultTimer = setTimeout(() => setStep("results"), 4500);
+    const resultTimer = setTimeout(() => {
+      setStep("results");
+      setCurrentSolutionStep(0);
+      setRevealedSteps([0]);
+    }, 4500);
 
     return () => {
       clearInterval(progressInterval);
@@ -263,9 +99,18 @@ const DemoPage: React.FC = () => {
     };
   }, [step]);
 
-  const handleSelectProblem = (problem: SampleProblem) => {
-    setSelectedProblem(problem);
-    setStep("analyzing");
+  const handleNextStep = () => {
+    if (currentSolutionStep < solutionSteps.length - 1) {
+      const next = currentSolutionStep + 1;
+      setCurrentSolutionStep(next);
+      setRevealedSteps((prev) => [...new Set([...prev, next])]);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentSolutionStep > 0) {
+      setCurrentSolutionStep(currentSolutionStep - 1);
+    }
   };
 
   return (
@@ -274,7 +119,7 @@ const DemoPage: React.FC = () => {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
           <button
-            onClick={() => (step === "select" ? navigate("/") : setStep("select"))}
+            onClick={() => (step === "problem" ? navigate("/") : setStep("problem"))}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -295,75 +140,72 @@ const DemoPage: React.FC = () => {
       </nav>
 
       <AnimatePresence mode="wait">
-        {/* ===== STEP 1: PROBLEM SELECTOR ===== */}
-        {step === "select" && (
+        {/* ===== STEP 1: SHOW PROBLEM ===== */}
+        {step === "problem" && (
           <motion.div
-            key="select"
+            key="problem"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="container mx-auto px-4 py-8 max-w-4xl"
+            className="container mx-auto px-4 py-8 max-w-2xl"
           >
-            {/* Header */}
-            <div className="text-center mb-10 space-y-3">
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                Try Starling Free — See How It Works
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                Experience how Starling helps with real math homework.{" "}
-                <span className="text-muted-foreground/70">No signup required • Takes 2 minutes</span>
-              </p>
-            </div>
+            <Card className="p-6 md:p-8 space-y-6">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🐱</span>
+                <div>
+                  <h2 className="font-bold text-foreground text-xl">Logic Problem</h2>
+                  <p className="text-muted-foreground text-sm">Grade 4 • Logical Reasoning</p>
+                </div>
+              </div>
 
-            {/* Problem Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-              {sampleProblems.map((problem) => (
-                <motion.div
-                  key={problem.id}
-                  whileHover={{ scale: 1.02, y: -4 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Card className="relative p-6 h-full flex flex-col cursor-pointer hover:shadow-float transition-shadow duration-300 border-2 border-transparent hover:border-primary/20">
-                    {problem.popular && (
-                      <span className="absolute -top-3 right-4 bg-warning text-warning-foreground text-xs font-bold px-3 py-1 rounded-full">
-                        ⭐ Popular
-                      </span>
-                    )}
-                    <div className="space-y-3 flex-1">
-                      <p className="text-3xl">{problem.emoji}</p>
-                      <div>
-                        <h3 className="font-bold text-foreground text-lg">{problem.grade}</h3>
-                        <p className="text-muted-foreground text-sm">{problem.subtitle}</p>
-                      </div>
-                      <div className="bg-muted/50 rounded-lg p-3">
-                        <p className="font-mono font-semibold text-foreground">
-                          {problem.problemDisplay}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">{problem.errorNote}</p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => handleSelectProblem(problem)}
-                      className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
+              {/* Problem text */}
+              <div className="bg-muted/50 rounded-xl p-5">
+                <p className="text-foreground text-lg leading-relaxed font-medium">
+                  If every cat has two friends who are mice, what is the smallest number of mice that can be friends with 3 cats?
+                </p>
+              </div>
+
+              {/* Answer options */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-muted-foreground">Answer Options:</p>
+                <div className="grid grid-cols-5 gap-3">
+                  {answerOptions.map((opt) => (
+                    <div
+                      key={opt.label}
+                      className={`rounded-xl p-3 text-center border-2 transition-all ${
+                        opt.label === "B"
+                          ? "border-primary bg-primary/10 ring-2 ring-primary/30"
+                          : "border-border bg-muted/30"
+                      }`}
                     >
-                      Try This Problem
-                    </Button>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                      <p className="text-xs text-muted-foreground font-medium">({opt.label})</p>
+                      <p className={`text-xl font-bold ${opt.label === "B" ? "text-primary" : "text-foreground"}`}>
+                        {opt.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-            {/* Upload option */}
-            <div className="text-center space-y-3 pt-4 border-t border-border">
-              <p className="text-muted-foreground text-sm">
-                Or upload your own homework photo (optional)
-              </p>
-              <Button variant="outline" className="gap-2 rounded-full">
-                <Camera className="w-4 h-4" />
-                <Upload className="w-4 h-4" />
-                Upload Photo
+              {/* Student's selected answer */}
+              <div className="bg-warning/10 border border-warning/30 rounded-xl p-4 flex items-center gap-3">
+                <span className="text-2xl">✏️</span>
+                <div>
+                  <p className="text-sm text-muted-foreground">Student selected:</p>
+                  <p className="font-bold text-foreground text-lg">(B) 3</p>
+                </div>
+              </div>
+
+              {/* Submit to Starling */}
+              <Button
+                size="lg"
+                onClick={() => setStep("analyzing")}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-6 text-lg gap-2"
+              >
+                <ShootingStarIcon size={20} />
+                Give it to Starling
               </Button>
-            </div>
+            </Card>
           </motion.div>
         )}
 
@@ -377,7 +219,6 @@ const DemoPage: React.FC = () => {
             className="container mx-auto px-4 py-16 max-w-lg"
           >
             <div className="text-center space-y-8">
-              {/* Mascot */}
               <motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -389,13 +230,11 @@ const DemoPage: React.FC = () => {
                 🌟 Starling is analyzing...
               </h2>
 
-              {/* Progress bar */}
               <div className="space-y-2">
                 <Progress value={progress} className="h-3" />
                 <p className="text-sm text-muted-foreground font-medium">{Math.round(progress)}%</p>
               </div>
 
-              {/* Checklist */}
               <div className="space-y-3 text-left max-w-sm mx-auto">
                 {analysisChecklist.map((item, i) => (
                   <motion.div
@@ -439,8 +278,8 @@ const DemoPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* ===== STEP 3: TWO-COLUMN RESULTS ===== */}
-        {step === "results" && selectedProblem && (
+        {/* ===== STEP 3: RESULTS WITH STEP-BY-STEP ===== */}
+        {step === "results" && (
           <motion.div
             key="results"
             initial={{ opacity: 0, y: 20 }}
@@ -449,13 +288,12 @@ const DemoPage: React.FC = () => {
             className="container mx-auto px-4 py-6 max-w-6xl"
           >
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-              {/* LEFT COLUMN - Student's Work (40%) */}
+              {/* LEFT COLUMN - Student's Work */}
               <div className="lg:col-span-2 space-y-4">
                 <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
                   📸 Student's Work
                 </h2>
                 <Card className="overflow-hidden">
-                  {/* Simulated lined paper */}
                   <div
                     className="p-6 relative"
                     style={{
@@ -467,19 +305,33 @@ const DemoPage: React.FC = () => {
                     <div className="space-y-4">
                       <div>
                         <p className="text-sm font-semibold text-muted-foreground mb-2">Problem:</p>
-                        <p className="text-foreground whitespace-pre-line leading-7">
-                          {selectedProblem.problemText}
+                        <p className="text-foreground leading-7">
+                          If every cat has two friends who are mice, what is the smallest number of mice that can be friends with 3 cats?
                         </p>
                       </div>
+
+                      <div>
+                        <p className="text-sm font-semibold text-muted-foreground mb-2">Options:</p>
+                        <div className="flex gap-3 flex-wrap text-sm font-mono">
+                          {answerOptions.map((opt) => (
+                            <span
+                              key={opt.label}
+                              className={`px-2 py-1 rounded ${
+                                opt.label === "B"
+                                  ? "bg-primary/10 text-primary font-bold ring-1 ring-primary/40"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              ({opt.label}) {opt.value}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
                       <div className="pt-2">
-                        <p className="text-sm font-semibold text-muted-foreground mb-2">
-                          Student's Answer:
-                        </p>
+                        <p className="text-sm font-semibold text-muted-foreground mb-2">Student's Answer:</p>
                         <div className="relative inline-block">
-                          <p className="text-lg font-mono font-bold text-foreground">
-                            {selectedProblem.studentAnswer}
-                          </p>
-                          {/* Red annotation circle */}
+                          <p className="text-lg font-mono font-bold text-foreground">(B) 3</p>
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -488,6 +340,7 @@ const DemoPage: React.FC = () => {
                           />
                         </div>
                       </div>
+
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -496,9 +349,9 @@ const DemoPage: React.FC = () => {
                       >
                         <span>❌</span>
                         <div>
-                          <p className="text-sm font-semibold text-destructive">Error:</p>
+                          <p className="text-sm font-semibold text-destructive">Incorrect</p>
                           <p className="text-sm text-foreground">
-                            {selectedProblem.errorDescription}
+                            The student assumed each cat needs unique mice, but mice can be shared between cats.
                           </p>
                         </div>
                       </motion.div>
@@ -507,14 +360,14 @@ const DemoPage: React.FC = () => {
                 </Card>
               </div>
 
-              {/* RIGHT COLUMN - Starling's Feedback (60%) */}
+              {/* RIGHT COLUMN - Starling's Step-by-Step */}
               <div className="lg:col-span-3 space-y-4">
                 <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                  <ShootingStarIcon size={24} /> Starling's Feedback
+                  <ShootingStarIcon size={24} /> Starling's Guidance
                 </h2>
                 <ScrollArea className="h-[calc(100vh-220px)] lg:h-[calc(100vh-180px)]">
                   <div className="space-y-4 pr-4">
-                    {/* 1. Encouragement */}
+                    {/* Encouragement */}
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -522,72 +375,140 @@ const DemoPage: React.FC = () => {
                       className="bg-success/10 border border-success/30 rounded-xl p-4"
                     >
                       <p className="text-foreground font-medium">
-                        {selectedProblem.encouragement}
+                        Good try! This is a tricky logic problem. Let's think through it step by step together. 😊
                       </p>
                     </motion.div>
 
-                    {/* 2. Understanding */}
+                    {/* Visual: Cat & Mice Diagram */}
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
+                      className="bg-primary/5 border border-primary/20 rounded-xl p-5"
                     >
-                      <Card className="p-5 space-y-3">
-                        <h3 className="font-bold text-foreground text-lg">
-                          📖 Understanding the Question
-                        </h3>
-                        <div className="space-y-2">
-                          {selectedProblem.understanding.map((line, i) => (
-                            <p key={i} className="text-muted-foreground text-sm">
-                              {line}
-                            </p>
-                          ))}
+                      <h3 className="font-bold text-foreground text-lg mb-3">🎨 Let's Visualize</h3>
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="flex gap-6 justify-center">
+                          <div className="text-center">
+                            <span className="text-3xl">🐱</span>
+                            <p className="text-xs text-muted-foreground mt-1">Cat 1</p>
+                          </div>
+                          <div className="text-center">
+                            <span className="text-3xl">🐱</span>
+                            <p className="text-xs text-muted-foreground mt-1">Cat 2</p>
+                          </div>
+                          <div className="text-center">
+                            <span className="text-3xl">🐱</span>
+                            <p className="text-xs text-muted-foreground mt-1">Cat 3</p>
+                          </div>
                         </div>
-                      </Card>
+                        <div className="text-muted-foreground text-sm">each needs 2 mouse friends ↓</div>
+                        <div className="flex gap-8 justify-center">
+                          <div className="text-center bg-success/10 rounded-xl px-4 py-2">
+                            <span className="text-3xl">🐭</span>
+                            <p className="text-xs text-success font-bold mt-1">Mouse A</p>
+                          </div>
+                          <div className="text-center bg-success/10 rounded-xl px-4 py-2">
+                            <span className="text-3xl">🐭</span>
+                            <p className="text-xs text-success font-bold mt-1">Mouse B</p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-success font-medium text-center">
+                          All 3 cats can share the same 2 mice!
+                        </p>
+                      </div>
                     </motion.div>
 
-                    {/* 3. Visual Helper */}
+                    {/* Step-by-step solution */}
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6 }}
-                      className="bg-success/5 border border-success/20 rounded-xl p-5"
                     >
-                      <h3 className="font-bold text-foreground text-lg mb-3">
-                        🎨 Visual Helper
-                      </h3>
-                      {selectedProblem.visualHelper}
+                      <Card className="p-5 space-y-4">
+                        <h3 className="font-bold text-foreground text-lg">📚 Step-by-Step Solution</h3>
+
+                        {/* Progress dots */}
+                        <div className="flex justify-center gap-2">
+                          {solutionSteps.map((_, index) => (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                setCurrentSolutionStep(index);
+                                setRevealedSteps((prev) => [...new Set([...prev, index])]);
+                              }}
+                              className={`w-3 h-3 rounded-full transition-all ${
+                                currentSolutionStep === index
+                                  ? "bg-primary scale-125"
+                                  : revealedSteps.includes(index)
+                                    ? "bg-success"
+                                    : "bg-muted-foreground/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+
+                        {/* Current step */}
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={currentSolutionStep}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="bg-muted/30 rounded-xl p-4"
+                          >
+                            <div className="flex items-center gap-3 mb-3">
+                              <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                                {currentSolutionStep + 1}
+                              </span>
+                              <h4 className="font-semibold text-foreground">
+                                {solutionSteps[currentSolutionStep].title}
+                              </h4>
+                            </div>
+                            <p className="text-muted-foreground pl-11 whitespace-pre-line">
+                              {solutionSteps[currentSolutionStep].content}
+                            </p>
+                          </motion.div>
+                        </AnimatePresence>
+
+                        {/* Navigation */}
+                        <div className="flex justify-between">
+                          <Button
+                            variant="ghost"
+                            onClick={handlePrevStep}
+                            disabled={currentSolutionStep === 0}
+                          >
+                            ← Previous
+                          </Button>
+                          <Button
+                            onClick={handleNextStep}
+                            disabled={currentSolutionStep === solutionSteps.length - 1}
+                          >
+                            Next →
+                          </Button>
+                        </div>
+                      </Card>
                     </motion.div>
 
-                    {/* 4. The Solution */}
+                    {/* Remember */}
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.8 }}
-                      className="bg-primary/5 border border-primary/20 rounded-xl p-5"
-                    >
-                      <h3 className="font-bold text-foreground text-lg mb-3">
-                        ✨ The Solution
-                      </h3>
-                      <div className="text-sm text-foreground">
-                        {selectedProblem.solution}
-                      </div>
-                    </motion.div>
-
-                    {/* 5. Remember */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1 }}
                       className="bg-warning/10 border border-warning/30 rounded-xl p-5"
                     >
-                      <h3 className="font-bold text-foreground text-lg mb-2">💡 Remember:</h3>
+                      <h3 className="font-bold text-foreground text-lg mb-2">💡 Key Insight:</h3>
                       <ul className="space-y-1">
-                        {selectedProblem.rememberTips.map((tip, i) => (
-                          <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                            <span className="text-warning">•</span> {tip}
-                          </li>
-                        ))}
+                        <li className="text-sm text-foreground flex items-start gap-2">
+                          <span className="text-warning">•</span> The problem doesn't say each cat needs UNIQUE mice
+                        </li>
+                        <li className="text-sm text-foreground flex items-start gap-2">
+                          <span className="text-warning">•</span> Sharing is the key to minimizing — mice can be friends with multiple cats
+                        </li>
+                        <li className="text-sm text-foreground flex items-start gap-2">
+                          <span className="text-warning">•</span> The correct answer is <strong>(A) 2</strong>
+                        </li>
                       </ul>
                     </motion.div>
 
@@ -595,7 +516,7 @@ const DemoPage: React.FC = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1.2 }}
+                      transition={{ delay: 1 }}
                     >
                       <Button
                         size="lg"
