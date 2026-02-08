@@ -25,31 +25,12 @@ const analysisChecklist = [
   { icon: "💡", text: "Preparing step-by-step guidance..." },
 ];
 
-const solutionSteps = [
-  {
-    title: "Hint: Think about sharing",
-    content:
-      "The problem says 'smallest number of mice.' What if mice can be friends with MORE than one cat? Does the problem say they can't?",
-  },
-  {
-    title: "Hint: Try it out",
-    content:
-      "Imagine 2 mice — Mouse A and Mouse B. Could Cat 1 be friends with both? What about Cat 2 and Cat 3? Try drawing it!",
-  },
-  {
-    title: "Hint: Check your drawing",
-    content:
-      "If every cat is friends with the same 2 mice, does each cat still have exactly 2 mouse friends? Count and see! 🤔",
-  },
-];
 
 const DemoPage: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<DemoStep>("problem");
   const [progress, setProgress] = useState(0);
   const [checklistDone, setChecklistDone] = useState<boolean[]>([false, false, false, false]);
-  const [currentSolutionStep, setCurrentSolutionStep] = useState(0);
-  const [revealedSteps, setRevealedSteps] = useState<number[]>([0]);
 
   // Analysis animation
   useEffect(() => {
@@ -79,8 +60,6 @@ const DemoPage: React.FC = () => {
 
     const resultTimer = setTimeout(() => {
       setStep("results");
-      setCurrentSolutionStep(0);
-      setRevealedSteps([0]);
     }, 4500);
 
     return () => {
@@ -90,19 +69,6 @@ const DemoPage: React.FC = () => {
     };
   }, [step]);
 
-  const handleNextStep = () => {
-    if (currentSolutionStep < solutionSteps.length - 1) {
-      const next = currentSolutionStep + 1;
-      setCurrentSolutionStep(next);
-      setRevealedSteps((prev) => [...new Set([...prev, next])]);
-    }
-  };
-
-  const handlePrevStep = () => {
-    if (currentSolutionStep > 0) {
-      setCurrentSolutionStep(currentSolutionStep - 1);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -358,152 +324,97 @@ const DemoPage: React.FC = () => {
                 </h2>
                 <ScrollArea className="h-[calc(100vh-220px)] lg:h-[calc(100vh-180px)]">
                   <div className="space-y-4 pr-4">
-                    {/* Encouragement */}
+                    {/* Single visual drawing with connected cats and mice */}
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="bg-success/10 border border-success/30 rounded-xl p-4"
+                      transition={{ delay: 0.3 }}
+                      className="bg-primary/5 border border-primary/20 rounded-xl p-6"
                     >
-                      <p className="text-foreground font-medium">
-                        Good try! This is a tricky logic problem. Let's think through it step by step together. 😊
+                      <h3 className="font-bold text-foreground text-lg mb-2">🎨 Let's draw it out!</h3>
+                      <p className="text-sm text-muted-foreground mb-5">
+                        Each cat needs exactly 2 mouse friends. But can mice be friends with more than one cat?
                       </p>
-                    </motion.div>
 
-                    {/* Visual hint - no answer revealed */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 }}
-                      className="bg-primary/5 border border-primary/20 rounded-xl p-5"
-                    >
-                      <h3 className="font-bold text-foreground text-lg mb-3">🎨 Think About It</h3>
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="flex gap-6 justify-center">
-                          <div className="text-center">
-                            <span className="text-3xl">🐱</span>
-                            <p className="text-xs text-muted-foreground mt-1">Cat 1</p>
-                          </div>
-                          <div className="text-center">
-                            <span className="text-3xl">🐱</span>
-                            <p className="text-xs text-muted-foreground mt-1">Cat 2</p>
-                          </div>
-                          <div className="text-center">
-                            <span className="text-3xl">🐱</span>
-                            <p className="text-xs text-muted-foreground mt-1">Cat 3</p>
-                          </div>
-                        </div>
-                        <div className="text-muted-foreground text-sm">each needs 2 mouse friends ↓</div>
-                        <div className="flex gap-8 justify-center">
-                          <div className="text-center bg-muted/50 rounded-xl px-4 py-2 border-2 border-dashed border-primary/30">
-                            <span className="text-3xl">🐭</span>
-                            <p className="text-xs text-muted-foreground font-bold mt-1">?</p>
-                          </div>
-                          <div className="text-center bg-muted/50 rounded-xl px-4 py-2 border-2 border-dashed border-primary/30">
-                            <span className="text-3xl">🐭</span>
-                            <p className="text-xs text-muted-foreground font-bold mt-1">?</p>
-                          </div>
-                          <div className="text-center bg-muted/50 rounded-xl px-4 py-2 border-2 border-dashed border-primary/30">
-                            <span className="text-3xl">🐭</span>
-                            <p className="text-xs text-muted-foreground font-bold mt-1">?</p>
-                          </div>
-                        </div>
-                        <p className="text-sm text-primary font-medium text-center">
-                          Can any of these mice be the same mouse? 🤔
-                        </p>
-                      </div>
-                    </motion.div>
-
-                    {/* Step-by-step solution */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.6 }}
-                    >
-                      <Card className="p-5 space-y-4">
-                        <h3 className="font-bold text-foreground text-lg">📚 Step-by-Step Solution</h3>
-
-                        {/* Progress dots */}
-                        <div className="flex justify-center gap-2">
-                          {solutionSteps.map((_, index) => (
-                            <button
-                              key={index}
-                              onClick={() => {
-                                setCurrentSolutionStep(index);
-                                setRevealedSteps((prev) => [...new Set([...prev, index])]);
-                              }}
-                              className={`w-3 h-3 rounded-full transition-all ${
-                                currentSolutionStep === index
-                                  ? "bg-primary scale-125"
-                                  : revealedSteps.includes(index)
-                                    ? "bg-success"
-                                    : "bg-muted-foreground/30"
-                              }`}
-                            />
+                      {/* Drawing: cats with lines to mice */}
+                      <div className="relative flex flex-col items-center gap-2 py-4">
+                        {/* Cats row */}
+                        <div className="flex gap-10 justify-center">
+                          {["Cat 1", "Cat 2", "Cat 3"].map((cat, i) => (
+                            <motion.div
+                              key={cat}
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 0.5 + i * 0.15 }}
+                              className="text-center"
+                            >
+                              <span className="text-4xl">🐱</span>
+                              <p className="text-xs text-muted-foreground mt-1">{cat}</p>
+                            </motion.div>
                           ))}
                         </div>
 
-                        {/* Current step */}
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={currentSolutionStep}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.3 }}
-                            className="bg-muted/30 rounded-xl p-4"
-                          >
-                            <div className="flex items-center gap-3 mb-3">
-                              <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-                                {currentSolutionStep + 1}
-                              </span>
-                              <h4 className="font-semibold text-foreground">
-                                {solutionSteps[currentSolutionStep].title}
-                              </h4>
-                            </div>
-                            <p className="text-muted-foreground pl-11 whitespace-pre-line">
-                              {solutionSteps[currentSolutionStep].content}
-                            </p>
-                          </motion.div>
-                        </AnimatePresence>
+                        {/* Connection lines via SVG */}
+                        <motion.svg
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 1.2 }}
+                          viewBox="0 0 300 60"
+                          className="w-full max-w-xs h-16"
+                          fill="none"
+                        >
+                          {/* Cat1 → Mouse A */}
+                          <line x1="50" y1="0" x2="100" y2="60" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 3" />
+                          {/* Cat1 → Mouse B */}
+                          <line x1="50" y1="0" x2="200" y2="60" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 3" />
+                          {/* Cat2 → Mouse A */}
+                          <line x1="150" y1="0" x2="100" y2="60" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 3" />
+                          {/* Cat2 → Mouse B */}
+                          <line x1="150" y1="0" x2="200" y2="60" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 3" />
+                          {/* Cat3 → Mouse A */}
+                          <line x1="250" y1="0" x2="100" y2="60" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 3" />
+                          {/* Cat3 → Mouse B */}
+                          <line x1="250" y1="0" x2="200" y2="60" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 3" />
+                        </motion.svg>
 
-                        {/* Navigation */}
-                        <div className="flex justify-between">
-                          <Button
-                            variant="ghost"
-                            onClick={handlePrevStep}
-                            disabled={currentSolutionStep === 0}
-                          >
-                            ← Previous
-                          </Button>
-                          <Button
-                            onClick={handleNextStep}
-                            disabled={currentSolutionStep === solutionSteps.length - 1}
-                          >
-                            Next →
-                          </Button>
+                        {/* Mice row */}
+                        <div className="flex gap-12 justify-center">
+                          {["Mouse A", "Mouse B"].map((mouse, i) => (
+                            <motion.div
+                              key={mouse}
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 1.0 + i * 0.15 }}
+                              className="text-center bg-success/10 rounded-xl px-5 py-3 border border-success/30"
+                            >
+                              <span className="text-4xl">🐭</span>
+                              <p className="text-xs text-success font-bold mt-1">{mouse}</p>
+                            </motion.div>
+                          ))}
                         </div>
-                      </Card>
-                    </motion.div>
+                      </div>
 
-                    {/* Nudge - no answer */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.8 }}
-                      className="bg-warning/10 border border-warning/30 rounded-xl p-5"
-                    >
-                      <h3 className="font-bold text-foreground text-lg mb-2">💡 Key Question:</h3>
-                      <p className="text-sm text-foreground">
-                        The problem says "smallest number." What's the fewest mice you need so that every cat still has exactly 2 mouse friends? Try it and pick your answer!
-                      </p>
+                      {/* Prompt to count */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.5 }}
+                        className="mt-5 bg-warning/10 border border-warning/30 rounded-xl p-4 text-center"
+                      >
+                        <p className="text-foreground font-semibold text-base">
+                          ✏️ Now count — how many lines does each cat have?
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Does every cat still have exactly 2 mouse friends? How many mice did we need? 🤔
+                        </p>
+                      </motion.div>
                     </motion.div>
 
                     {/* Bottom CTA */}
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1 }}
+                      transition={{ delay: 1.8 }}
                     >
                       <Button
                         size="lg"
