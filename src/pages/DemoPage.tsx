@@ -406,6 +406,24 @@ const DemoPage: React.FC = () => {
                           Does every cat still have exactly 2 mouse friends? How many mice did we need? 🤔
                         </p>
                       </motion.div>
+
+                      {/* Answer reveal */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 2.5 }}
+                        className="mt-4 bg-success/10 border border-success/30 rounded-xl p-4 flex items-start gap-3"
+                      >
+                        <span className="text-2xl">✅</span>
+                        <div>
+                          <p className="text-success font-bold text-lg">
+                            Answer: (A) 2 mice
+                          </p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Each cat has exactly 2 lines — so every cat still has 2 mouse friends. And we only needed <span className="font-bold text-foreground">2 mice</span> because mice can be shared!
+                          </p>
+                        </div>
+                      </motion.div>
                     </motion.div>
 
                     {/* Bottom CTA */}
