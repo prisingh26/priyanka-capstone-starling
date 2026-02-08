@@ -188,11 +188,11 @@ const DemoPage: React.FC = () => {
               </div>
 
               {/* Student's selected answer */}
-              <div className="bg-warning/10 border border-warning/30 rounded-xl p-4 flex items-center gap-3">
-                <span className="text-2xl">✏️</span>
+              <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 flex items-center gap-3">
+                <span className="text-2xl">❌</span>
                 <div>
                   <p className="text-sm text-muted-foreground">Student selected:</p>
-                  <p className="font-bold text-foreground text-lg">(B) 3</p>
+                  <p className="font-bold text-destructive text-lg">(B) 3</p>
                 </div>
               </div>
 
