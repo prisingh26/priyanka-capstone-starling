@@ -40,7 +40,7 @@ const PrivacyDataTab: React.FC = () => {
     {
       icon: Eye,
       title: "What we see",
-      description: "We can see the math problems you upload and how you solve them. This helps Sprout give you better hints!",
+      description: "We can see the math problems you upload and how you solve them. This helps Starling give you better hints!",
       emoji: "👀",
     },
     {

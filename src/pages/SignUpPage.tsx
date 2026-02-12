@@ -22,6 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
+import StarlingLogo from "@/components/StarlingLogo";
 import { 
   createUserWithEmailAndPassword, 
   sendEmailVerification,
@@ -269,10 +270,7 @@ const SignUpPage = () => {
           transition={{ duration: 0.5 }}
         >
           <div className="inline-flex items-center gap-2 mb-2">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-green-400 rounded-full flex items-center justify-center shadow-lg shadow-primary/30">
-              <span className="text-2xl">🌱</span>
-            </div>
-            <span className="text-3xl font-bold text-foreground">Sprout</span>
+            <StarlingLogo className="scale-125" />
           </div>
           <p className="text-muted-foreground">Create your account</p>
         </motion.div>
@@ -318,7 +316,7 @@ const SignUpPage = () => {
             >
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-foreground mb-2">
-                  Welcome to Sprout! 🌱
+                  Welcome to Starling! ⭐
                 </h2>
                 <p className="text-muted-foreground">
                   Tell us who you are so we can personalize your experience
@@ -857,7 +855,7 @@ const SignUpPage = () => {
                       className="w-full"
                       size="lg"
                     >
-                      Continue to Sprout
+                      Continue to Starling
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                   </motion.div>

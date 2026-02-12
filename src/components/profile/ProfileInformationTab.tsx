@@ -160,7 +160,7 @@ const ProfileInformationTab: React.FC<ProfileInformationTabProps> = ({ data, onC
       <Card className="border-0 shadow-soft">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">How You Learn Best 🧠</CardTitle>
-          <CardDescription>This helps Sprout teach you in the best way!</CardDescription>
+          <CardDescription>This helps Starling teach you in the best way!</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Learning Styles */}

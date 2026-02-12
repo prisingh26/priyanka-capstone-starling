@@ -9,6 +9,7 @@
    Loader2,
    Sparkles
  } from "lucide-react";
+ import StarlingLogo from "@/components/StarlingLogo";
  import { Button } from "@/components/ui/button";
  import { Input } from "@/components/ui/input";
  import { Card, CardContent } from "@/components/ui/card";
@@ -191,21 +192,14 @@ import { supabase } from "@/integrations/supabase/client";
            animate={{ opacity: 1, y: 0 }}
            transition={{ duration: 0.5 }}
          >
-           <motion.div 
-             className="inline-flex items-center gap-2 mb-2"
-             whileHover={{ scale: 1.05 }}
-             transition={{ type: "spring", stiffness: 400, damping: 10 }}
-           >
-             <motion.div 
-               className="w-12 h-12 bg-gradient-to-br from-primary to-green-400 rounded-full flex items-center justify-center shadow-lg shadow-primary/30"
-               animate={{ rotate: [0, 5, -5, 0] }}
-               transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-             >
-               <span className="text-2xl">🌱</span>
-             </motion.div>
-             <span className="text-3xl font-bold text-foreground">Sprout</span>
-           </motion.div>
-         </motion.div>
+            <motion.div 
+              className="inline-flex items-center gap-2 mb-2"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
+              <StarlingLogo className="scale-125" />
+            </motion.div>
+          </motion.div>
  
          {/* Welcome message */}
          <motion.div
