@@ -398,7 +398,7 @@ type Screen =
    }
  
    return (
-     <div className="min-h-screen bg-background overflow-hidden" role="application" aria-label="Sprout Learning App">
+     <div className="min-h-screen bg-background overflow-hidden" role="application" aria-label="Starling Learning App">
       {/* Tutorial Overlay */}
       <TutorialOverlay
         isOpen={showTutorial && currentScreen === "home"}

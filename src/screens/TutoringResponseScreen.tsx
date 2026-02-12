@@ -54,9 +54,9 @@ const TutoringResponseScreen: React.FC<TutoringResponseScreenProps> = ({
            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
              Let's review your work! 📝
            </h1>
-           <p className="text-muted-foreground mt-2">
-             Here's what Sprout found in your homework
-           </p>
+            <p className="text-muted-foreground mt-2">
+              Here's what Starling found in your homework
+            </p>
          </motion.div>
  
          {/* Main content grid */}
@@ -81,10 +81,10 @@ const TutoringResponseScreen: React.FC<TutoringResponseScreenProps> = ({
              transition={{ delay: 0.4 }}
              className="space-y-4"
            >
-             <h2 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-               <span className="text-xl">🌱</span>
-               Sprout's Feedback
-             </h2>
+              <h2 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <span className="text-xl">⭐</span>
+                Starling's Feedback
+              </h2>
              
               <AITutorFeedback
                 encouragement={analysis?.encouragement || "Great effort! Let's look at where we can improve together!"}

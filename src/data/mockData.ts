@@ -1,4 +1,4 @@
-// Mock data for the Sprout app
+// Mock data for the Starling app
 
 export interface Problem {
   id: number;

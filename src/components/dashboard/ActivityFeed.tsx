@@ -191,7 +191,7 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({ childId }) => {
                             className="overflow-hidden"
                           >
                             <div className="mt-3 p-3 bg-sprout-green-light rounded-lg border-l-4 border-primary">
-                              <p className="text-xs font-medium text-primary mb-1">🌱 Sprout's Explanation</p>
+                              <p className="text-xs font-medium text-primary mb-1">⭐ Starling's Explanation</p>
                               <p className="text-sm text-foreground">{activity.aiExplanation}</p>
                             </div>
                           </motion.div>

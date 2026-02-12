@@ -294,15 +294,15 @@
                    animate={{ y: [0, -10, 0] }}
                    transition={{ duration: 2, repeat: Infinity }}
                  >
-                   <div className="w-32 h-32 mx-auto bg-gradient-to-br from-primary to-green-400 rounded-full flex items-center justify-center shadow-xl shadow-primary/30">
-                     <motion.span 
-                       className="text-6xl"
-                       animate={{ rotate: [0, 10, -10, 0] }}
-                       transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                     >
-                       🌱
-                     </motion.span>
-                   </div>
+                    <div className="w-32 h-32 mx-auto bg-gradient-to-br from-primary to-amber-400 rounded-full flex items-center justify-center shadow-xl shadow-primary/30">
+                      <motion.span 
+                        className="text-6xl"
+                        animate={{ rotate: [0, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                      >
+                        ⭐
+                      </motion.span>
+                    </div>
                  </motion.div>
  
                  <motion.div
@@ -310,8 +310,8 @@
                    animate={{ opacity: 1, y: 0 }}
                    transition={{ delay: 0.3 }}
                  >
-                   <h1 className="text-3xl font-bold text-foreground mb-3">
-                     Hi! I'm Sprout, your child's new math buddy! 🌱
+                    <h1 className="text-3xl font-bold text-foreground mb-3">
+                      Hi! I'm Starling, your child's new math buddy! ⭐
                    </h1>
                    <p className="text-lg text-muted-foreground mb-8 max-w-md mx-auto">
                      I help kids master math by turning homework into fun learning adventures. 
@@ -515,12 +515,12 @@
                              📸 Take a photo of homework
                            </h3>
                            <p className="text-muted-foreground">
-                             Snap a picture of your child's math worksheet and Sprout will analyze it instantly
+                             Snap a picture of your child's math worksheet and Starling will analyze it instantly
                            </p>
                          </motion.div>
                        )}
  
-                       {/* Slide 2: Sprout analyzes */}
+                       {/* Slide 2: Starling analyzes */}
                        {tutorialSlide === 1 && (
                          <motion.div
                            key="slide2"
@@ -541,11 +541,11 @@
                                animate={{ rotate: [0, 360] }}
                                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                              >
-                               🌱
+                               ⭐
                              </motion.span>
                            </motion.div>
                            <h3 className="text-xl font-bold text-foreground mb-2">
-                             🧠 Sprout analyzes and explains
+                             🧠 Starling analyzes and explains
                            </h3>
                            <p className="text-muted-foreground">
                              I identify mistakes, explain concepts in kid-friendly language, and celebrate correct answers!

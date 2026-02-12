@@ -13,7 +13,7 @@ const WireframeScreen: React.FC<WireframeScreenProps> = ({ onClose }) => {
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-black font-mono">
-                SPROUT AI
+                STARLING AI
               </h1>
               <p className="text-sm text-gray-600 font-mono mt-1">
                 Low-Fidelity Wireframes — K-5 Math Homework Helper
@@ -462,7 +462,7 @@ const ProblemRow: React.FC<{ correct: boolean; num: number }> = ({ correct, num 
 
 const ChatBubble: React.FC<{ bot?: boolean; children: React.ReactNode }> = ({ bot, children }) => (
   <div className={`text-[10px] p-2 border border-black max-w-[85%] ${bot ? 'bg-gray-100 rounded-tl-none' : 'bg-white ml-auto rounded-tr-none'}`}>
-    {bot && <span className="text-[8px] text-gray-400">🌱 Sprout:</span>}
+    {bot && <span className="text-[8px] text-gray-400">⭐ Starling:</span>}
     <p>{children}</p>
   </div>
 );

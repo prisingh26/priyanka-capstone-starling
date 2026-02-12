@@ -47,15 +47,15 @@
    },
    {
      id: 3,
-     title: "Let Sprout Analyze",
-     tooltip: "✨ Now let Sprout analyze your work! This takes about 10 seconds.",
-     icon: <Sparkles className="w-8 h-8 text-amber-500" />,
+    title: "Let Starling Analyze",
+    tooltip: "✨ Now let Starling analyze your work! This takes about 10 seconds.",
+    icon: <Sparkles className="w-8 h-8 text-amber-500" />,
      position: "center",
    },
    {
      id: 4,
      title: "See the Explanation",
-     tooltip: "🎉 Here's where Sprout explains the problem and shows you what to work on!",
+     tooltip: "🎉 Here's where Starling explains the problem and shows you what to work on!",
      icon: <MessageSquare className="w-8 h-8 text-primary" />,
      position: "center",
    },
@@ -69,7 +69,7 @@
    {
      id: 6,
      title: "Give Feedback",
-     tooltip: "👍👎 Let us know if this helped! Your feedback makes Sprout smarter.",
+     tooltip: "👍👎 Let us know if this helped! Your feedback makes Starling smarter.",
      icon: (
        <div className="flex gap-2">
          <ThumbsUp className="w-6 h-6 text-success" />
@@ -158,7 +158,7 @@
              animate={{ rotate: 360 }}
              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
            >
-             <span className="text-4xl">🌱</span>
+             <span className="text-4xl">⭐</span>
            </motion.div>
            <motion.div
              className="flex justify-center gap-1 mt-4"
@@ -188,8 +188,8 @@
          >
            <div className="bg-card rounded-2xl p-4 shadow-lg border">
              <div className="flex items-center gap-3 mb-3">
-               <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                 <span className="text-xl">🌱</span>
+                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <span className="text-xl">⭐</span>
                </div>
                <div className="flex-1">
                  <div className="h-2 bg-muted rounded w-20" />
@@ -284,8 +284,8 @@
              </motion.button>
            </div>
            <p className="text-xs text-muted-foreground mt-4">
-             Your feedback helps Sprout learn! 🌱
-           </p>
+              Your feedback helps Starling learn! ⭐
+            </p>
          </motion.div>
        );
      
