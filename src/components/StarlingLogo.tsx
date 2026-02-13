@@ -11,7 +11,7 @@ const StarlingLogo: React.FC<StarlingLogoProps> = ({ onClick, suffix, className 
   const content = (
     <>
       <ShootingStarIcon size={36} />
-      <span className="text-[22px] font-bold text-gradient-primary leading-none">
+      <span className="text-[22px] font-bold text-gradient-primary leading-normal">
         Starling{suffix ? ` ${suffix}` : ""}
       </span>
     </>
