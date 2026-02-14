@@ -20,12 +20,12 @@
     --primary: 271 81% 56%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Purple outline style */
-    --secondary: 270 100% 98%;
-    --secondary-foreground: 271 81% 56%;
+    /* Secondary - Orange (#f97316) */
+    --secondary: 25 95% 53%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Accent - Deeper Purple (#7e22ce) */
-    --accent: 271 81% 47%;
+    /* Accent - Orange */
+    --accent: 25 95% 53%;
     --accent-foreground: 0 0% 100%;
 
     --muted: 270 100% 98%;
@@ -35,9 +35,9 @@
     --success: 271 81% 56%;
     --success-foreground: 0 0% 100%;
 
-    /* Warning - Sunny Orange */
-    --warning: 35 100% 60%;
-    --warning-foreground: 30 30% 20%;
+    /* Warning - Orange tint */
+    --warning: 33 100% 96%;
+    --warning-foreground: 25 95% 30%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -51,16 +51,16 @@
     /* Starling specific */
     --starling-purple-light: 270 100% 98%;
     --starling-purple-medium: 271 81% 75%;
-    --starling-blue-light: 270 100% 97%;
-    --starling-yellow-light: 270 60% 95%;
-    --starling-pink-light: 270 80% 96%;
-    --starling-coral: 271 81% 56%;
-    --starling-teal: 271 81% 56%;
-    --starling-gradient: linear-gradient(135deg, hsl(271, 81%, 56%) 0%, hsl(271, 81%, 47%) 100%);
+    --starling-blue-light: 33 100% 96%;
+    --starling-yellow-light: 33 100% 96%;
+    --starling-pink-light: 33 100% 97%;
+    --starling-coral: 25 95% 53%;
+    --starling-teal: 25 95% 53%;
+    --starling-gradient: linear-gradient(135deg, hsl(271, 81%, 56%) 0%, hsl(25, 95%, 53%) 100%);
     --starling-gradient-blue: linear-gradient(135deg, hsl(271, 81%, 56%) 0%, hsl(271, 60%, 70%) 100%);
-    --starling-gradient-warm: linear-gradient(135deg, hsl(271, 81%, 56%) 0%, hsl(271, 81%, 47%) 100%);
-    --starling-gradient-rainbow: linear-gradient(135deg, hsl(271, 81%, 56%) 0%, hsl(271, 81%, 47%) 50%, hsl(271, 60%, 70%) 100%);
-    --starling-gradient-magic: linear-gradient(135deg, hsl(271, 81%, 56%) 0%, hsl(271, 81%, 47%) 50%, hsl(271, 60%, 70%) 100%);
+    --starling-gradient-warm: linear-gradient(135deg, hsl(25, 95%, 53%) 0%, hsl(25, 95%, 45%) 100%);
+    --starling-gradient-rainbow: linear-gradient(135deg, hsl(271, 81%, 56%) 0%, hsl(25, 95%, 53%) 50%, hsl(271, 60%, 70%) 100%);
+    --starling-gradient-magic: linear-gradient(135deg, hsl(271, 81%, 56%) 0%, hsl(25, 95%, 53%) 50%, hsl(271, 81%, 47%) 100%);
     
     /* Shadows */
     --shadow-soft: 0 4px 20px -4px hsla(271, 81%, 56%, 0.15);
@@ -91,10 +91,10 @@
     --primary: 271 81% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 271 30% 15%;
-    --secondary-foreground: 271 81% 70%;
+    --secondary: 25 95% 55%;
+    --secondary-foreground: 0 0% 100%;
 
-    --accent: 271 81% 52%;
+    --accent: 25 95% 55%;
     --accent-foreground: 0 0% 100%;
 
     --muted: 270 15% 18%;
