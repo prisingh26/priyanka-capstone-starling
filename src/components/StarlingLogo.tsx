@@ -10,8 +10,8 @@ interface StarlingLogoProps {
 const StarlingLogo: React.FC<StarlingLogoProps> = ({ onClick, suffix, className = "" }) => {
   const content = (
     <>
-      <ShootingStarIcon size={36} />
-      <span className="text-[22px] font-bold text-gradient-primary leading-normal">
+      <ShootingStarIcon size={48} />
+      <span className="text-[40px] font-bold text-gradient-primary leading-normal">
         Starling{suffix ? ` ${suffix}` : ""}
       </span>
     </>
