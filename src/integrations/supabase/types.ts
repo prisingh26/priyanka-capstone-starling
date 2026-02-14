@@ -47,6 +47,30 @@ export type Database = {
         }
         Relationships: []
       }
+      early_access_signups: {
+        Row: {
+          child_grade: string
+          created_at: string
+          email: string
+          id: string
+          parent_name: string
+        }
+        Insert: {
+          child_grade: string
+          created_at?: string
+          email: string
+          id?: string
+          parent_name: string
+        }
+        Update: {
+          child_grade?: string
+          created_at?: string
+          email?: string
+          id?: string
+          parent_name?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           created_at: string
