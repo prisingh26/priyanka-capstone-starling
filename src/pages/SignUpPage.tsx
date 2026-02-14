@@ -38,17 +38,17 @@ interface FormErrors {
   general?: string;
 }
 
-const AVATAR_STYLE = "adventurer";
-
 const AVATARS = [
-  { seed: "cat", name: "Cat", bg: "bg-violet-100" },
-  { seed: "fox", name: "Fox", bg: "bg-orange-100" },
-  { seed: "owl", name: "Owl", bg: "bg-emerald-100" },
-  { seed: "bunny", name: "Bunny", bg: "bg-sky-100" },
-  { seed: "panda", name: "Panda", bg: "bg-pink-100" },
-  { seed: "lion", name: "Lion", bg: "bg-amber-100" },
-  { seed: "penguin", name: "Penguin", bg: "bg-teal-100" },
-  { seed: "butterfly", name: "Butterfly", bg: "bg-rose-100" },
+  { emoji: "🦊", name: "Fox", bg: "bg-orange-100" },
+  { emoji: "🐱", name: "Cat", bg: "bg-violet-100" },
+  { emoji: "🦉", name: "Owl", bg: "bg-amber-50" },
+  { emoji: "🐰", name: "Bunny", bg: "bg-pink-100" },
+  { emoji: "🐼", name: "Panda", bg: "bg-emerald-50" },
+  { emoji: "🦁", name: "Lion", bg: "bg-orange-50" },
+  { emoji: "🐧", name: "Penguin", bg: "bg-sky-100" },
+  { emoji: "🦋", name: "Butterfly", bg: "bg-violet-50" },
+  { emoji: "🐶", name: "Puppy", bg: "bg-yellow-50" },
+  { emoji: "🐸", name: "Frog", bg: "bg-green-100" },
 ];
 
 const SignUpPage = () => {
@@ -92,14 +92,6 @@ const SignUpPage = () => {
     if (score <= 4) return { score: 4, label: "Strong", color: "bg-emerald-500", width: "80%" };
     return { score: 5, label: "Very strong", color: "bg-primary", width: "100%" };
   }, [password]);
-
-  const avatarUrls = useMemo(
-    () =>
-      AVATARS.map(
-        (a) => `https://api.dicebear.com/9.x/${AVATAR_STYLE}/svg?seed=${a.seed}`
-      ),
-    []
-  );
 
   const validateStep1 = (): boolean => {
     const newErrors: FormErrors = {};
@@ -178,7 +170,7 @@ const SignUpPage = () => {
           data: {
             name: childName.trim(),
             grade: gradeNum,
-            avatar: AVATAR_STYLE,
+            avatar: AVATARS[selectedAvatar].emoji,
           },
         },
         headers: { "x-firebase-token": token },
@@ -534,37 +526,35 @@ const SignUpPage = () => {
                         <Label className="text-sm font-medium text-foreground mb-2 block">
                           Pick an avatar
                         </Label>
-                        <div className="grid grid-cols-4 gap-3">
+                        <div className="grid grid-cols-5 gap-3">
                           {AVATARS.map((avatar, i) => (
                             <motion.button
-                              key={avatar.seed}
+                              key={avatar.name}
                               type="button"
                               onClick={() => setSelectedAvatar(i)}
-                              whileHover={{ scale: 1.08 }}
-                              whileTap={{ scale: 0.95 }}
-                              className={`relative flex flex-col items-center gap-1`}
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.85, y: -4 }}
+                              transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                              className="relative flex flex-col items-center gap-1"
                             >
-                              <div className={`aspect-square w-full rounded-full border-3 p-2 transition-all ${avatar.bg} ${
+                              <div className={`w-[72px] h-[72px] rounded-full border-3 flex items-center justify-center transition-all ${avatar.bg} ${
                                 selectedAvatar === i
                                   ? "border-primary ring-2 ring-primary/30 shadow-md"
                                   : "border-transparent hover:border-primary/30"
                               }`}>
-                                <img
-                                  src={avatarUrls[i]}
-                                  alt={avatar.name}
-                                  className="w-full h-full object-contain"
-                                />
+                                <span className="text-[36px] leading-none select-none">{avatar.emoji}</span>
                                 {selectedAvatar === i && (
                                   <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className="absolute top-0 right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-sm"
+                                    transition={{ type: "spring", stiffness: 500 }}
+                                    className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-sm"
                                   >
                                     <Check className="w-3 h-3 text-primary-foreground" />
                                   </motion.div>
                                 )}
                               </div>
-                              <span className="text-xs text-muted-foreground font-medium">{avatar.name}</span>
+                              <span className="text-[11px] text-muted-foreground font-medium">{avatar.name}</span>
                             </motion.button>
                           ))}
                         </div>
