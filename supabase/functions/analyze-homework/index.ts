@@ -9,8 +9,8 @@ const corsHeaders = {
 const AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 // ── Model config ────────────────────────────────────────────────────
-const FAST_MODEL = "google/gemini-3-flash-preview"; // Quick OCR + simple math
-const DEEP_MODEL = "google/gemini-2.5-pro"; // Complex reasoning + pedagogy
+const FAST_MODEL = "openai/gpt-5-mini"; // Quick OCR + simple math
+const DEEP_MODEL = "openai/gpt-5"; // Complex reasoning + pedagogy
 
 // ── Prompts ─────────────────────────────────────────────────────────
 
