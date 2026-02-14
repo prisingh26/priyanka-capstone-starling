@@ -7,10 +7,11 @@ const corsHeaders = {
 };
 
 const AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const CLAUDE_API = "https://api.anthropic.com/v1/messages";
 
 // ── Model config ────────────────────────────────────────────────────
-const FAST_MODEL = "openai/gpt-5-mini"; // Quick OCR + simple math
-const DEEP_MODEL = "openai/gpt-5"; // Complex reasoning + pedagogy
+const OCR_MODEL = "openai/gpt-5-mini"; // OpenAI for fast OCR + classification
+const REASONING_MODEL = "claude-sonnet-4-20250514"; // Claude for deep reasoning
 
 // ── Prompts ─────────────────────────────────────────────────────────
 
@@ -116,7 +117,18 @@ CRITICAL RULES:
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-async function callAI(
+function getImageParts(imageBase64: string) {
+  const base64Data = imageBase64.includes(",")
+    ? imageBase64.split(",")[1]
+    : imageBase64;
+  const mediaType = imageBase64.startsWith("data:image/png")
+    ? "image/png"
+    : "image/jpeg";
+  return { base64Data, mediaType };
+}
+
+// Call OpenAI via Lovable AI Gateway (for OCR / classification)
+async function callOpenAI(
   apiKey: string,
   model: string,
   prompt: string,
@@ -124,14 +136,7 @@ async function callAI(
   maxTokens: number,
   temperature: number,
 ) {
-  // Strip data URL prefix if present
-  const base64Data = imageBase64.includes(",")
-    ? imageBase64.split(",")[1]
-    : imageBase64;
-
-  const mediaType = imageBase64.startsWith("data:image/png")
-    ? "image/png"
-    : "image/jpeg";
+  const { base64Data, mediaType } = getImageParts(imageBase64);
 
   const response = await fetch(AI_GATEWAY, {
     method: "POST",
@@ -148,9 +153,7 @@ async function callAI(
             { type: "text", text: prompt },
             {
               type: "image_url",
-              image_url: {
-                url: `data:${mediaType};base64,${base64Data}`,
-              },
+              image_url: { url: `data:${mediaType};base64,${base64Data}` },
             },
           ],
         },
@@ -163,62 +166,99 @@ async function callAI(
   if (!response.ok) {
     const status = response.status;
     const body = await response.text();
-    console.error(`AI gateway error [${status}]:`, body);
-
-    if (status === 429) {
-      return {
-        error: "rate_limited",
-        message: "Too many requests — please try again in a moment.",
-      };
-    }
-    if (status === 402) {
-      return {
-        error: "payment_required",
-        message: "AI credits exhausted. Please add credits in Settings → Workspace → Usage.",
-      };
-    }
-    throw new Error(`AI gateway error [${status}]: ${body}`);
+    console.error(`OpenAI gateway error [${status}]:`, body);
+    if (status === 429) return { error: "rate_limited", message: "Too many requests — please try again in a moment." };
+    if (status === 402) return { error: "payment_required", message: "AI credits exhausted." };
+    throw new Error(`OpenAI gateway error [${status}]: ${body}`);
   }
 
   const data = await response.json();
-  const text = data.choices?.[0]?.message?.content ?? "";
+  return { text: data.choices?.[0]?.message?.content ?? "" };
+}
+
+// Call Claude directly via Anthropic API (for deep reasoning)
+async function callClaude(
+  apiKey: string,
+  prompt: string,
+  imageBase64: string,
+  maxTokens: number,
+  temperature: number,
+) {
+  const { base64Data, mediaType } = getImageParts(imageBase64);
+
+  const response = await fetch(CLAUDE_API, {
+    method: "POST",
+    headers: {
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: REASONING_MODEL,
+      max_tokens: maxTokens,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: mediaType,
+                data: base64Data,
+              },
+            },
+            { type: "text", text: prompt },
+          ],
+        },
+      ],
+      temperature,
+    }),
+  });
+
+  if (!response.ok) {
+    const status = response.status;
+    const body = await response.text();
+    console.error(`Claude API error [${status}]:`, body);
+    if (status === 429) return { error: "rate_limited", message: "Claude rate limit reached — please try again in a moment." };
+    if (status === 402 || status === 400) {
+      // Check if it's a billing issue
+      if (body.includes("credit") || body.includes("billing")) {
+        return { error: "payment_required", message: "Claude API credits exhausted. Please check your Anthropic billing." };
+      }
+    }
+    throw new Error(`Claude API error [${status}]: ${body}`);
+  }
+
+  const data = await response.json();
+  const text = data.content?.[0]?.text ?? "";
   return { text };
 }
 
 function parseJSON(raw: string) {
-  // Strip markdown code fences if the model wraps output
   let cleaned = raw.trim();
   if (cleaned.startsWith("```")) {
     cleaned = cleaned.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
   }
 
-  // Try parsing as-is first
   try {
     return JSON.parse(cleaned);
   } catch {
     // Response may be truncated — try to recover
   }
 
-  // Attempt to repair truncated JSON by closing open structures
-  // Find the last complete problem object by looking for the last "},"
   const lastCompleteComma = cleaned.lastIndexOf("},");
   if (lastCompleteComma > 0) {
-    // Close the problems array and the outer object
     const truncated = cleaned.substring(0, lastCompleteComma + 1);
-    // Try closing with ], errorPatterns, etc.
     const repaired = truncated + '], "errorPatterns": {}, "encouragement": "Great effort!" }';
     try {
       return JSON.parse(repaired);
-    } catch {
-      // Try another repair strategy
-    }
+    } catch { /* try next strategy */ }
   }
 
-  // Last resort: try to extract just the problems array
   const problemsMatch = cleaned.match(/"problems"\s*:\s*\[/);
   if (problemsMatch) {
     const startIdx = (problemsMatch.index ?? 0) + problemsMatch[0].length;
-    // Find all complete problem objects
     const problemObjects: any[] = [];
     let depth = 0;
     let objStart = -1;
@@ -262,6 +302,9 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
+
     const { imageBase64 } = await req.json();
     if (!imageBase64) {
       return new Response(
@@ -270,12 +313,12 @@ serve(async (req) => {
       );
     }
 
-    console.log("Step 1: Classifying problem complexity...");
+    console.log("Step 1: Classifying with OpenAI (GPT-5 Mini)...");
 
-    // ── Step 1: Classify complexity (fast model) ───────────────────
-    const classifyResult = await callAI(
+    // ── Step 1: Classify complexity with OpenAI ───────────────────
+    const classifyResult = await callOpenAI(
       LOVABLE_API_KEY,
-      FAST_MODEL,
+      OCR_MODEL,
       CLASSIFY_PROMPT,
       imageBase64,
       200,
@@ -289,7 +332,7 @@ serve(async (req) => {
       });
     }
 
-    let complexity = "complex"; // default to complex (safe)
+    let complexity = "complex";
     let classifyReason = "defaulting to complex";
     try {
       const parsed = parseJSON(classifyResult.text);
@@ -301,23 +344,39 @@ serve(async (req) => {
 
     console.log(`Complexity: ${complexity} (${classifyReason})`);
 
-    // ── Step 2: Analyze with appropriate model ─────────────────────
+    // ── Step 2: Analyze ─────────────────────────────────────────────
     const isSimple = complexity === "simple";
-    const model = isSimple ? FAST_MODEL : DEEP_MODEL;
     const prompt = isSimple ? SIMPLE_ANALYSIS_PROMPT : COMPLEX_ANALYSIS_PROMPT;
     const maxTokens = isSimple ? 4000 : 8000;
     const temperature = isSimple ? 0.3 : 0.5;
 
-    console.log(`Step 2: Analyzing with ${model}...`);
+    let analysisResult;
+    let modelUsed: string;
 
-    const analysisResult = await callAI(
-      LOVABLE_API_KEY,
-      model,
-      prompt,
-      imageBase64,
-      maxTokens,
-      temperature,
-    );
+    if (isSimple) {
+      // Simple problems → OpenAI (fast)
+      console.log("Step 2: Analyzing with OpenAI (GPT-5 Mini)...");
+      modelUsed = OCR_MODEL;
+      analysisResult = await callOpenAI(
+        LOVABLE_API_KEY,
+        OCR_MODEL,
+        prompt,
+        imageBase64,
+        maxTokens,
+        temperature,
+      );
+    } else {
+      // Complex problems → Claude (deep reasoning)
+      console.log(`Step 2: Analyzing with Claude (${REASONING_MODEL})...`);
+      modelUsed = REASONING_MODEL;
+      analysisResult = await callClaude(
+        ANTHROPIC_API_KEY,
+        prompt,
+        imageBase64,
+        maxTokens,
+        temperature,
+      );
+    }
 
     if ("error" in analysisResult) {
       return new Response(JSON.stringify(analysisResult), {
@@ -344,7 +403,7 @@ serve(async (req) => {
     // Attach metadata
     analysis.complexity = complexity;
     analysis.classifyReason = classifyReason;
-    analysis.modelUsed = model;
+    analysis.modelUsed = modelUsed;
 
     // Compute summary stats
     const problems = analysis.problems ?? [];
@@ -352,7 +411,7 @@ serve(async (req) => {
     analysis.correctAnswers = problems.filter((p: any) => p.isCorrect).length;
 
     console.log(
-      `Analysis complete: ${analysis.correctAnswers}/${analysis.totalProblems} correct (${model})`,
+      `Analysis complete: ${analysis.correctAnswers}/${analysis.totalProblems} correct (${modelUsed})`,
     );
 
     return new Response(JSON.stringify(analysis), {
