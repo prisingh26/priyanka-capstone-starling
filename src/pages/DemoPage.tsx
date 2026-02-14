@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import ShootingStarIcon from "@/components/ShootingStarIcon";
 import StarlingLogo from "@/components/StarlingLogo";
 
-type DemoStep = "problem" | "results";
+type DemoStep = "problem" | "loading" | "results";
 
 const answerOptions = [
   { label: "A", value: 2 },
@@ -175,7 +175,8 @@ const DemoPage: React.FC = () => {
                   setUserChoice(null);
                   setRetryAnswer(null);
                   setShowDiagramStep(0);
-                  setStep("results");
+                  setStep("loading");
+                  setTimeout(() => setStep("results"), 2200);
                 }}
                 className="w-full rounded-full py-6 text-lg gap-2 text-white hover:opacity-90 transition-opacity"
                 style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
@@ -187,14 +188,59 @@ const DemoPage: React.FC = () => {
           </motion.div>
         )}
 
+        {/* ===== LOADING TRANSITION ===== */}
+        {step === "loading" && (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, y: -30 }}
+            className="container mx-auto px-4 py-8 max-w-2xl flex flex-col items-center justify-center min-h-[60vh] gap-6"
+          >
+            <motion.div
+              animate={{
+                y: [0, -14, 0],
+                rotate: [0, 15, -15, 0],
+              }}
+              transition={{
+                duration: 1.2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <ShootingStarIcon size={64} />
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-xl font-bold text-foreground"
+            >
+              Starling is thinking…
+            </motion.p>
+            <motion.div className="flex gap-2">
+              {[0, 1, 2].map((i) => (
+                <motion.span
+                  key={i}
+                  className="w-3 h-3 rounded-full"
+                  style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                  animate={{ scale: [0.8, 1.3, 0.8], opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
+                />
+              ))}
+            </motion.div>
+          </motion.div>
+        )}
+
 
         {/* ===== STEP 3: SOCRATIC GUIDED RESULTS ===== */}
         {step === "results" && (
           <motion.div
             key="results"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
+            transition={{ type: "spring", stiffness: 200, damping: 25 }}
             className="container mx-auto px-4 py-6 max-w-2xl"
           >
             {/* Socratic callout badge */}
