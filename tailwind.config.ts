@@ -86,10 +86,10 @@ export default {
         "3xl": "2rem",
       },
       boxShadow: {
-        soft: "0 4px 20px -4px hsla(270, 90%, 60%, 0.15)",
-        float: "0 12px 40px -8px hsla(270, 90%, 60%, 0.2)",
-        glow: "0 0 50px -10px hsla(270, 90%, 60%, 0.35)",
-        magical: "0 8px 30px -6px hsla(350, 85%, 65%, 0.25)",
+        soft: "0 4px 20px -4px hsla(271, 81%, 56%, 0.15)",
+        float: "0 12px 40px -8px hsla(271, 81%, 56%, 0.2)",
+        glow: "0 0 50px -10px hsla(271, 81%, 56%, 0.35)",
+        magical: "0 8px 30px -6px hsla(271, 81%, 56%, 0.25)",
       },
       keyframes: {
         "accordion-down": {
@@ -115,11 +115,11 @@ export default {
         "pulse-glow": {
           "0%, 100%": { 
             transform: "scale(1)", 
-            boxShadow: "0 4px 20px -4px hsla(270, 90%, 60%, 0.3)" 
+            boxShadow: "0 4px 20px -4px hsla(271, 81%, 56%, 0.3)" 
           },
           "50%": { 
             transform: "scale(1.02)", 
-            boxShadow: "0 8px 40px -4px hsla(270, 90%, 60%, 0.5)" 
+            boxShadow: "0 8px 40px -4px hsla(271, 81%, 56%, 0.5)" 
           },
         },
         "fade-in": {

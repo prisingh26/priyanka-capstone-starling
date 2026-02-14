@@ -45,17 +45,17 @@ const ShootingStarIcon: React.FC<ShootingStarIconProps> = ({ className = "", siz
       strokeLinejoin="round"
     />
     {/* Sparkle dots */}
-    <circle cx="18" cy="8" r="0.8" fill="#FBBF24" opacity="0.7" />
-    <circle cx="20" cy="12" r="0.6" fill="#FBBF24" opacity="0.5" />
-    <circle cx="16" cy="6" r="0.5" fill="#F59E0B" opacity="0.6" />
+    <circle cx="18" cy="8" r="0.8" fill="#9333ea" opacity="0.7" />
+    <circle cx="20" cy="12" r="0.6" fill="#9333ea" opacity="0.5" />
+    <circle cx="16" cy="6" r="0.5" fill="#7e22ce" opacity="0.6" />
     <defs>
       <linearGradient id="trail-gradient" x1="0" y1="0" x2="10" y2="10" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#FBBF24" stopOpacity="0.1" />
-        <stop offset="1" stopColor="#F59E0B" stopOpacity="0.8" />
+        <stop stopColor="#9333ea" stopOpacity="0.1" />
+        <stop offset="1" stopColor="#7e22ce" stopOpacity="0.8" />
       </linearGradient>
       <linearGradient id="star-gradient" x1="11" y1="11" x2="17" y2="21" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#FBBF24" />
-        <stop offset="1" stopColor="#F59E0B" />
+        <stop stopColor="#9333ea" />
+        <stop offset="1" stopColor="#7e22ce" />
       </linearGradient>
     </defs>
   </svg>
