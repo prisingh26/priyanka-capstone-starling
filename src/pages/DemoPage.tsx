@@ -659,6 +659,24 @@ const DemoPage: React.FC = () => {
                         </button>
                       ))}
                     </div>
+
+                    {/* Still not sure option */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 2.0 }}
+                      className="text-center pt-2"
+                    >
+                      <button
+                        onClick={() => {
+                          setRetryAnswer("hint");
+                          setSocraticStep(6);
+                        }}
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-4"
+                      >
+                        Hmm, I'm still not sure... 🤔
+                      </button>
+                    </motion.div>
                   </motion.div>
                 )}
 
@@ -697,6 +715,45 @@ const DemoPage: React.FC = () => {
                           <p className="text-muted-foreground text-sm mt-2 italic">
                             See? You figured it out yourself! That's the Starling way. ⭐
                           </p>
+                        </div>
+                      ) : retryAnswer === "hint" ? (
+                        <div className="space-y-3">
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="bg-primary/10 border border-primary/20 rounded-2xl rounded-tl-md p-5"
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <motion.span
+                                animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+                                transition={{ duration: 1.5, repeat: 2 }}
+                                className="text-2xl"
+                              >
+                                💡
+                              </motion.span>
+                              <p className="text-foreground font-bold text-lg">I think I know the answer now!</p>
+                            </div>
+                            <p className="text-foreground text-sm mt-1">
+                              No worries — this one's tricky! Let me walk you through it step by step...
+                            </p>
+                            <p className="text-foreground text-sm mt-3">
+                              Look at the diagram: Mouse A is friends with <strong>all 3 cats</strong>, and Mouse B is <em>also</em> friends with <strong>all 3 cats</strong>. So every cat has exactly 2 mouse friends — and we only needed…
+                            </p>
+                          </motion.div>
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.0 }}
+                            className="bg-success/10 border border-success/30 rounded-2xl rounded-tl-md p-5"
+                          >
+                            <p className="text-success font-bold text-lg">✅ Answer: (A) 2 mice!</p>
+                            <p className="text-foreground text-sm mt-2">
+                              Mice can be shared! The trick is that a mouse can be friends with <strong>more than one cat</strong> at the same time. So just 2 mice is enough! 🐭🐭
+                            </p>
+                            <p className="text-muted-foreground text-sm mt-2 italic">
+                              Now you know the trick — next time, you'll get it! That's the Starling way. ⭐
+                            </p>
+                          </motion.div>
                         </div>
                       ) : (
                         <div className="space-y-3">
