@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Play, Camera, Bot, BarChart3, Shield, Lock, Users, ChevronDown, Sparkles, Heart, Menu, X } from "lucide-react";
+import { ArrowRight, Play, Camera, Bot, BarChart3, Shield, Lock, Users, ChevronDown, Sparkles, Heart, Menu, X, Lightbulb, BookOpen, Pencil, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import heroParentChild from "@/assets/hero-parent-child.jpg";
@@ -107,9 +107,9 @@ const LandingPage = () => {
       }
     }
   };
-  return <div className="min-h-screen bg-amber-50/40 overflow-x-hidden">
+  return <div className="min-h-screen overflow-x-hidden" style={{ background: "linear-gradient(180deg, hsl(40 60% 97%) 0%, hsl(260 40% 96%) 100%)" }}>
       {/* ─── Sticky Nav ─────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-amber-50/80 backdrop-blur-xl border-b border-amber-100/50">
+      <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-violet-100/40">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
           <StarlingLogo onClick={() => scrollTo("hero")} />
@@ -155,36 +155,37 @@ const LandingPage = () => {
       </nav>
 
       {/* ─── Hero Section ───────────────────────────────────────── */}
-      <section id="hero" className="relative py-16 md:py-24 overflow-hidden">
+      <section id="hero" className="relative py-20 md:py-28 overflow-hidden">
+        {/* Background gradient overlay */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: "radial-gradient(ellipse 80% 60% at 20% 40%, hsl(270 60% 92% / 0.5) 0%, transparent 70%), radial-gradient(ellipse 60% 50% at 80% 30%, hsl(30 80% 92% / 0.5) 0%, transparent 70%)"
+        }} />
+
         {/* Floating decorative blobs */}
-        <motion.div className="absolute top-20 left-10 w-40 h-40 rounded-full bg-violet-200/40 blur-3xl" animate={{
-        y: [0, -20, 0],
-        scale: [1, 1.1, 1]
-      }} transition={{
-        duration: 5,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }} />
-        <motion.div className="absolute bottom-20 right-10 w-56 h-56 rounded-full bg-rose-200/30 blur-3xl" animate={{
-        y: [0, 15, 0]
-      }} transition={{
-        duration: 6,
-        repeat: Infinity,
-        ease: "easeInOut",
-        delay: 1
-      }} />
-        <motion.div className="absolute top-1/2 left-1/3 w-24 h-24 rounded-full bg-emerald-200/30 blur-2xl" animate={{
-        x: [0, 20, 0],
-        y: [0, -15, 0]
-      }} transition={{
-        duration: 7,
-        repeat: Infinity,
-        ease: "easeInOut",
-        delay: 2
-      }} />
+        <motion.div className="absolute top-16 left-8 w-48 h-48 rounded-full blur-3xl" style={{ background: "hsl(270 60% 85% / 0.4)" }} animate={{ y: [0, -20, 0], scale: [1, 1.1, 1] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} />
+        <motion.div className="absolute bottom-16 right-8 w-64 h-64 rounded-full blur-3xl" style={{ background: "hsl(25 80% 88% / 0.35)" }} animate={{ y: [0, 15, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }} />
+        <motion.div className="absolute top-1/2 left-1/3 w-28 h-28 rounded-full blur-2xl" style={{ background: "hsl(270 50% 88% / 0.3)" }} animate={{ x: [0, 20, 0], y: [0, -15, 0] }} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 }} />
+        <motion.div className="absolute top-32 right-1/4 w-20 h-20 rounded-full blur-2xl" style={{ background: "hsl(30 70% 90% / 0.4)" }} animate={{ y: [0, -10, 0], x: [0, 10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }} />
+
+        {/* Floating decorative icons */}
+        <motion.div className="absolute top-24 left-[15%] text-violet-300/30" animate={{ y: [0, -8, 0], rotate: [0, 10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
+          <Pencil className="w-6 h-6" />
+        </motion.div>
+        <motion.div className="absolute top-40 left-[8%] text-orange-300/25" animate={{ y: [0, 10, 0], rotate: [0, -15, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}>
+          <Lightbulb className="w-7 h-7" />
+        </motion.div>
+        <motion.div className="absolute bottom-32 left-[20%] text-violet-300/20" animate={{ y: [0, -12, 0], rotate: [0, 20, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}>
+          <BookOpen className="w-5 h-5" />
+        </motion.div>
+        <motion.div className="absolute top-28 right-[40%] text-orange-300/20" animate={{ y: [0, 6, 0], scale: [1, 1.2, 1] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}>
+          <Star className="w-4 h-4" />
+        </motion.div>
+        <motion.div className="absolute top-56 left-[35%] text-violet-400/15" animate={{ y: [0, -6, 0], scale: [1, 1.3, 1] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 2.2 }}>
+          <Sparkles className="w-5 h-5" />
+        </motion.div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left: Text */}
             <motion.div variants={containerVariants} initial="hidden" animate="visible" className="max-w-xl">
               <motion.h1 variants={itemVariants} className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
@@ -194,75 +195,57 @@ const LandingPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
                   className="block text-5xl md:text-6xl lg:text-7xl font-extrabold bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500 bg-clip-text text-transparent"
+                  style={{
+                    filter: "drop-shadow(0 0 20px hsl(30 90% 60% / 0.3)) drop-shadow(0 0 40px hsl(270 60% 60% / 0.15))",
+                  }}
                 >
                   confidence
                 </motion.span>
               </motion.h1>
-
 
               <motion.p variants={itemVariants} className="mt-4 text-base md:text-lg font-medium text-violet-600/80 italic">
                 Learn where your child needs help, practice what makes it click, watch confidence bloom.
               </motion.p>
 
               <motion.div variants={itemVariants} className="mt-8 flex flex-col sm:flex-row gap-4">
-                <motion.div whileHover={{
-                scale: 1.03
-              }} whileTap={{
-                scale: 0.97
-              }}>
-                  <Button size="lg" variant="outline" onClick={() => navigate("/demo")} className="rounded-full px-8 py-6 text-lg border-2 border-violet-200 hover:bg-violet-50 group">
-                    <Play className="w-5 h-5 mr-2 text-violet-600 group-hover:text-violet-700" />
-                    Try It Free — See Demo
+                <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+                  <Button
+                    size="lg"
+                    onClick={() => navigate("/demo")}
+                    className="relative rounded-full px-8 py-6 text-lg font-bold text-white border-0 shadow-lg shadow-violet-500/25 overflow-hidden group"
+                    style={{ background: "linear-gradient(135deg, hsl(270 70% 55%), hsl(25 90% 55%))" }}
+                  >
+                    {/* Shimmer effect */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+                      animate={{ x: ["-200%", "200%"] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }}
+                    />
+                    <Play className="w-5 h-5 mr-2 relative z-10" />
+                    <span className="relative z-10">Try It Free — See Demo</span>
                   </Button>
                 </motion.div>
               </motion.div>
             </motion.div>
 
             {/* Right: Hero Image */}
-            <motion.div initial={{
-            opacity: 0,
-            x: 40,
-            scale: 0.95
-          }} animate={{
-            opacity: 1,
-            x: 0,
-            scale: 1
-          }} transition={{
-            duration: 0.8,
-            delay: 0.3
-          }} className="relative">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/20">
-                  <img
-                    src={heroParentChild}
-                    alt="A mother and daughter sharing a proud learning moment with the Starling app"
-                    className="w-full h-auto"
-                  />
-                </div>
-                {/* Floating badge overlays */}
-                <motion.div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center gap-2" initial={{
-                opacity: 0,
-                y: -10
-              }} animate={{
-                opacity: 1,
-                y: 0
-              }} transition={{
-                delay: 1
-              }}>
-                  <Sparkles className="w-4 h-4 text-violet-500" />
-                  <span className="text-sm font-medium text-foreground">AI-Powered</span>
-                </motion.div>
-                <motion.div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center gap-2" initial={{
-                opacity: 0,
-                y: 10
-              }} animate={{
-                opacity: 1,
-                y: 0
-              }} transition={{
-                delay: 1.3
-              }}>
-                  <Heart className="w-4 h-4 text-rose-500" />
-                  <span className="text-sm font-medium text-foreground">Grades 1–5</span>
-                </motion.div>
+            <motion.div initial={{ opacity: 0, x: 40, scale: 0.95 }} animate={{ opacity: 1, x: 0, scale: 1 }} transition={{ duration: 0.8, delay: 0.3 }} className="relative lg:-mb-12">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/20 ring-1 ring-white/50">
+                <img
+                  src={heroParentChild}
+                  alt="A mother and daughter sharing a proud learning moment with the Starling app"
+                  className="w-full h-auto"
+                />
+              </div>
+              {/* Floating badge overlays */}
+              <motion.div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center gap-2" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
+                <Sparkles className="w-4 h-4 text-violet-500" />
+                <span className="text-sm font-medium text-foreground">AI-Powered</span>
+              </motion.div>
+              <motion.div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center gap-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.3 }}>
+                <Heart className="w-4 h-4 text-rose-500" />
+                <span className="text-sm font-medium text-foreground">Grades 1–5</span>
+              </motion.div>
             </motion.div>
           </div>
         </div>
