@@ -1,7 +1,11 @@
- import React, { useState, useMemo, useCallback } from "react";
- import { AnimatePresence } from "framer-motion";
- import { useAccessibility } from "@/contexts/AccessibilityContext";
- import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { supabase } from "@/integrations/supabase/client";
+import { useAccessibility } from "@/contexts/AccessibilityContext";
+import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
 import Navigation from "../components/Navigation";
 import HomeScreen from "../screens/HomeScreen";
 import CameraScreen from "../screens/CameraScreen";
@@ -19,9 +23,9 @@ import ParentDashboardScreen from "../screens/ParentDashboardScreen";
 import WireframeScreen from "../screens/WireframeScreen";
 import TutoringResponseScreen from "../screens/TutoringResponseScreen";
 import StudentProfileScreen from "../screens/StudentProfileScreen";
- import TutorialOverlay from "../components/TutorialOverlay";
- import PageTransition from "../components/transitions/PageTransition";
- import AppLoader from "../components/loading/AppLoader";
+import TutorialOverlay from "../components/TutorialOverlay";
+import PageTransition from "../components/transitions/PageTransition";
+import AppLoader from "../components/loading/AppLoader";
 import { HomeworkAnalysis, AnalyzedProblem } from "@/types/homework";
 import { toast } from "sonner";
 
@@ -64,9 +68,40 @@ type Screen =
  ];
  
  const Index = () => {
+   const navigate = useNavigate();
+
+   // Auth guard
+   const [authChecked, setAuthChecked] = useState(false);
+   const [firebaseUser, setFirebaseUser] = useState<any>(null);
+
+   useEffect(() => {
+     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+       if (!user) {
+         navigate("/login", { replace: true });
+         return;
+       }
+       setFirebaseUser(user);
+
+       // Fetch child's first name from DB
+       try {
+         const token = await user.getIdToken();
+         const { data } = await supabase.functions.invoke("db-proxy", {
+           body: { action: "select", table: "children", match: { parent_id: user.uid } },
+           headers: { Authorization: `Bearer ${token}` },
+         });
+         if (data?.data?.[0]?.name) {
+           setUserProfile((prev) => ({ ...prev, name: data.data[0].name }));
+         }
+       } catch {
+         // fallback to localStorage profile
+       }
+       setAuthChecked(true);
+     });
+     return () => unsubscribe();
+   }, [navigate]);
+
    // App loading state
    const [isAppLoading, setIsAppLoading] = useState(() => {
-     // Only show app loader on first visit of the session
      return sessionStorage.getItem("sprout_app_loaded") !== "true";
    });
   // Check if user has completed onboarding
@@ -78,7 +113,7 @@ type Screen =
    const [previousScreen, setPreviousScreen] = useState<Screen | null>(null);
   const [userProfile, setUserProfile] = useState(() => {
     const saved = localStorage.getItem("sprout_profile");
-    if (!saved) return { name: "Student", grade: 3 };
+    if (!saved) return { name: "", grade: 3 };
     try {
       const parsed = JSON.parse(saved);
       if (typeof parsed === 'object' && parsed !== null &&
@@ -87,7 +122,7 @@ type Screen =
         return { name: parsed.name, grade: parsed.grade };
       }
     } catch { /* ignore */ }
-    return { name: "Student", grade: 3 };
+    return { name: "", grade: 3 };
   });
   
   // State for uploaded image
@@ -391,6 +426,10 @@ type Screen =
 
   // Don't show navigation during onboarding or camera view
   const hideNavigation = currentScreen === "onboarding" || currentScreen === "camera" || currentScreen === "parent-dashboard" || currentScreen === "student-profile";
+
+   if (!authChecked) {
+     return <AppLoader onComplete={() => {}} />;
+   }
 
    // Show app loader on first load
    if (isAppLoading) {
