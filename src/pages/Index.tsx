@@ -23,6 +23,7 @@ import ParentDashboardScreen from "../screens/ParentDashboardScreen";
 import WireframeScreen from "../screens/WireframeScreen";
 import TutoringResponseScreen from "../screens/TutoringResponseScreen";
 import StudentProfileScreen from "../screens/StudentProfileScreen";
+import SocraticGuidanceScreen from "../screens/SocraticGuidanceScreen";
 import TutorialOverlay from "../components/TutorialOverlay";
 import PageTransition from "../components/transitions/PageTransition";
 import AppLoader from "../components/loading/AppLoader";
@@ -36,6 +37,7 @@ type Screen =
   | "processing" 
   | "results" 
   | "problem-detail"
+  | "socratic-guidance"
   | "tutoring" 
   | "tutoring-response"
   | "practice-sets"
@@ -49,23 +51,24 @@ type Screen =
 
  // Define screen order for transition direction
  const screenOrder: Screen[] = [
-   "onboarding",
-   "home",
-   "camera",
-   "processing",
-   "results",
-   "problem-detail",
-   "tutoring",
-   "tutoring-response",
-   "practice-sets",
-   "practice",
-   "completion",
-   "progress",
-   "settings",
-   "parent-dashboard",
-   "student-profile",
-   "wireframe",
- ];
+    "onboarding",
+    "home",
+    "camera",
+    "processing",
+    "results",
+    "problem-detail",
+    "socratic-guidance",
+    "tutoring",
+    "tutoring-response",
+    "practice-sets",
+    "practice",
+    "completion",
+    "progress",
+    "settings",
+    "parent-dashboard",
+    "student-profile",
+    "wireframe",
+  ];
  
  const Index = () => {
    const navigate = useNavigate();
@@ -296,6 +299,11 @@ type Screen =
           <ResultsScreen 
             onStartTutoring={() => setCurrentScreen("tutoring-response")}
             onViewProblem={handleViewProblem}
+            onGetHelp={(problem, index) => {
+              setSelectedProblem({ problem, index });
+              setPreviousScreen(currentScreen);
+              setCurrentScreen("socratic-guidance");
+            }}
             uploadedImage={uploadedImage}
             analysis={analysisResult}
           />
@@ -312,7 +320,7 @@ type Screen =
             problemIndex={selectedProblem.index}
             totalProblems={analysisResult.problems.length}
             onBack={() => setCurrentScreen("results")}
-            onGetHelp={() => setCurrentScreen("tutoring")}
+            onGetHelp={() => setCurrentScreen("socratic-guidance")}
             onTryAgain={() => {}}
             onPrevious={() => {
               const newIndex = selectedProblem.index - 1;
@@ -335,6 +343,31 @@ type Screen =
           />
         );
       
+      case "socratic-guidance":
+        if (!selectedProblem) {
+          setCurrentScreen("results");
+          return null;
+        }
+        return (
+          <SocraticGuidanceScreen
+            problem={selectedProblem.problem}
+            studentName={userProfile.name}
+            studentGrade={userProfile.grade}
+            onBack={() => setCurrentScreen("results")}
+            onSolved={() => {
+              // Mark the problem as understood in local state
+              if (analysisResult && selectedProblem) {
+                const updatedProblems = [...analysisResult.problems];
+                updatedProblems[selectedProblem.index] = {
+                  ...updatedProblems[selectedProblem.index],
+                  isCorrect: true, // Mark as understood
+                };
+                setAnalysisResult({ ...analysisResult, problems: updatedProblems });
+              }
+            }}
+          />
+        );
+
       case "tutoring":
         return (
           <TutoringScreen 
@@ -425,7 +458,7 @@ type Screen =
   };
 
   // Don't show navigation during onboarding or camera view
-  const hideNavigation = currentScreen === "onboarding" || currentScreen === "camera" || currentScreen === "parent-dashboard" || currentScreen === "student-profile";
+  const hideNavigation = currentScreen === "onboarding" || currentScreen === "camera" || currentScreen === "parent-dashboard" || currentScreen === "student-profile" || currentScreen === "socratic-guidance";
 
    if (!authChecked) {
      return <AppLoader onComplete={() => {}} />;

@@ -47,6 +47,45 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          completed_at: string | null
+          id: string
+          messages: Json
+          problem_correct_answer: string
+          problem_error_type: string | null
+          problem_question: string
+          problem_student_answer: string
+          resolved: boolean
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          messages?: Json
+          problem_correct_answer: string
+          problem_error_type?: string | null
+          problem_question: string
+          problem_student_answer: string
+          resolved?: boolean
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          messages?: Json
+          problem_correct_answer?: string
+          problem_error_type?: string | null
+          problem_question?: string
+          problem_student_answer?: string
+          resolved?: boolean
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       early_access_signups: {
         Row: {
           child_grade: string

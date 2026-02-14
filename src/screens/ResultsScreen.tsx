@@ -7,6 +7,7 @@ import { HomeworkAnalysis, AnalyzedProblem } from "@/types/homework";
 interface ResultsScreenProps {
   onStartTutoring: () => void;
   onViewProblem?: (problem: AnalyzedProblem, index: number) => void;
+  onGetHelp?: (problem: AnalyzedProblem, index: number) => void;
   uploadedImage?: string | null;
   analysis: HomeworkAnalysis;
 }
@@ -21,6 +22,7 @@ const getEncouragingMessage = (percentage: number) => {
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ 
   onStartTutoring, 
   onViewProblem,
+  onGetHelp,
   uploadedImage,
   analysis,
 }) => {
@@ -189,6 +191,17 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
                       <p className="text-xs text-muted-foreground mt-1 italic">
                         💡 {problem.rootCause}
                       </p>
+                    )}
+                    {!problem.isCorrect && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onGetHelp?.(problem, index);
+                        }}
+                        className="mt-2 text-xs font-medium text-primary hover:underline flex items-center gap-1"
+                      >
+                        Work through this with Starling 💡
+                      </button>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
