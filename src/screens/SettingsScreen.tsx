@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import { User, Bell, Volume2, Moon, Shield, HelpCircle, ChevronRight, Lock, Star, Edit2, BookOpen, UserCircle } from "lucide-react";
+import { User, Bell, Volume2, Moon, Shield, HelpCircle, ChevronRight, Lock, Star, Edit2, BookOpen, UserCircle, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import StarlingMascot from "../components/StarlingMascot";
 
 interface SettingsScreenProps {
@@ -15,6 +18,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onNavigate,
   onUpdateProfile 
 }) => {
+  const navigate = useNavigate();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -39,6 +43,15 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const handleNameSave = () => {
     onUpdateProfile(editedName, grade);
     setIsEditingName(false);
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    localStorage.removeItem("sprout_profile");
+    localStorage.removeItem("sprout_onboarded");
+    localStorage.removeItem("sprout_tutorial_completed");
+    sessionStorage.removeItem("sprout_app_loaded");
+    navigate("/", { replace: true });
   };
 
   return (
@@ -250,6 +263,15 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 p-4 rounded-2xl bg-destructive/10 hover:bg-destructive/20 transition-colors"
+        >
+          <LogOut className="w-5 h-5 text-destructive" />
+          <span className="flex-1 text-left text-destructive font-medium">Log Out</span>
+        </button>
 
         {/* Version */}
         <p className="text-center text-sm text-muted-foreground">
