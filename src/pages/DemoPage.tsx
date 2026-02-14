@@ -104,38 +104,57 @@ const DemoPage: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             className="container mx-auto px-4 py-8 max-w-2xl"
           >
-            {/* Introduction Section */}
-            <div className="text-center space-y-6 mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                What is Starling?
-              </h1>
-              <p className="text-muted-foreground text-lg leading-relaxed max-w-xl mx-auto">
-                Starling is your child's AI learning companion. Upload homework photos for instant help or practice any skill. Get patient explanations, targeted practice, and build confidence.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+            {/* Welcome Section */}
+            <div className="text-center space-y-8 mb-10">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <ShootingStarIcon size={56} className="mx-auto mb-4" />
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-snug">
+                  Hi! I'm <span className="text-gradient-primary">Starling</span>, your child's new learning buddy!
+                </h1>
+                <p className="text-muted-foreground text-lg leading-relaxed max-w-lg mx-auto mt-3">
+                  Upload homework photos for instant help, or practice any skill with patient, step-by-step guidance.
+                </p>
+              </motion.div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
-                  { icon: "📸", text: "Upload homework photos" },
-                  { icon: "💬", text: "Clear AI explanations" },
-                  { icon: "📈", text: "Personalized practice" },
-                ].map((feature) => (
-                  <div
-                    key={feature.text}
-                    className="flex items-center gap-3 bg-muted/50 rounded-xl p-4"
+                  { icon: "📸", title: "Upload homework photos", desc: "Snap a photo and get instant feedback" },
+                  { icon: "💬", title: "Clear AI explanations", desc: "Patient, step-by-step help every time" },
+                  { icon: "📈", title: "Personalized practice", desc: "Build skills with targeted exercises" },
+                ].map((feature, i) => (
+                  <motion.div
+                    key={feature.title}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + i * 0.1 }}
+                    className="bg-card border border-border rounded-2xl p-5 text-center space-y-2 shadow-soft"
                   >
-                    <span className="text-2xl">{feature.icon}</span>
-                    <span className="text-sm font-medium text-foreground">{feature.text}</span>
-                  </div>
+                    <span className="text-3xl block">{feature.icon}</span>
+                    <h3 className="font-bold text-foreground text-sm">{feature.title}</h3>
+                    <p className="text-xs text-muted-foreground">{feature.desc}</p>
+                  </motion.div>
                 ))}
               </div>
-              <Button
-                size="lg"
-                onClick={() => {
-                  document.getElementById("demo-problem")?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="bg-success hover:bg-success/90 text-success-foreground rounded-full px-8 py-6 text-lg"
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
               >
-                See Starling in Action →
-              </Button>
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    document.getElementById("demo-problem")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-full px-8 py-6 text-lg"
+                >
+                  See Starling in Action →
+                </Button>
+              </motion.div>
             </div>
 
             {/* Sample Problem */}
