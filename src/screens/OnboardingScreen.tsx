@@ -66,10 +66,10 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, onSkip 
             
             <div className="space-y-4">
               <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-                Hi! I'm <span className="text-gradient-primary">Starling</span> ⭐
+                Hi! I'm <span className="text-gradient-primary">Starling</span>, your child's new learning buddy! ⭐
               </h1>
               <p className="text-xl text-muted-foreground max-w-md">
-                I'm here to help you learn from your homework mistakes and become a superstar! ⭐
+                I'm here to help your child learn from their homework mistakes and become a superstar! ⭐
               </p>
             </div>
 
