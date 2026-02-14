@@ -104,7 +104,42 @@ const DemoPage: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             className="container mx-auto px-4 py-8 max-w-2xl"
           >
-            <Card className="p-6 md:p-8 space-y-6">
+            {/* Introduction Section */}
+            <div className="text-center space-y-6 mb-8">
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                What is Starling?
+              </h1>
+              <p className="text-muted-foreground text-lg leading-relaxed max-w-xl mx-auto">
+                Starling is your child's AI learning companion. Upload homework photos for instant help or practice any skill. Get patient explanations, targeted practice, and build confidence.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+                {[
+                  { icon: "📸", text: "Upload homework photos" },
+                  { icon: "💬", text: "Clear AI explanations" },
+                  { icon: "📈", text: "Personalized practice" },
+                ].map((feature) => (
+                  <div
+                    key={feature.text}
+                    className="flex items-center gap-3 bg-muted/50 rounded-xl p-4"
+                  >
+                    <span className="text-2xl">{feature.icon}</span>
+                    <span className="text-sm font-medium text-foreground">{feature.text}</span>
+                  </div>
+                ))}
+              </div>
+              <Button
+                size="lg"
+                onClick={() => {
+                  document.getElementById("demo-problem")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="bg-success hover:bg-success/90 text-success-foreground rounded-full px-8 py-6 text-lg"
+              >
+                See Starling in Action →
+              </Button>
+            </div>
+
+            {/* Sample Problem */}
+            <Card id="demo-problem" className="p-6 md:p-8 space-y-6">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">🐱</span>
                 <div>
