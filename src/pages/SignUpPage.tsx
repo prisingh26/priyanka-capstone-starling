@@ -1,253 +1,235 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Users, 
-  GraduationCap, 
-  ArrowRight, 
-  ArrowLeft, 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  Check, 
-  X, 
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  User,
+  ArrowLeft,
+  ArrowRight,
+  X,
   Loader2,
   Sparkles,
-  Inbox,
-  RefreshCw
+  Check,
 } from "lucide-react";
+import StarlingLogo from "@/components/StarlingLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useNavigate } from "react-router-dom";
-import StarlingLogo from "@/components/StarlingLogo";
-import { 
-  createUserWithEmailAndPassword, 
-  sendEmailVerification,
+import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  createUserWithEmailAndPassword,
   signInWithPopup,
-  onAuthStateChanged
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
+import { supabase } from "@/integrations/supabase/client";
 
-type AccountType = "parent" | "teacher" | null;
-type Step = 1 | 2 | 3;
+type Step = 1 | 2;
 
 interface FormErrors {
+  parentName?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
-  terms?: string;
+  childName?: string;
+  grade?: string;
   general?: string;
 }
 
+const AVATAR_STYLES = [
+  "adventurer",
+  "avataaars",
+  "bottts",
+  "fun-emoji",
+  "lorelei",
+  "notionists",
+  "open-peeps",
+  "thumbs",
+];
+
+const AVATAR_SEEDS = [
+  "Starling1",
+  "Starling2",
+  "Starling3",
+  "Starling4",
+  "Starling5",
+  "Starling6",
+  "Starling7",
+  "Starling8",
+];
+
 const SignUpPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
   const [step, setStep] = useState<Step>(1);
-  const [accountType, setAccountType] = useState<AccountType>(null);
-  
-  // Form state
-  const [email, setEmail] = useState("");
+
+  // Step 1 state
+  const [parentName, setParentName] = useState("");
+  const [email, setEmail] = useState(searchParams.get("email") || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  // Step 2 state
+  const [childName, setChildName] = useState("");
+  const [grade, setGrade] = useState("");
+  const [selectedAvatar, setSelectedAvatar] = useState(0);
+
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  
-  // Email verification
-  const [resendCountdown, setResendCountdown] = useState(0);
-  const [showConfetti, setShowConfetti] = useState(false);
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user && step !== 3) {
-        navigate("/onboarding");
-      }
-    });
-    return () => unsubscribe();
-  }, [navigate, step]);
+  // Direction for slide animation
+  const [direction, setDirection] = useState(1);
 
-  // Countdown timer for resend
-  useEffect(() => {
-    if (resendCountdown > 0) {
-      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendCountdown]);
-
-  // Password strength calculation
-  const getPasswordStrength = (pwd: string): { score: number; label: string; color: string } => {
+  // Password strength
+  const passwordStrength = useMemo(() => {
+    if (!password) return null;
     let score = 0;
-    if (pwd.length >= 8) score++;
-    if (pwd.length >= 12) score++;
-    if (/[A-Z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
 
-    if (score <= 1) return { score: 1, label: "Weak", color: "bg-red-500" };
-    if (score <= 2) return { score: 2, label: "Fair", color: "bg-orange-500" };
-    if (score <= 3) return { score: 3, label: "Good", color: "bg-yellow-500" };
-    if (score <= 4) return { score: 4, label: "Strong", color: "bg-emerald-500" };
-    return { score: 5, label: "Very Strong", color: "bg-primary" };
-  };
+    if (score <= 1) return { score: 1, label: "Weak", color: "bg-destructive", width: "20%" };
+    if (score <= 2) return { score: 2, label: "Fair", color: "bg-orange-500", width: "40%" };
+    if (score <= 3) return { score: 3, label: "Good", color: "bg-yellow-500", width: "60%" };
+    if (score <= 4) return { score: 4, label: "Strong", color: "bg-emerald-500", width: "80%" };
+    return { score: 5, label: "Very strong", color: "bg-primary", width: "100%" };
+  }, [password]);
 
-  const passwordStrength = getPasswordStrength(password);
+  const avatarUrls = useMemo(
+    () =>
+      AVATAR_SEEDS.map(
+        (seed, i) =>
+          `https://api.dicebear.com/9.x/${AVATAR_STYLES[i % AVATAR_STYLES.length]}/svg?seed=${seed}`
+      ),
+    []
+  );
 
-  // Validation
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validateForm = (): boolean => {
+  const validateStep1 = (): boolean => {
     const newErrors: FormErrors = {};
-
+    if (!parentName.trim()) newErrors.parentName = "Name is required";
     if (!email.trim()) {
       newErrors.email = "Email is required";
-    } else if (!validateEmail(email)) {
-      newErrors.email = "Please enter a valid email address";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email";
     }
-
     if (!password) {
       newErrors.password = "Password is required";
     } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+      newErrors.password = "At least 8 characters";
     }
-
     if (!confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = "Passwords don't match";
     }
-
-    if (!termsAccepted) {
-      newErrors.terms = "You must accept the terms and privacy policy";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleEmailSignUp = async () => {
-    if (!validateForm()) return;
+  const validateStep2 = (): boolean => {
+    const newErrors: FormErrors = {};
+    if (!childName.trim()) newErrors.childName = "Child's name is required";
+    if (!grade) newErrors.grade = "Please select a grade";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (!validateStep1()) return;
+    setDirection(1);
+    setErrors({});
+    setStep(2);
+  };
+
+  const handleBack = () => {
+    setDirection(-1);
+    setErrors({});
+    setStep(1);
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep2()) return;
 
     setIsLoading(true);
     setErrors({});
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await sendEmailVerification(userCredential.user);
-      setStep(3);
-      setShowConfetti(true);
-      setResendCountdown(60);
+      const uid = userCredential.user.uid;
+      const token = await userCredential.user.getIdToken();
+
+      // Save profile and child via db-proxy
+      await supabase.functions.invoke("db-proxy", {
+        body: {
+          action: "upsert",
+          table: "profiles",
+          data: {
+            user_id: uid,
+            full_name: parentName.trim(),
+            onboarding_completed: true,
+            onboarding_step: 2,
+          },
+          match: { user_id: uid },
+        },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const gradeNum = parseInt(grade);
+      await supabase.functions.invoke("db-proxy", {
+        body: {
+          action: "insert",
+          table: "children",
+          data: {
+            parent_id: uid,
+            name: childName.trim(),
+            grade: gradeNum,
+            avatar: AVATAR_STYLES[selectedAvatar % AVATAR_STYLES.length],
+          },
+        },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      navigate("/app");
     } catch (error: any) {
-      let errorMessage = "An error occurred. Please try again.";
-      
+      let errorMessage = "Something went wrong. Please try again.";
       if (error.code === "auth/email-already-in-use") {
         errorMessage = "This email is already registered. Please sign in instead.";
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "Invalid email address.";
       } else if (error.code === "auth/weak-password") {
-        errorMessage = "Password is too weak. Please choose a stronger password.";
+        errorMessage = "Password is too weak. Please choose a stronger one.";
       }
-      
       setErrors({ general: errorMessage });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignUp = async () => {
-    setIsLoading(true);
-    setErrors({});
-
-    try {
-      await signInWithPopup(auth, googleProvider);
-      navigate("/onboarding");
-    } catch (error: any) {
-      let errorMessage = "Google sign-in failed. Please try again.";
-      
-      if (error.code === "auth/popup-closed-by-user") {
-        errorMessage = "Sign-in was cancelled.";
-      } else if (error.code === "auth/popup-blocked") {
-        errorMessage = "Pop-up was blocked. Please allow pop-ups for this site.";
-      }
-      
-      setErrors({ general: errorMessage });
-    } finally {
-      setIsLoading(false);
-    }
+  const slideVariants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
   };
 
-  const handleResendEmail = async () => {
-    if (resendCountdown > 0 || !auth.currentUser) return;
-
-    try {
-      await sendEmailVerification(auth.currentUser);
-      setResendCountdown(60);
-    } catch (error) {
-      setErrors({ general: "Failed to resend email. Please try again." });
-    }
-  };
-
-  // Animation variants
-  const pageVariants = {
-    initial: { opacity: 0, x: 50 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -50 }
-  };
-
-  const cardVariants = {
-    initial: { scale: 0.9, opacity: 0 },
-    animate: { scale: 1, opacity: 1 },
-    hover: { scale: 1.02, y: -4 },
-    tap: { scale: 0.98 }
-  };
-
-  const errorVariants = {
-    initial: { opacity: 0, y: -10, height: 0 },
-    animate: { opacity: 1, y: 0, height: "auto" },
-    exit: { opacity: 0, y: -10, height: 0 }
-  };
-
-  // Confetti component
-  const Confetti = () => (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
-      {[...Array(50)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-3 h-3 rounded-full"
-          style={{
-            backgroundColor: ["#10b981", "#3b82f6", "#f59e0b", "#ec4899", "#8b5cf6"][i % 5],
-            left: `${Math.random() * 100}%`,
-            top: -20
-          }}
-          initial={{ y: -20, opacity: 1, rotate: 0 }}
-          animate={{
-            y: window.innerHeight + 20,
-            opacity: 0,
-            rotate: Math.random() * 720 - 360,
-            x: Math.random() * 200 - 100
-          }}
-          transition={{
-            duration: 2 + Math.random() * 2,
-            delay: Math.random() * 0.5,
-            ease: "easeOut"
-          }}
-        />
-      ))}
-    </div>
-  );
+  const FieldError = ({ msg }: { msg?: string }) =>
+    msg ? (
+      <motion.p
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-sm text-destructive mt-1 flex items-center gap-1"
+      >
+        <X className="w-3 h-3" /> {msg}
+      </motion.p>
+    ) : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-blue-50 flex items-center justify-center p-4">
-      {showConfetti && <Confetti />}
-      
-      {/* Background decoration */}
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-blue-50 flex items-center justify-center p-4">
+      {/* Background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute top-20 left-10 w-32 h-32 rounded-full bg-primary/10 blur-3xl"
@@ -255,615 +237,381 @@ const SignUpPage = () => {
           transition={{ duration: 4, repeat: Infinity }}
         />
         <motion.div
-          className="absolute bottom-20 right-10 w-48 h-48 rounded-full bg-blue-300/20 blur-3xl"
+          className="absolute bottom-20 right-10 w-48 h-48 rounded-full bg-accent/10 blur-3xl"
           animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
           transition={{ duration: 5, repeat: Infinity, delay: 1 }}
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-lg">
+      <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <motion.div
-          className="text-center mb-8"
+          className="text-center mb-6"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="inline-flex items-center gap-2 mb-2">
+          <motion.div
+            className="inline-flex items-center gap-2 mb-2"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
             <StarlingLogo className="scale-125" />
-          </div>
-          <p className="text-muted-foreground">Create your account</p>
+          </motion.div>
         </motion.div>
 
-        {/* Progress indicator */}
-        <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-2">
-            {[1, 2, 3].map((s) => (
-              <React.Fragment key={s}>
-                <motion.div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
-                    step >= s
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
+        {/* Step indicator */}
+        <div className="flex justify-center items-center gap-3 mb-6">
+          {[1, 2].map((s) => (
+            <div key={s} className="flex items-center gap-3">
+              <div
+                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                  step >= s ? "bg-primary scale-125" : "bg-muted-foreground/30"
+                }`}
+              />
+              {s === 1 && (
+                <div
+                  className={`w-8 h-0.5 rounded-full transition-colors duration-300 ${
+                    step > 1 ? "bg-primary" : "bg-muted-foreground/20"
                   }`}
-                  animate={{ scale: step === s ? 1.1 : 1 }}
-                >
-                  {step > s ? <Check className="w-5 h-5" /> : s}
-                </motion.div>
-                {s < 3 && (
-                  <div
-                    className={`w-12 h-1 rounded-full transition-colors ${
-                      step > s ? "bg-primary" : "bg-muted"
-                    }`}
-                  />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
+                />
+              )}
+            </div>
+          ))}
+          <span className="ml-2 text-xs text-muted-foreground font-medium">
+            Step {step} of 2
+          </span>
         </div>
 
-        {/* Steps */}
-        <AnimatePresence mode="wait">
-          {/* Step 1: Account Type Selection */}
-          {step === 1 && (
-            <motion.div
-              key="step1"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-            >
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-foreground mb-2">
-                  Welcome to Starling! ⭐
-                </h2>
-                <p className="text-muted-foreground">
-                  Tell us who you are so we can personalize your experience
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                {/* Parent Card */}
-                <motion.div
-                  variants={cardVariants}
-                  initial="initial"
-                  animate="animate"
-                  whileHover="hover"
-                  whileTap="tap"
-                  transition={{ delay: 0.1 }}
-                >
-                  <Card
-                    className={`cursor-pointer transition-all h-full ${
-                      accountType === "parent"
-                        ? "ring-2 ring-primary border-primary bg-primary/5"
-                        : "hover:border-primary/50"
-                    }`}
-                    onClick={() => setAccountType("parent")}
-                    role="button"
-                    aria-pressed={accountType === "parent"}
-                    aria-label="Select parent account type"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === "Enter" && setAccountType("parent")}
+        {/* Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <Card className="shadow-xl border-0 bg-card/80 backdrop-blur-sm overflow-hidden">
+            <CardContent className="p-8">
+              {/* General error */}
+              <AnimatePresence>
+                {errors.general && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, y: -10, height: 0 }}
+                    className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center gap-2 text-destructive"
                   >
-                    <CardContent className="p-6 text-center">
-                      <motion.div
-                        className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${
-                          accountType === "parent"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
-                        }`}
-                        animate={{ rotate: accountType === "parent" ? [0, -10, 10, 0] : 0 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <Users className="w-8 h-8" />
-                      </motion.div>
-                      <h3 className="text-lg font-semibold text-foreground mb-2">
-                        I'm a Parent
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Help your child excel in math with personalized tutoring
+                    <X className="w-4 h-4 shrink-0" />
+                    <span className="text-sm">{errors.general}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence mode="wait" custom={direction}>
+                {/* ========== STEP 1 ========== */}
+                {step === 1 && (
+                  <motion.div
+                    key="step1"
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  >
+                    <div className="text-center mb-6">
+                      <div className="inline-flex items-center gap-2 mb-1">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                        <h2 className="text-2xl font-bold text-foreground">Create your account</h2>
+                      </div>
+                      <p className="text-muted-foreground text-sm">
+                        Start your child's learning journey
                       </p>
-                      {accountType === "parent" && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="mt-3"
-                        >
-                          <Check className="w-6 h-6 text-primary mx-auto" />
-                        </motion.div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                {/* Teacher Card */}
-                <motion.div
-                  variants={cardVariants}
-                  initial="initial"
-                  animate="animate"
-                  whileHover="hover"
-                  whileTap="tap"
-                  transition={{ delay: 0.2 }}
-                >
-                  <Card
-                    className={`cursor-pointer transition-all h-full ${
-                      accountType === "teacher"
-                        ? "ring-2 ring-primary border-primary bg-primary/5"
-                        : "hover:border-primary/50"
-                    }`}
-                    onClick={() => setAccountType("teacher")}
-                    role="button"
-                    aria-pressed={accountType === "teacher"}
-                    aria-label="Select teacher account type"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === "Enter" && setAccountType("teacher")}
-                  >
-                    <CardContent className="p-6 text-center">
-                      <motion.div
-                        className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${
-                          accountType === "teacher"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
-                        }`}
-                        animate={{ rotate: accountType === "teacher" ? [0, -10, 10, 0] : 0 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <GraduationCap className="w-8 h-8" />
-                      </motion.div>
-                      <h3 className="text-lg font-semibold text-foreground mb-2">
-                        I'm a Teacher
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Empower your students with AI-assisted learning tools
-                      </p>
-                      {accountType === "teacher" && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="mt-3"
-                        >
-                          <Check className="w-6 h-6 text-primary mx-auto" />
-                        </motion.div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </div>
-
-              <Button
-                className="w-full"
-                size="lg"
-                disabled={!accountType}
-                onClick={() => setStep(2)}
-              >
-                Continue
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-
-              <p className="text-center text-sm text-muted-foreground mt-6">
-                Already have an account?{" "}
-                <a href="/login" className="text-primary hover:underline font-medium">
-                  Sign in
-                </a>
-              </p>
-            </motion.div>
-          )}
-
-          {/* Step 2: Email/Password Form */}
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="shadow-xl">
-                <CardContent className="p-8">
-                  <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold text-foreground mb-2">
-                      Create your account
-                    </h2>
-                    <p className="text-muted-foreground">
-                      {accountType === "parent" ? "Parent" : "Teacher"} account
-                    </p>
-                  </div>
-
-                  {/* General error */}
-                  <AnimatePresence>
-                    {errors.general && (
-                      <motion.div
-                        variants={errorVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center gap-2 text-destructive"
-                      >
-                        <X className="w-4 h-4 shrink-0" />
-                        <span className="text-sm">{errors.general}</span>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Google Sign Up */}
-                  <Button
-                    variant="outline"
-                    className="w-full mb-6"
-                    size="lg"
-                    onClick={handleGoogleSignUp}
-                    disabled={isLoading}
-                  >
-                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    Sign up with Google
-                  </Button>
-
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-border" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-card px-2 text-muted-foreground">
-                        Or continue with email
-                      </span>
-                    </div>
-                  </div>
-
-                  <form onSubmit={(e) => { e.preventDefault(); handleEmailSignUp(); }} className="space-y-4">
-                    {/* Email */}
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="you@example.com"
-                          className={`pl-10 ${errors.email ? "border-destructive" : ""}`}
-                          value={email}
-                          onChange={(e) => {
-                            setEmail(e.target.value);
-                            if (errors.email) setErrors({ ...errors, email: undefined });
-                          }}
-                          aria-invalid={!!errors.email}
-                          aria-describedby={errors.email ? "email-error" : undefined}
-                        />
-                      </div>
-                      <AnimatePresence>
-                        {errors.email && (
-                          <motion.p
-                            id="email-error"
-                            variants={errorVariants}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            className="text-sm text-destructive"
-                          >
-                            {errors.email}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
                     </div>
 
-                    {/* Password */}
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Create a strong password"
-                          className={`pl-10 pr-10 ${errors.password ? "border-destructive" : ""}`}
-                          value={password}
-                          onChange={(e) => {
-                            setPassword(e.target.value);
-                            if (errors.password) setErrors({ ...errors, password: undefined });
-                          }}
-                          aria-invalid={!!errors.password}
-                          aria-describedby={errors.password ? "password-error" : undefined}
-                        />
-                        <button
-                          type="button"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          onClick={() => setShowPassword(!showPassword)}
-                          aria-label={showPassword ? "Hide password" : "Show password"}
-                        >
-                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                      
-                      {/* Password strength indicator */}
-                      {password && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          className="space-y-2"
-                        >
-                          <div className="flex gap-1">
-                            {[1, 2, 3, 4, 5].map((level) => (
-                              <div
-                                key={level}
-                                className={`h-1.5 flex-1 rounded-full transition-colors ${
-                                  level <= passwordStrength.score
-                                    ? passwordStrength.color
-                                    : "bg-muted"
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Password strength: <span className="font-medium">{passwordStrength.label}</span>
-                          </p>
-                        </motion.div>
-                      )}
-                      
-                      <AnimatePresence>
-                        {errors.password && (
-                          <motion.p
-                            id="password-error"
-                            variants={errorVariants}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            className="text-sm text-destructive"
-                          >
-                            {errors.password}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                    {/* Confirm Password */}
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          placeholder="Confirm your password"
-                          className={`pl-10 pr-10 ${errors.confirmPassword ? "border-destructive" : ""}`}
-                          value={confirmPassword}
-                          onChange={(e) => {
-                            setConfirmPassword(e.target.value);
-                            if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
-                          }}
-                          aria-invalid={!!errors.confirmPassword}
-                          aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
-                        />
-                        <button
-                          type="button"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                        >
-                          {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                      <AnimatePresence>
-                        {errors.confirmPassword && (
-                          <motion.p
-                            id="confirm-password-error"
-                            variants={errorVariants}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            className="text-sm text-destructive"
-                          >
-                            {errors.confirmPassword}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                    {/* Terms checkbox */}
-                    <div className="space-y-2">
-                      <div className="flex items-start gap-3">
-                        <Checkbox
-                          id="terms"
-                          checked={termsAccepted}
-                          onCheckedChange={(checked) => {
-                            setTermsAccepted(checked as boolean);
-                            if (errors.terms) setErrors({ ...errors, terms: undefined });
-                          }}
-                          aria-invalid={!!errors.terms}
-                          aria-describedby={errors.terms ? "terms-error" : undefined}
-                        />
-                        <Label
-                          htmlFor="terms"
-                          className="text-sm text-muted-foreground leading-relaxed cursor-pointer"
-                        >
-                          I agree to the{" "}
-                          <a href="/terms" className="text-primary hover:underline">
-                            Terms of Service
-                          </a>{" "}
-                          and{" "}
-                          <a href="/privacy" className="text-primary hover:underline">
-                            Privacy Policy
-                          </a>
+                    <div className="space-y-4">
+                      {/* Parent name */}
+                      <div>
+                        <Label htmlFor="parentName" className="text-sm font-medium text-foreground mb-1.5 block">
+                          Parent's first name
                         </Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="parentName"
+                            value={parentName}
+                            onChange={(e) => {
+                              setParentName(e.target.value);
+                              if (errors.parentName) setErrors({ ...errors, parentName: undefined });
+                            }}
+                            placeholder="Your first name"
+                            className={`pl-10 h-11 ${errors.parentName ? "border-destructive" : ""}`}
+                          />
+                        </div>
+                        <FieldError msg={errors.parentName} />
                       </div>
-                      <AnimatePresence>
-                        {errors.terms && (
-                          <motion.p
-                            id="terms-error"
-                            variants={errorVariants}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            className="text-sm text-destructive"
+
+                      {/* Email */}
+                      <div>
+                        <Label htmlFor="email" className="text-sm font-medium text-foreground mb-1.5 block">
+                          Email address
+                        </Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => {
+                              setEmail(e.target.value);
+                              if (errors.email) setErrors({ ...errors, email: undefined });
+                            }}
+                            placeholder="parent@email.com"
+                            className={`pl-10 h-11 ${errors.email ? "border-destructive" : ""}`}
+                          />
+                        </div>
+                        <FieldError msg={errors.email} />
+                      </div>
+
+                      {/* Password */}
+                      <div>
+                        <Label htmlFor="password" className="text-sm font-medium text-foreground mb-1.5 block">
+                          Password
+                        </Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => {
+                              setPassword(e.target.value);
+                              if (errors.password) setErrors({ ...errors, password: undefined });
+                            }}
+                            placeholder="At least 8 characters"
+                            className={`pl-10 pr-10 h-11 ${errors.password ? "border-destructive" : ""}`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            {errors.terms}
-                          </motion.p>
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        {/* Strength indicator */}
+                        {passwordStrength && (
+                          <div className="mt-2">
+                            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                              <motion.div
+                                className={`h-full rounded-full ${passwordStrength.color}`}
+                                initial={{ width: 0 }}
+                                animate={{ width: passwordStrength.width }}
+                                transition={{ duration: 0.3 }}
+                              />
+                            </div>
+                            <p className={`text-xs mt-1 ${
+                              passwordStrength.score <= 2 ? "text-destructive" : "text-muted-foreground"
+                            }`}>
+                              {passwordStrength.label}
+                            </p>
+                          </div>
                         )}
-                      </AnimatePresence>
-                    </div>
+                        <FieldError msg={errors.password} />
+                      </div>
 
-                    {/* Submit buttons */}
-                    <div className="flex gap-3 pt-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setStep(1)}
-                        disabled={isLoading}
-                      >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="flex-1"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Creating account...
-                          </>
-                        ) : (
-                          <>
-                            Create Account
-                            <Sparkles className="w-4 h-4 ml-2" />
-                          </>
+                      {/* Confirm password */}
+                      <div>
+                        <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground mb-1.5 block">
+                          Confirm password
+                        </Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => {
+                              setConfirmPassword(e.target.value);
+                              if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
+                            }}
+                            placeholder="Re-enter your password"
+                            className={`pl-10 pr-10 h-11 ${errors.confirmPassword ? "border-destructive" : ""}`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        {confirmPassword && password === confirmPassword && (
+                          <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
+                            <Check className="w-3 h-3" /> Passwords match
+                          </p>
                         )}
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
+                        <FieldError msg={errors.confirmPassword} />
+                      </div>
 
-          {/* Step 3: Email Verification */}
-          {step === 3 && (
-            <motion.div
-              key="step3"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="shadow-xl">
-                <CardContent className="p-8 text-center">
-                  {/* Success animation */}
-                  <motion.div
-                    className="w-24 h-24 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-                  >
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.4 }}
-                    >
-                      <Check className="w-12 h-12 text-primary" />
-                    </motion.div>
-                  </motion.div>
-
-                  <motion.h2
-                    className="text-2xl font-bold text-foreground mb-2"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    Check your email! 📬
-                  </motion.h2>
-
-                  <motion.p
-                    className="text-muted-foreground mb-6"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                  >
-                    We've sent a verification link to{" "}
-                    <span className="font-medium text-foreground">{email}</span>
-                  </motion.p>
-
-                  {/* Email illustration */}
-                  <motion.div
-                    className="mb-8 p-6 bg-muted/50 rounded-2xl"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.7 }}
-                  >
-                    <div className="flex justify-center mb-4">
-                      <motion.div
-                        animate={{ y: [0, -5, 0] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        <Inbox className="w-16 h-16 text-primary" />
+                      {/* Next button */}
+                      <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                        <Button className="w-full h-11 text-base font-semibold mt-2" onClick={handleNext}>
+                          Next <ArrowRight className="w-4 h-4 ml-1" />
+                        </Button>
                       </motion.div>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Click the link in the email to verify your account and start your learning journey!
-                    </p>
                   </motion.div>
+                )}
 
-                  {/* Resend button */}
+                {/* ========== STEP 2 ========== */}
+                {step === 2 && (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
+                    key="step2"
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
-                    <Button
-                      variant="outline"
-                      onClick={handleResendEmail}
-                      disabled={resendCountdown > 0}
-                      className="mb-4"
+                    {/* Back button */}
+                    <button
+                      onClick={handleBack}
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
                     >
-                      <RefreshCw className={`w-4 h-4 mr-2 ${resendCountdown > 0 ? "" : ""}`} />
-                      {resendCountdown > 0
-                        ? `Resend in ${resendCountdown}s`
-                        : "Resend verification email"}
-                    </Button>
+                      <ArrowLeft className="w-4 h-4" /> Back
+                    </button>
 
-                    <p className="text-sm text-muted-foreground">
-                      Didn't receive it? Check your spam folder or try again.
-                    </p>
-                  </motion.div>
+                    <div className="text-center mb-6">
+                      <h2 className="text-2xl font-bold text-foreground mb-1">
+                        Now let's meet your learner! 🌟
+                      </h2>
+                      <p className="text-muted-foreground text-sm">
+                        Set up your child's profile
+                      </p>
+                    </div>
 
-                  {/* Continue to app */}
-                  <motion.div
-                    className="mt-8 pt-6 border-t border-border"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1 }}
-                  >
-                    <Button
-                      onClick={() => navigate("/app")}
-                      className="w-full"
-                      size="lg"
-                    >
-                      Continue to Starling
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </Button>
+                    <div className="space-y-5">
+                      {/* Child name */}
+                      <div>
+                        <Label htmlFor="childName" className="text-sm font-medium text-foreground mb-1.5 block">
+                          Child's first name
+                        </Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="childName"
+                            value={childName}
+                            onChange={(e) => {
+                              setChildName(e.target.value);
+                              if (errors.childName) setErrors({ ...errors, childName: undefined });
+                            }}
+                            placeholder="Your child's first name"
+                            className={`pl-10 h-11 ${errors.childName ? "border-destructive" : ""}`}
+                          />
+                        </div>
+                        <FieldError msg={errors.childName} />
+                      </div>
+
+                      {/* Grade */}
+                      <div>
+                        <Label htmlFor="grade" className="text-sm font-medium text-foreground mb-1.5 block">
+                          Grade level
+                        </Label>
+                        <select
+                          id="grade"
+                          value={grade}
+                          onChange={(e) => {
+                            setGrade(e.target.value);
+                            if (errors.grade) setErrors({ ...errors, grade: undefined });
+                          }}
+                          className={`w-full h-11 rounded-md border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                            errors.grade ? "border-destructive" : "border-input"
+                          }`}
+                        >
+                          <option value="">Select a grade</option>
+                          <option value="3">3rd Grade</option>
+                          <option value="4">4th Grade</option>
+                          <option value="5">5th Grade</option>
+                        </select>
+                        <FieldError msg={errors.grade} />
+                      </div>
+
+                      {/* Avatar picker */}
+                      <div>
+                        <Label className="text-sm font-medium text-foreground mb-2 block">
+                          Pick an avatar
+                        </Label>
+                        <div className="grid grid-cols-4 gap-3">
+                          {avatarUrls.map((url, i) => (
+                            <motion.button
+                              key={i}
+                              type="button"
+                              onClick={() => setSelectedAvatar(i)}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.95 }}
+                              className={`relative aspect-square rounded-2xl border-2 p-2 transition-all bg-muted/50 ${
+                                selectedAvatar === i
+                                  ? "border-primary ring-2 ring-primary/20 bg-primary/5"
+                                  : "border-border hover:border-primary/40"
+                              }`}
+                            >
+                              <img
+                                src={url}
+                                alt={`Avatar option ${i + 1}`}
+                                className="w-full h-full object-contain"
+                              />
+                              {selectedAvatar === i && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary rounded-full flex items-center justify-center"
+                                >
+                                  <Check className="w-3 h-3 text-primary-foreground" />
+                                </motion.div>
+                              )}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Submit */}
+                      <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                        <Button
+                          className="w-full h-11 text-base font-semibold mt-1"
+                          onClick={handleSubmit}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Creating account...
+                            </>
+                          ) : (
+                            "Let's start learning! 🌱"
+                          )}
+                        </Button>
+                      </motion.div>
+                    </div>
                   </motion.div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                )}
+              </AnimatePresence>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Login link */}
+        <motion.p
+          className="text-center text-sm text-muted-foreground mt-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          Already have an account?{" "}
+          <a href="/login" className="text-primary hover:underline font-medium">
+            Log in
+          </a>
+        </motion.p>
       </div>
     </div>
   );
