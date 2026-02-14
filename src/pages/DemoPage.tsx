@@ -169,21 +169,6 @@ const DemoPage: React.FC = () => {
                 ))}
               </div>
 
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                <Button
-                  size="lg"
-                  onClick={() => {
-                    document.getElementById("demo-problem")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-full px-8 py-6 text-lg"
-                >
-                  See Starling in Action →
-                </Button>
-              </motion.div>
             </div>
 
             {/* Sample Problem */}
@@ -234,7 +219,8 @@ const DemoPage: React.FC = () => {
               <Button
                 size="lg"
                 onClick={() => setStep("analyzing")}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-6 text-lg gap-2"
+                className="w-full rounded-full py-6 text-lg gap-2 text-white"
+                style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
               >
                 <ShootingStarIcon size={20} />
                 Give it to Starling
