@@ -75,11 +75,11 @@ type Screen =
    const [firebaseUser, setFirebaseUser] = useState<any>(null);
 
    useEffect(() => {
-     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-       if (!user) {
-         navigate("/login", { replace: true });
-         return;
-       }
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          navigate("/login", { replace: true, state: { message: "Log in to continue to Starling." } });
+          return;
+        }
        setFirebaseUser(user);
 
        // Fetch child's first name from DB

@@ -9,13 +9,14 @@
    Loader2,
    Sparkles
  } from "lucide-react";
- import StarlingLogo from "@/components/StarlingLogo";
- import { Button } from "@/components/ui/button";
+import StarlingLogo from "@/components/StarlingLogo";
+import EarlyAccessModal from "@/components/EarlyAccessModal";
+import { Button } from "@/components/ui/button";
  import { Input } from "@/components/ui/input";
  import { Card, CardContent } from "@/components/ui/card";
  import { Checkbox } from "@/components/ui/checkbox";
  import { Label } from "@/components/ui/label";
- import { useNavigate } from "react-router-dom";
+ import { useNavigate, useLocation } from "react-router-dom";
  import { 
    signInWithEmailAndPassword,
    signInWithPopup,
@@ -31,15 +32,17 @@ import { supabase } from "@/integrations/supabase/client";
  }
  
  const LoginPage = () => {
-   const navigate = useNavigate();
-   
+  const navigate = useNavigate();
+  const location = useLocation();
+  const redirectMessage = (location.state as any)?.message as string | undefined;
    // Form state
    const [email, setEmail] = useState("");
    const [password, setPassword] = useState("");
    const [showPassword, setShowPassword] = useState(false);
    const [rememberMe, setRememberMe] = useState(false);
    const [isLoading, setIsLoading] = useState(false);
-   const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [earlyAccessOpen, setEarlyAccessOpen] = useState(false);
    
    // Focus states for floating labels
    const [emailFocused, setEmailFocused] = useState(false);
@@ -185,25 +188,36 @@ import { supabase } from "@/integrations/supabase/client";
             </motion.div>
           </motion.div>
  
-         {/* Welcome message */}
-         <motion.div
-           className="text-center mb-6"
-           initial={{ opacity: 0 }}
-           animate={{ opacity: 1 }}
-           transition={{ delay: 0.3, duration: 0.5 }}
-         >
-           <motion.div
-             className="inline-flex items-center gap-2 mb-2"
-             initial={{ opacity: 0, scale: 0.9 }}
-             animate={{ opacity: 1, scale: 1 }}
-             transition={{ delay: 0.4, duration: 0.4 }}
-           >
-             <Sparkles className="w-5 h-5 text-primary" />
-             <h1 className="text-2xl font-bold text-foreground">Welcome back!</h1>
-             <Sparkles className="w-5 h-5 text-primary" />
-           </motion.div>
-           <p className="text-muted-foreground">Sign in to continue your learning journey</p>
-         </motion.div>
+        {/* Redirect message */}
+        {redirectMessage && (
+          <motion.div
+            className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-xl text-center"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <p className="text-sm font-medium text-primary">{redirectMessage}</p>
+          </motion.div>
+        )}
+
+        {/* Welcome message */}
+        <motion.div
+          className="text-center mb-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <motion.div
+            className="inline-flex items-center gap-2 mb-2"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+          >
+            <Sparkles className="w-5 h-5 text-primary" />
+            <h1 className="text-2xl font-bold text-foreground">Welcome back!</h1>
+            <Sparkles className="w-5 h-5 text-primary" />
+          </motion.div>
+          <p className="text-muted-foreground">Sign in to continue your learning journey</p>
+        </motion.div>
  
          {/* Login Card */}
          <motion.div
@@ -425,19 +439,35 @@ import { supabase } from "@/integrations/supabase/client";
            </Card>
          </motion.div>
  
-         {/* Sign up link */}
-         <motion.p 
-           className="text-center text-sm text-muted-foreground mt-6"
-           initial={{ opacity: 0 }}
-           animate={{ opacity: 1 }}
-           transition={{ delay: 0.5 }}
-         >
-           Don't have an account?{" "}
-           <a href="/signup" className="text-primary hover:underline font-medium">
-             Sign up
-           </a>
-         </motion.p>
-       </div>
+        {/* Sign up & Early Access links */}
+        <motion.div 
+          className="text-center mt-6 space-y-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <p className="text-sm text-muted-foreground">
+            Don't have an account yet?{" "}
+            <a href="/signup" className="text-primary hover:underline font-medium">
+              Sign up here
+            </a>
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Haven't been invited?{" "}
+            <button 
+              onClick={() => setEarlyAccessOpen(true)}
+              className="text-primary hover:underline font-medium"
+            >
+              Request Early Access
+            </button>
+          </p>
+        </motion.div>
+      </div>
+
+      <EarlyAccessModal 
+        open={earlyAccessOpen} 
+        onClose={() => setEarlyAccessOpen(false)} 
+      />
      </div>
    );
  };
