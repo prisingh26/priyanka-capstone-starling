@@ -32,7 +32,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentScreen, onNavigate }) =>
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <StarlingLogo onClick={() => onNavigate("home")} />
           <div className="text-sm text-muted-foreground font-medium">
-            Your Homework Helper ⭐
+            Your Learning Buddy ⭐
           </div>
         </div>
       </header>

@@ -8,7 +8,8 @@ interface HomeScreenProps {
   studentName?: string;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName = "Student" }) => {
+const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
+  const displayName = studentName?.trim() ? studentName : null;
   return (
     <div className="min-h-screen pt-20 pb-24 px-4">
       <div className="max-w-lg mx-auto space-y-6">
@@ -16,7 +17,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName = "Stud
         <div className="flex items-center justify-between animate-fade-in">
           <div>
             <h1 className="text-2xl font-bold text-foreground">
-              Welcome back, {studentName}! 👋
+              {displayName ? `Welcome back, ${displayName}! 👋` : "Welcome back! 👋"}
             </h1>
             <p className="text-muted-foreground">Ready to learn something new?</p>
           </div>
