@@ -375,7 +375,48 @@ const DemoPage: React.FC = () => {
                       <p className="text-foreground text-lg leading-relaxed">
                         Hmm, interesting guess! Let me ask you this — does each mouse have to belong to <strong>only ONE</strong> cat? Or could a mouse be friends with <strong>more than one</strong> cat? 🤔
                       </p>
-                      <p className="text-muted-foreground text-sm italic">Think about it...</p>
+                      
+                      {/* Animated "Think about it" section */}
+                      <div className="flex items-center gap-3 pt-2">
+                        <motion.div
+                          className="flex gap-1.5 items-center"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.5 }}
+                        >
+                          <motion.span
+                            animate={{ rotate: [0, 15, -15, 15, 0], scale: [1, 1.2, 1, 1.2, 1] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                            className="text-2xl"
+                          >
+                            🤔
+                          </motion.span>
+                          <motion.span
+                            className="text-primary font-bold italic text-base"
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                          >
+                            Think about it
+                          </motion.span>
+                          <motion.div className="flex gap-1 ml-1">
+                            {[0, 1, 2].map((i) => (
+                              <motion.span
+                                key={i}
+                                className="w-2 h-2 rounded-full bg-primary"
+                                animate={{ y: [0, -6, 0], opacity: [0.3, 1, 0.3] }}
+                                transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
+                              />
+                            ))}
+                          </motion.div>
+                          <motion.span
+                            animate={{ rotate: [0, 360] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            className="text-lg ml-1"
+                          >
+                            ✨
+                          </motion.span>
+                        </motion.div>
+                      </div>
                     </div>
                   </motion.div>
                 ) : (
