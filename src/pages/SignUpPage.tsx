@@ -168,7 +168,7 @@ const SignUpPage = () => {
       // Save profile and child via db-proxy
       await supabase.functions.invoke("db-proxy", {
         body: {
-          action: "upsert",
+          operation: "upsert",
           table: "profiles",
           data: {
             user_id: uid,
@@ -176,24 +176,22 @@ const SignUpPage = () => {
             onboarding_completed: true,
             onboarding_step: 2,
           },
-          match: { user_id: uid },
         },
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { "x-firebase-token": token },
       });
 
       const gradeNum = parseInt(grade);
       await supabase.functions.invoke("db-proxy", {
         body: {
-          action: "insert",
+          operation: "insert",
           table: "children",
           data: {
-            parent_id: uid,
             name: childName.trim(),
             grade: gradeNum,
             avatar: AVATAR_STYLES[selectedAvatar % AVATAR_STYLES.length],
           },
         },
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { "x-firebase-token": token },
       });
 
       navigate("/app");
