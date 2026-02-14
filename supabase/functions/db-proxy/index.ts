@@ -60,10 +60,10 @@ Deno.serve(async (req) => {
     );
 
     const body = await req.json();
-    const { operation, table, data, filters } = body;
+    const { operation, table, data, filters, match } = body;
 
     // Validate table name (whitelist)
-    const allowedTables = ['profiles', 'children', 'notification_preferences'];
+    const allowedTables = ['profiles', 'children', 'notification_preferences', 'conversations'];
     if (!allowedTables.includes(table)) {
       return new Response(
         JSON.stringify({ error: 'Invalid table' }),
@@ -110,16 +110,17 @@ Deno.serve(async (req) => {
       }
 
       case 'update': {
-        if (!filters) {
+        const updateFilters = match || filters;
+        if (!updateFilters) {
           return new Response(
-            JSON.stringify({ error: 'Update requires filters' }),
+            JSON.stringify({ error: 'Update requires filters or match' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
         let query = supabaseAdmin.from(table).update(data).eq(userIdColumn, user.uid);
-        for (const [key, value] of Object.entries(filters)) {
+        for (const [key, value] of Object.entries(updateFilters)) {
           if (key !== userIdColumn) {
-            query = query.eq(key, value);
+            query = query.eq(key, value as string);
           }
         }
         result = await query.select();
