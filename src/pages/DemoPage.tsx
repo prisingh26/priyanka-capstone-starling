@@ -431,7 +431,7 @@ const DemoPage: React.FC = () => {
                       className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 py-5 text-base gap-2"
                     >
                       <ShootingStarIcon size={18} />
-                      See what Starling says
+                      What would Starling ask next?
                     </Button>
                   </motion.div>
                 )}
@@ -486,14 +486,20 @@ const DemoPage: React.FC = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1.5 }}
-                    className="text-center"
+                    className="flex flex-col sm:flex-row gap-3 justify-center items-center"
                   >
+                    <Button
+                      onClick={() => setSocraticStep(3)}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6"
+                    >
+                      I'm ready to answer! 💪
+                    </Button>
                     <Button
                       variant="outline"
                       onClick={() => setSocraticStep(3)}
                       className="rounded-full px-6"
                     >
-                      I'm ready to answer!
+                      One more hint please 🤔
                     </Button>
                   </motion.div>
                 )}
