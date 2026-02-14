@@ -6,12 +6,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const OPENAI_API = "https://api.openai.com/v1/chat/completions";
 const CLAUDE_API = "https://api.anthropic.com/v1/messages";
 
 // ── Model config ────────────────────────────────────────────────────
-const OCR_MODEL = "openai/gpt-5-mini"; // OpenAI for fast OCR + classification
-const REASONING_MODEL = "claude-sonnet-4-20250514"; // Claude for deep reasoning
+const OCR_MODEL = "gpt-4o"; // OpenAI latest for OCR + classification
+const REASONING_MODEL = "claude-sonnet-4-20250514"; // Claude latest for deep reasoning
 
 // ── Prompts ─────────────────────────────────────────────────────────
 
@@ -127,7 +127,7 @@ function getImageParts(imageBase64: string) {
   return { base64Data, mediaType };
 }
 
-// Call OpenAI via Lovable AI Gateway (for OCR / classification)
+// Call OpenAI directly (for OCR / classification)
 async function callOpenAI(
   apiKey: string,
   model: string,
@@ -138,7 +138,7 @@ async function callOpenAI(
 ) {
   const { base64Data, mediaType } = getImageParts(imageBase64);
 
-  const response = await fetch(AI_GATEWAY, {
+  const response = await fetch(OPENAI_API, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -166,10 +166,10 @@ async function callOpenAI(
   if (!response.ok) {
     const status = response.status;
     const body = await response.text();
-    console.error(`OpenAI gateway error [${status}]:`, body);
+    console.error(`OpenAI API error [${status}]:`, body);
     if (status === 429) return { error: "rate_limited", message: "Too many requests — please try again in a moment." };
-    if (status === 402) return { error: "payment_required", message: "AI credits exhausted." };
-    throw new Error(`OpenAI gateway error [${status}]: ${body}`);
+    if (status === 402 || status === 401) return { error: "payment_required", message: "OpenAI API key issue. Please check your billing or key." };
+    throw new Error(`OpenAI API error [${status}]: ${body}`);
   }
 
   const data = await response.json();
@@ -299,8 +299,8 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured");
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
@@ -313,11 +313,11 @@ serve(async (req) => {
       );
     }
 
-    console.log("Step 1: Classifying with OpenAI (GPT-5 Mini)...");
+    console.log("Step 1: Classifying with OpenAI (GPT-4o)...");
 
     // ── Step 1: Classify complexity with OpenAI ───────────────────
     const classifyResult = await callOpenAI(
-      LOVABLE_API_KEY,
+      OPENAI_API_KEY,
       OCR_MODEL,
       CLASSIFY_PROMPT,
       imageBase64,
@@ -355,10 +355,10 @@ serve(async (req) => {
 
     if (isSimple) {
       // Simple problems → OpenAI (fast)
-      console.log("Step 2: Analyzing with OpenAI (GPT-5 Mini)...");
+      console.log("Step 2: Analyzing with OpenAI (GPT-4o)...");
       modelUsed = OCR_MODEL;
       analysisResult = await callOpenAI(
-        LOVABLE_API_KEY,
+        OPENAI_API_KEY,
         OCR_MODEL,
         prompt,
         imageBase64,
