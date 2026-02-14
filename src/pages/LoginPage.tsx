@@ -47,25 +47,9 @@ import { supabase } from "@/integrations/supabase/client";
  
    // Redirect if already authenticated
    useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
        if (user) {
-        // Check if onboarding is completed via Supabase
-        try {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("onboarding_completed")
-            .eq("user_id", user.uid)
-            .single();
-          
-          if (profile?.onboarding_completed) {
-            navigate("/app");
-          } else {
-            navigate("/onboarding");
-          }
-        } catch {
-          // If no profile exists, go to onboarding
-          navigate("/onboarding");
-        }
+        navigate("/app");
        }
      });
      return () => unsubscribe();
