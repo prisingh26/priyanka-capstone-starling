@@ -38,25 +38,17 @@ interface FormErrors {
   general?: string;
 }
 
-const AVATAR_STYLE = "fun-emoji";
+const AVATAR_STYLE = "adventurer";
 
-const AVATAR_SEEDS_INITIAL = [
-  "Aneka", "Felix", "Lily", "Bubba", "Nala", "Milo", "Zara", "Leo",
-];
-
-const AVATAR_SEEDS_ALL = [
-  "Aneka", "Felix", "Lily", "Bubba", "Nala", "Milo", "Zara", "Leo",
-  "Luna", "Jasper", "Coco", "Bear", "Pepper", "Ginger", "Sage", "Sunny",
-  "Maple", "River", "Storm", "Hazel", "Olive", "Clover", "Ember", "Willow",
-];
-
-const PASTEL_COLORS = [
-  "bg-violet-100", "bg-orange-100", "bg-emerald-100", "bg-sky-100",
-  "bg-pink-100", "bg-amber-100", "bg-teal-100", "bg-rose-100",
-  "bg-indigo-100", "bg-lime-100", "bg-fuchsia-100", "bg-cyan-100",
-  "bg-purple-100", "bg-yellow-100", "bg-green-100", "bg-blue-100",
-  "bg-red-100", "bg-slate-100", "bg-violet-200", "bg-orange-200",
-  "bg-emerald-200", "bg-sky-200", "bg-pink-200", "bg-amber-200",
+const AVATARS = [
+  { seed: "cat", name: "Cat", bg: "bg-violet-100" },
+  { seed: "fox", name: "Fox", bg: "bg-orange-100" },
+  { seed: "owl", name: "Owl", bg: "bg-emerald-100" },
+  { seed: "bunny", name: "Bunny", bg: "bg-sky-100" },
+  { seed: "panda", name: "Panda", bg: "bg-pink-100" },
+  { seed: "lion", name: "Lion", bg: "bg-amber-100" },
+  { seed: "penguin", name: "Penguin", bg: "bg-teal-100" },
+  { seed: "butterfly", name: "Butterfly", bg: "bg-rose-100" },
 ];
 
 const SignUpPage = () => {
@@ -101,15 +93,12 @@ const SignUpPage = () => {
     return { score: 5, label: "Very strong", color: "bg-primary", width: "100%" };
   }, [password]);
 
-  const [showAllAvatars, setShowAllAvatars] = useState(false);
-
-  const currentSeeds = showAllAvatars ? AVATAR_SEEDS_ALL : AVATAR_SEEDS_INITIAL;
   const avatarUrls = useMemo(
     () =>
-      currentSeeds.map(
-        (seed) => `https://api.dicebear.com/9.x/${AVATAR_STYLE}/svg?seed=${seed}`
+      AVATARS.map(
+        (a) => `https://api.dicebear.com/9.x/${AVATAR_STYLE}/svg?seed=${a.seed}`
       ),
-    [currentSeeds]
+    []
   );
 
   const validateStep1 = (): boolean => {
@@ -542,57 +531,43 @@ const SignUpPage = () => {
 
                       {/* Avatar picker */}
                       <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <Label className="text-sm font-medium text-foreground">
-                            Pick an avatar
-                          </Label>
-                          <button
-                            type="button"
-                            onClick={() => setShowAllAvatars(!showAllAvatars)}
-                            className="text-xs font-medium text-primary hover:underline"
-                          >
-                            {showAllAvatars ? "Show less" : "See all"}
-                          </button>
-                        </div>
-                        <motion.div 
-                          className="grid grid-cols-4 gap-3"
-                          layout
-                        >
-                          <AnimatePresence>
-                            {avatarUrls.map((url, i) => (
-                              <motion.button
-                                key={currentSeeds[i]}
-                                type="button"
-                                onClick={() => setSelectedAvatar(i)}
-                                whileHover={{ scale: 1.08 }}
-                                whileTap={{ scale: 0.95 }}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: i >= 8 ? (i - 8) * 0.03 : 0 }}
-                                className={`relative aspect-square rounded-full border-3 p-2 transition-all ${PASTEL_COLORS[i % PASTEL_COLORS.length]} ${
-                                  selectedAvatar === i
-                                    ? "border-primary ring-2 ring-primary/30 shadow-md"
-                                    : "border-transparent hover:border-primary/30"
-                                }`}
-                              >
+                        <Label className="text-sm font-medium text-foreground mb-2 block">
+                          Pick an avatar
+                        </Label>
+                        <div className="grid grid-cols-4 gap-3">
+                          {AVATARS.map((avatar, i) => (
+                            <motion.button
+                              key={avatar.seed}
+                              type="button"
+                              onClick={() => setSelectedAvatar(i)}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.95 }}
+                              className={`relative flex flex-col items-center gap-1`}
+                            >
+                              <div className={`aspect-square w-full rounded-full border-3 p-2 transition-all ${avatar.bg} ${
+                                selectedAvatar === i
+                                  ? "border-primary ring-2 ring-primary/30 shadow-md"
+                                  : "border-transparent hover:border-primary/30"
+                              }`}>
                                 <img
-                                  src={url}
-                                  alt={`Avatar option ${i + 1}`}
+                                  src={avatarUrls[i]}
+                                  alt={avatar.name}
                                   className="w-full h-full object-contain"
                                 />
                                 {selectedAvatar === i && (
                                   <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-sm"
+                                    className="absolute top-0 right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-sm"
                                   >
                                     <Check className="w-3 h-3 text-primary-foreground" />
                                   </motion.div>
                                 )}
-                              </motion.button>
-                            ))}
-                          </AnimatePresence>
-                        </motion.div>
+                              </div>
+                              <span className="text-xs text-muted-foreground font-medium">{avatar.name}</span>
+                            </motion.button>
+                          ))}
+                        </div>
                       </div>
 
                       {/* Submit */}
