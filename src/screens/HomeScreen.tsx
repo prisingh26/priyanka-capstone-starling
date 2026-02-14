@@ -10,12 +10,12 @@ interface HomeScreenProps {
 }
 
 const DAILY_MESSAGES = [
-  "🚀 You got 3 more right than last week!",
-  "🌟 4-day streak! Keep it going!",
-  "💡 Mistakes help your brain grow stronger!",
-  "🎯 You crushed fractions — ready for more?",
-  "🔥 Accuracy up 12% this week!",
-  "⭐ 47 problems solved this month!",
+  "🚀 3 more right than last week — you're unstoppable!",
+  "🌟 4-day streak! You're on FIRE! 🔥",
+  "💡 Every mistake = a superpower upgrade for your brain!",
+  "🎯 You absolutely CRUSHED fractions — what's next, champ?",
+  "🔥 Accuracy up 12%! You're leveling up like a boss!",
+  "⭐ 47 problems defeated this month — legend status!",
 ];
 
 function getDailyMessage() {
@@ -197,30 +197,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
           )}
         </motion.div>
 
-        {/* ===== Practice Problems ===== */}
-        <motion.button
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.35 }}
-          onClick={() => onNavigate("practice-sets")}
-          className="w-full starling-card hover:shadow-float group transition-all text-left"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 gradient-warm rounded-xl flex items-center justify-center shadow-soft group-hover:scale-110 transition-transform">
-              <PenLine className="w-6 h-6 text-accent-foreground" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-sm text-foreground">Practice Problems</h3>
-                <span className="bg-warning text-warning-foreground text-[10px] px-2 py-0.5 rounded-full font-bold">
-                  5 New!
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">Regrouping, Fractions, Word Problems...</p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
-          </div>
-        </motion.button>
       </div>
     </div>
   );
