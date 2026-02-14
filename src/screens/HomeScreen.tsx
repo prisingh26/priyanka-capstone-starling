@@ -1,6 +1,6 @@
-import React, { useMemo } from "react";
-import { Camera, PenLine, ArrowRight, Sparkles, TrendingUp } from "lucide-react";
-import { motion } from "framer-motion";
+import React, { useMemo, useState } from "react";
+import { Camera, PenLine, ArrowRight, TrendingUp, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import StarlingMascot from "../components/StarlingMascot";
 import { recentWorksheets, weeklyStats } from "../data/mockData";
 
@@ -10,159 +10,161 @@ interface HomeScreenProps {
 }
 
 const DAILY_MESSAGES = [
-  { emoji: "🚀", text: "Fun fact: You got 3 more right than last week!" },
-  { emoji: "🌟", text: "You're on a 4-day streak — keep it going!" },
-  { emoji: "💡", text: "Did you know? Making mistakes helps your brain grow stronger!" },
-  { emoji: "🎯", text: "You crushed fractions yesterday — ready for a new challenge?" },
-  { emoji: "🔥", text: "Your accuracy went up 12% this week — amazing work!" },
-  { emoji: "🧠", text: "Every problem you solve makes your brain a little stronger!" },
-  { emoji: "⭐", text: "You've solved 47 problems this month — that's incredible!" },
-  { emoji: "🌈", text: "Mistakes are just stepping stones to getting it right!" },
+  "🚀 You got 3 more right than last week!",
+  "🌟 4-day streak! Keep it going!",
+  "💡 Mistakes help your brain grow stronger!",
+  "🎯 You crushed fractions — ready for more?",
+  "🔥 Accuracy up 12% this week!",
+  "⭐ 47 problems solved this month!",
 ];
 
 function getDailyMessage() {
-  const today = new Date();
-  const dayIndex = (today.getFullYear() * 366 + today.getMonth() * 31 + today.getDate()) % DAILY_MESSAGES.length;
-  return DAILY_MESSAGES[dayIndex];
+  const d = new Date();
+  return DAILY_MESSAGES[(d.getFullYear() * 366 + d.getMonth() * 31 + d.getDate()) % DAILY_MESSAGES.length];
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
   const displayName = studentName?.trim() || null;
-  const dailyMessage = useMemo(() => getDailyMessage(), []);
+  const dailyMsg = useMemo(() => getDailyMessage(), []);
+  const [showBanner, setShowBanner] = useState(true);
 
   return (
     <div className="min-h-screen pt-20 pb-24 px-4">
-      <div className="max-w-lg mx-auto space-y-5">
+      <div className="max-w-lg mx-auto space-y-4">
 
-        {/* ===== Motivational Banner (Hero) ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-3xl p-6 shadow-float"
-          style={{ background: "var(--starling-gradient)" }}
-        >
-          {/* Decorative sparkles */}
-          <motion.div
-            className="absolute top-3 right-4 text-2xl"
-            animate={{ rotate: [0, 15, 0], scale: [1, 1.2, 1] }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            ✨
-          </motion.div>
-          <motion.div
-            className="absolute bottom-3 left-4 text-xl opacity-60"
-            animate={{ y: [0, -6, 0] }}
-            transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
-          >
-            ⭐
-          </motion.div>
-
-          <div className="relative z-10">
+        {/* ===== Compact Motivational Banner ===== */}
+        <AnimatePresence>
+          {showBanner && (
             <motion.div
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.4 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.25 }}
+              className="flex items-center justify-between bg-accent/10 rounded-xl px-4 py-2.5"
             >
-              <span className="text-4xl mb-2 block">{dailyMessage.emoji}</span>
-              <h2 className="text-xl md:text-2xl font-extrabold text-primary-foreground leading-snug">
-                {dailyMessage.text}
-              </h2>
+              <span className="text-sm font-semibold text-foreground">{dailyMsg}</span>
+              <button
+                onClick={() => setShowBanner(false)}
+                className="ml-3 text-muted-foreground hover:text-foreground transition-colors shrink-0 p-0.5"
+                aria-label="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </motion.div>
+          )}
+        </AnimatePresence>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.85 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
-              className="text-primary-foreground/80 text-sm mt-3 font-medium"
-            >
-              <Sparkles className="w-4 h-4 inline mr-1 -mt-0.5" />
-              Today's tip: Every time you get something wrong, your brain is learning something new. Keep going! 🌟
-            </motion.p>
-          </div>
-        </motion.div>
-
-        {/* ===== Welcome Row (Secondary) ===== */}
+        {/* ===== Welcome Row ===== */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
           className="flex items-center gap-3"
         >
           <StarlingMascot size="sm" animate={true} expression="happy" />
-          <div>
-            <h1 className="text-lg font-bold text-foreground">
-              {displayName ? `Welcome back, ${displayName}! 👋` : "Welcome back! 👋"}
-            </h1>
-            <p className="text-sm text-muted-foreground">Ready to learn something new?</p>
-          </div>
+          <h1 className="text-lg font-bold text-foreground">
+            {displayName ? `Welcome back, ${displayName}! 👋` : "Welcome back! 👋"}
+          </h1>
         </motion.div>
 
-        {/* ===== Primary Action — Scan Homework ===== */}
-        <motion.button
-          initial={{ opacity: 0, y: 12 }}
+        {/* ===== Two Primary Action Cards ===== */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
-          onClick={() => onNavigate("camera")}
-          className="w-full relative overflow-hidden gradient-primary rounded-3xl p-6 shadow-float group hover:scale-[1.02] transition-transform text-left"
+          transition={{ delay: 0.2, duration: 0.35 }}
+          className="grid grid-cols-2 gap-3"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
-          <div className="relative flex items-center gap-4">
-            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-              <Camera className="w-8 h-8 text-primary-foreground" />
+          {/* Scan Homework */}
+          <button
+            onClick={() => onNavigate("camera")}
+            className="relative overflow-hidden rounded-2xl p-5 text-left shadow-float group hover:scale-[1.03] transition-transform"
+            style={{ background: "var(--starling-gradient)" }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+            <div className="relative flex flex-col gap-3 h-full">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <Camera className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-primary-foreground leading-tight">Scan Homework</h2>
+                <p className="text-xs text-primary-foreground/75 mt-1 leading-snug">
+                  Snap a photo, let's work through it together
+                </p>
+              </div>
             </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-primary-foreground">Scan Homework</h2>
-              <p className="text-primary-foreground/80">Let's check your work together!</p>
+            {/* Pulse dot */}
+            <div className="absolute top-3 right-3">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/40 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white/80" />
+              </span>
             </div>
-            <ArrowRight className="w-6 h-6 text-primary-foreground group-hover:translate-x-1 transition-transform" />
-          </div>
-          <div className="absolute top-3 right-3">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/40 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-white/80" />
-            </span>
-          </div>
-        </motion.button>
+          </button>
 
-        {/* ===== Quick Stats ===== */}
+          {/* Practice */}
+          <button
+            onClick={() => onNavigate("practice-sets")}
+            className="relative overflow-hidden rounded-2xl p-5 text-left shadow-float group hover:scale-[1.03] transition-transform"
+            style={{ background: "var(--starling-gradient)" }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+            <div className="relative flex flex-col gap-3 h-full">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <PenLine className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-primary-foreground leading-tight">Practice</h2>
+                <p className="text-xs text-primary-foreground/75 mt-1 leading-snug">
+                  Try new problems picked just for you
+                </p>
+              </div>
+            </div>
+            {/* New badge */}
+            <div className="absolute top-3 right-3">
+              <span className="bg-white/25 text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                5 New
+              </span>
+            </div>
+          </button>
+        </motion.div>
+
+        {/* ===== Below the fold — Stats ===== */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.4 }}
+          transition={{ delay: 0.4, duration: 0.35 }}
           className="starling-card"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-secondary" />
-            <h3 className="font-bold text-foreground">This Week</h3>
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-4 h-4 text-secondary" />
+            <h3 className="font-bold text-sm text-foreground">This Week</h3>
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-foreground">{weeklyStats.worksheetsChecked}</p>
+              <p className="text-xl font-bold text-foreground">{weeklyStats.worksheetsChecked}</p>
               <p className="text-xs text-muted-foreground">Worksheets</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-success">{weeklyStats.averageAccuracy}%</p>
+              <p className="text-xl font-bold text-success">{weeklyStats.averageAccuracy}%</p>
               <p className="text-xs text-muted-foreground">Accuracy</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-secondary">{weeklyStats.practiceSessions}</p>
+              <p className="text-xl font-bold text-secondary">{weeklyStats.practiceSessions}</p>
               <p className="text-xs text-muted-foreground">Practice</p>
             </div>
           </div>
         </motion.div>
 
-        {/* ===== Recent Uploads ===== */}
+        {/* ===== Recent Homework ===== */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.4 }}
+          transition={{ delay: 0.5, duration: 0.35 }}
         >
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-foreground">Recent Homework</h3>
-            <button className="text-sm text-primary font-medium">View All</button>
+            <h3 className="font-bold text-sm text-foreground">Recent Homework</h3>
+            <button className="text-xs text-primary font-medium">View All</button>
           </div>
-          
           {recentWorksheets.length > 0 ? (
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
               {recentWorksheets.map((worksheet) => (
@@ -176,8 +178,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
                   </div>
                   <p className="text-xs text-muted-foreground">{worksheet.date}</p>
                   <p className={`font-bold ${
-                    (worksheet.correctAnswers / worksheet.totalProblems) >= 0.8 
-                      ? "text-success" 
+                    (worksheet.correctAnswers / worksheet.totalProblems) >= 0.8
+                      ? "text-success"
                       : "text-warning"
                   }`}>
                     {Math.round((worksheet.correctAnswers / worksheet.totalProblems) * 100)}%
@@ -188,40 +190,35 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
           ) : (
             <div className="starling-card bg-muted/50 text-center py-8">
               <p className="text-muted-foreground">Upload your first homework to get started!</p>
-              <button
-                onClick={() => onNavigate("camera")}
-                className="mt-3 text-primary font-medium"
-              >
+              <button onClick={() => onNavigate("camera")} className="mt-3 text-primary font-medium">
                 Get Started →
               </button>
             </div>
           )}
         </motion.div>
 
-        {/* ===== Practice Sets ===== */}
+        {/* ===== Practice Problems ===== */}
         <motion.button
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.4 }}
+          transition={{ delay: 0.6, duration: 0.35 }}
           onClick={() => onNavigate("practice-sets")}
           className="w-full starling-card hover:shadow-float group transition-all text-left"
         >
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 gradient-warm rounded-2xl flex items-center justify-center shadow-soft group-hover:scale-110 transition-transform">
-              <PenLine className="w-7 h-7 text-accent-foreground" />
+            <div className="w-12 h-12 gradient-warm rounded-xl flex items-center justify-center shadow-soft group-hover:scale-110 transition-transform">
+              <PenLine className="w-6 h-6 text-accent-foreground" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-foreground">Practice Problems</h3>
-                <span className="bg-warning text-warning-foreground text-xs px-2 py-0.5 rounded-full font-medium">
+                <h3 className="font-bold text-sm text-foreground">Practice Problems</h3>
+                <span className="bg-warning text-warning-foreground text-[10px] px-2 py-0.5 rounded-full font-bold">
                   5 New!
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Regrouping, Fractions, Word Problems...
-              </p>
+              <p className="text-xs text-muted-foreground">Regrouping, Fractions, Word Problems...</p>
             </div>
-            <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
           </div>
         </motion.button>
       </div>
