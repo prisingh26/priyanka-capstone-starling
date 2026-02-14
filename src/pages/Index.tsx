@@ -86,8 +86,8 @@ type Screen =
        try {
          const token = await user.getIdToken();
          const { data } = await supabase.functions.invoke("db-proxy", {
-           body: { action: "select", table: "children", match: { parent_id: user.uid } },
-           headers: { Authorization: `Bearer ${token}` },
+           body: { operation: "select", table: "children" },
+           headers: { "x-firebase-token": token },
          });
          if (data?.data?.[0]?.name) {
            setUserProfile((prev) => ({ ...prev, name: data.data[0].name }));
