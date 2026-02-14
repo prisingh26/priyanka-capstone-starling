@@ -188,10 +188,15 @@ const LandingPage = () => {
             {/* Left: Text */}
             <motion.div variants={containerVariants} initial="hidden" animate="visible" className="max-w-xl">
               <motion.h1 variants={itemVariants} className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
-                Learning that builds{" "}
-                <span className="bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                Learning that builds
+                <motion.span
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
+                  className="block text-5xl md:text-6xl lg:text-7xl font-extrabold bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500 bg-clip-text text-transparent"
+                >
                   confidence
-                </span>
+                </motion.span>
               </motion.h1>
 
 
