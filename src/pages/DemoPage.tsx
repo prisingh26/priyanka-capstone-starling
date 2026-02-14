@@ -3,13 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import ShootingStarIcon from "@/components/ShootingStarIcon";
 import StarlingLogo from "@/components/StarlingLogo";
 
-type DemoStep = "problem" | "analyzing" | "results";
+type DemoStep = "problem" | "results";
 
 const answerOptions = [
   { label: "A", value: 2 },
@@ -19,18 +19,10 @@ const answerOptions = [
   { label: "E", value: 6 },
 ];
 
-const analysisChecklist = [
-  { icon: "📸", text: "Reading the problem" },
-  { icon: "🔍", text: "Understanding what it's asking" },
-  { icon: "🧠", text: "Checking the student's answer" },
-  { icon: "💡", text: "Preparing step-by-step guidance..." },
-];
 
 const DemoPage: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<DemoStep>("problem");
-  const [progress, setProgress] = useState(0);
-  const [checklistDone, setChecklistDone] = useState<boolean[]>([false, false, false, false]);
 
   // Socratic sub-steps within "results"
   const [socraticStep, setSocraticStep] = useState(1);
@@ -38,46 +30,6 @@ const DemoPage: React.FC = () => {
   const [retryAnswer, setRetryAnswer] = useState<string | null>(null);
   const [showDiagramStep, setShowDiagramStep] = useState(0); // 0=cats only, 1=connecting, 2=full
 
-  // Analysis animation
-  useEffect(() => {
-    if (step !== "analyzing") return;
-    setProgress(0);
-    setChecklistDone([false, false, false, false]);
-
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          return 100;
-        }
-        return prev + 1;
-      });
-    }, 40);
-
-    const timers = analysisChecklist.map((_, i) =>
-      setTimeout(() => {
-        setChecklistDone((prev) => {
-          const next = [...prev];
-          next[i] = true;
-          return next;
-        });
-      }, (i + 1) * 1000)
-    );
-
-    const resultTimer = setTimeout(() => {
-      setSocraticStep(1);
-      setUserChoice(null);
-      setRetryAnswer(null);
-      setShowDiagramStep(0);
-      setStep("results");
-    }, 4500);
-
-    return () => {
-      clearInterval(progressInterval);
-      timers.forEach(clearTimeout);
-      clearTimeout(resultTimer);
-    };
-  }, [step]);
 
   // Progress diagram build-up when entering step 4
   useEffect(() => {
@@ -218,8 +170,14 @@ const DemoPage: React.FC = () => {
 
               <Button
                 size="lg"
-                onClick={() => setStep("analyzing")}
-                className="w-full rounded-full py-6 text-lg gap-2 text-white"
+                onClick={() => {
+                  setSocraticStep(1);
+                  setUserChoice(null);
+                  setRetryAnswer(null);
+                  setShowDiagramStep(0);
+                  setStep("results");
+                }}
+                className="w-full rounded-full py-6 text-lg gap-2 text-white hover:opacity-90 transition-opacity"
                 style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
               >
                 <ShootingStarIcon size={20} />
@@ -229,74 +187,6 @@ const DemoPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* ===== STEP 2: ANALYSIS ANIMATION ===== */}
-        {step === "analyzing" && (
-          <motion.div
-            key="analyzing"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="container mx-auto px-4 py-16 max-w-lg"
-          >
-            <div className="text-center space-y-8">
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <ShootingStarIcon size={80} className="mx-auto" />
-              </motion.div>
-
-              <h2 className="text-2xl font-bold text-foreground">
-                🌟 Starling is analyzing...
-              </h2>
-
-              <div className="space-y-2">
-                <Progress value={progress} className="h-3" />
-                <p className="text-sm text-muted-foreground font-medium">{Math.round(progress)}%</p>
-              </div>
-
-              <div className="space-y-3 text-left max-w-sm mx-auto">
-                {analysisChecklist.map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.3 }}
-                    className="flex items-center gap-3"
-                  >
-                    <span className="text-lg">{item.icon}</span>
-                    <span
-                      className={`flex-1 transition-colors ${
-                        checklistDone[i] ? "text-foreground" : "text-muted-foreground"
-                      }`}
-                    >
-                      {item.text}
-                    </span>
-                    <AnimatePresence>
-                      {checklistDone[i] ? (
-                        <motion.span
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="text-success text-lg"
-                        >
-                          ✓
-                        </motion.span>
-                      ) : i === checklistDone.filter(Boolean).length ? (
-                        <motion.span
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="text-lg"
-                        >
-                          ⏳
-                        </motion.span>
-                      ) : null}
-                    </AnimatePresence>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
 
         {/* ===== STEP 3: SOCRATIC GUIDED RESULTS ===== */}
         {step === "results" && (
@@ -414,7 +304,8 @@ const DemoPage: React.FC = () => {
                   >
                     <Button
                       onClick={() => setSocraticStep(2)}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 py-5 text-base gap-2"
+                      className="rounded-full px-6 py-5 text-base gap-2 text-white hover:opacity-90 transition-opacity"
+                      style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
                     >
                       <ShootingStarIcon size={18} />
                       What would Starling ask next?
@@ -476,7 +367,8 @@ const DemoPage: React.FC = () => {
                   >
                     <Button
                       onClick={() => setSocraticStep(3)}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6"
+                      className="rounded-full px-6 text-white hover:opacity-90 transition-opacity"
+                      style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
                     >
                       I'm ready to answer! 💪
                     </Button>
@@ -614,7 +506,8 @@ const DemoPage: React.FC = () => {
                   >
                     <Button
                       onClick={() => setSocraticStep(5)}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6"
+                      className="rounded-full px-6 text-white hover:opacity-90 transition-opacity"
+                      style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
                     >
                       I think I know the answer now!
                     </Button>
