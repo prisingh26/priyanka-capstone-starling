@@ -12,10 +12,12 @@ import stepAnalyze from "@/assets/step-analyze.jpg";
 import stepPractice from "@/assets/step-practice.jpg";
 import ShootingStarIcon from "@/components/ShootingStarIcon";
 import StarlingLogo from "@/components/StarlingLogo";
+import EarlyAccessModal from "@/components/EarlyAccessModal";
 const LandingPage = () => {
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [earlyAccessOpen, setEarlyAccessOpen] = useState(false);
 
 
   const scrollTo = (id: string) => {
@@ -120,7 +122,7 @@ const LandingPage = () => {
             <Button variant="ghost" onClick={() => navigate("/login")} className="text-sm font-medium">
               Log in
             </Button>
-            <Button onClick={() => navigate("/signup")} className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-6">
+            <Button onClick={() => setEarlyAccessOpen(true)} className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-6">
               Request Early Access
             </Button>
           </div>
@@ -146,7 +148,7 @@ const LandingPage = () => {
               <div className="px-4 py-4 space-y-3">
                 <hr className="border-amber-200" />
                 <Button variant="ghost" onClick={() => navigate("/login")} className="w-full justify-start text-sm">Log in</Button>
-                <Button onClick={() => navigate("/signup")} className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-full">Request Early Access</Button>
+                <Button onClick={() => { setEarlyAccessOpen(true); setMobileMenuOpen(false); }} className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-full">Request Early Access</Button>
               </div>
             </motion.div>}
         </AnimatePresence>
@@ -507,6 +509,7 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
+      <EarlyAccessModal open={earlyAccessOpen} onClose={() => setEarlyAccessOpen(false)} />
     </div>;
 };
 export default LandingPage;
