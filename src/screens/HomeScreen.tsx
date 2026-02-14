@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Camera, PenLine, ArrowRight, TrendingUp, X } from "lucide-react";
+import { Camera, PenLine, TrendingUp, X, CheckCircle2, Target, Star, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import StarlingMascot from "../components/StarlingMascot";
 import { recentWorksheets, weeklyStats } from "../data/mockData";
@@ -30,22 +30,33 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
 
   return (
     <div className="min-h-screen pt-20 pb-24 px-4">
-      <div className="max-w-lg mx-auto space-y-4">
+      <div className="max-w-lg mx-auto space-y-5">
 
-        {/* ===== Compact Motivational Banner ===== */}
+        {/* ===== Motivational Banner ===== */}
         <AnimatePresence>
           {showBanner && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-              transition={{ duration: 0.25 }}
-              className="flex items-center justify-between bg-accent/10 rounded-xl px-4 py-2.5"
+              transition={{ duration: 0.3 }}
+              className="relative flex items-center gap-3 rounded-2xl px-4 py-3 overflow-hidden"
+              style={{
+                background: "linear-gradient(135deg, hsl(var(--primary) / 0.12), hsl(30 95% 90% / 0.6))",
+              }}
             >
-              <span className="text-sm font-semibold text-foreground">{dailyMsg}</span>
+              {/* Sparkle accent */}
+              <motion.div
+                animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="shrink-0"
+              >
+                <Sparkles className="w-5 h-5 text-primary" />
+              </motion.div>
+              <span className="text-sm font-bold text-foreground flex-1">{dailyMsg}</span>
               <button
                 onClick={() => setShowBanner(false)}
-                className="ml-3 text-muted-foreground hover:text-foreground transition-colors shrink-0 p-0.5"
+                className="ml-2 text-muted-foreground hover:text-foreground transition-colors shrink-0 p-0.5"
                 aria-label="Dismiss"
               >
                 <X className="w-4 h-4" />
@@ -59,12 +70,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.3 }}
-          className="flex items-center gap-3"
+          className="flex items-center gap-2"
         >
           <StarlingMascot size="sm" animate={true} expression="happy" />
-          <h1 className="text-lg font-bold text-foreground">
+          <p className="text-sm font-medium text-muted-foreground">
             {displayName ? `Welcome back, ${displayName}! 👋` : "Welcome back! 👋"}
-          </h1>
+          </p>
         </motion.div>
 
         {/* ===== Two Primary Action Cards ===== */}
@@ -72,18 +83,20 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.35 }}
-          className="grid grid-cols-2 gap-3"
+          className="grid grid-cols-2 gap-4"
         >
-          {/* Scan Homework */}
-          <button
+          {/* Scan Homework — purple-dominant */}
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => onNavigate("camera")}
-            className="relative overflow-hidden rounded-2xl p-5 text-left shadow-float group hover:scale-[1.03] transition-transform"
-            style={{ background: "var(--starling-gradient)" }}
+            className="relative overflow-hidden rounded-2xl p-5 text-left shadow-float"
+            style={{ background: "linear-gradient(145deg, hsl(var(--primary)), hsl(270 80% 55%))" }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
-            <div className="relative flex flex-col gap-3 h-full">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <Camera className="w-6 h-6 text-primary-foreground" />
+            <div className="relative flex flex-col gap-4 h-full">
+              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+                <Camera className="w-8 h-8 text-primary-foreground" />
               </div>
               <div>
                 <h2 className="text-base font-bold text-primary-foreground leading-tight">Scan Homework</h2>
@@ -92,25 +105,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
                 </p>
               </div>
             </div>
-            {/* Pulse dot */}
             <div className="absolute top-3 right-3">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/40 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white/80" />
               </span>
             </div>
-          </button>
+          </motion.button>
 
-          {/* Practice */}
-          <button
+          {/* Practice — orange-dominant */}
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => onNavigate("practice-sets")}
-            className="relative overflow-hidden rounded-2xl p-5 text-left shadow-float group hover:scale-[1.03] transition-transform"
-            style={{ background: "var(--starling-gradient)" }}
+            className="relative overflow-hidden rounded-2xl p-5 text-left shadow-float"
+            style={{ background: "linear-gradient(145deg, hsl(25 95% 55%), hsl(35 95% 60%))" }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
-            <div className="relative flex flex-col gap-3 h-full">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <PenLine className="w-6 h-6 text-primary-foreground" />
+            <div className="relative flex flex-col gap-4 h-full">
+              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+                <PenLine className="w-8 h-8 text-primary-foreground" />
               </div>
               <div>
                 <h2 className="text-base font-bold text-primary-foreground leading-tight">Practice</h2>
@@ -119,38 +133,52 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
                 </p>
               </div>
             </div>
-            {/* New badge */}
             <div className="absolute top-3 right-3">
               <span className="bg-white/25 text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
                 5 New
               </span>
             </div>
-          </button>
+          </motion.button>
         </motion.div>
 
-        {/* ===== Below the fold — Stats ===== */}
+        {/* ===== This Week Stats ===== */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.35 }}
           className="starling-card"
         >
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-4 h-4 text-secondary" />
             <h3 className="font-bold text-sm text-foreground">This Week</h3>
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-xl font-bold text-foreground">{weeklyStats.worksheetsChecked}</p>
-              <p className="text-xs text-muted-foreground">Worksheets</p>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-xl font-bold text-primary">{weeklyStats.worksheetsChecked}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-primary" />
+                <p className="text-xs font-medium text-muted-foreground">Scanned</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xl font-bold text-success">{weeklyStats.averageAccuracy}%</p>
-              <p className="text-xs text-muted-foreground">Accuracy</p>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
+                <span className="text-xl font-bold text-success">{weeklyStats.averageAccuracy}%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Target className="w-3 h-3 text-success" />
+                <p className="text-xs font-medium text-muted-foreground">Accuracy</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xl font-bold text-secondary">{weeklyStats.practiceSessions}</p>
-              <p className="text-xs text-muted-foreground">Practice</p>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
+                <span className="text-xl font-bold text-secondary">{weeklyStats.practiceSessions}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Star className="w-3 h-3 text-secondary" />
+                <p className="text-xs font-medium text-muted-foreground">Practiced</p>
+              </div>
             </div>
           </div>
         </motion.div>
