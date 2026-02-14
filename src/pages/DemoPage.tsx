@@ -244,16 +244,6 @@ const DemoPage: React.FC = () => {
             className="container mx-auto px-4 py-6 max-w-2xl"
           >
             {/* Socratic callout badge */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center mb-6"
-            >
-              <span className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 rounded-full px-4 py-2 text-sm font-semibold">
-                ✨ Starling guides — never gives away the answer
-              </span>
-            </motion.div>
-
             <ScrollArea className="h-[calc(100vh-180px)]">
               <div className="space-y-5 pr-2">
 
