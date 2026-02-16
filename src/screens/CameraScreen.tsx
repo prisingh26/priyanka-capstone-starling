@@ -205,7 +205,13 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
         // For images in unsupported formats (HEIC, etc.), convert to JPEG via canvas
         if (capturedFile.isImage && !SUPPORTED_IMAGE_FORMATS.includes(capturedFile.file.type)) {
           console.log(`Converting ${capturedFile.file.type} to JPEG for API compatibility`);
-          dataUrl = await convertImageToJpeg(capturedFile.file);
+          try {
+            dataUrl = await convertImageToJpeg(capturedFile.file);
+          } catch (convErr) {
+            // Conversion failed — file is likely not a real image (e.g., .pages disguised as HEIC)
+            console.warn("Image conversion failed, reading as raw data URL:", convErr);
+            dataUrl = await readFileAsDataUrl(capturedFile.file);
+          }
         } else {
           dataUrl = await readFileAsDataUrl(capturedFile.file);
         }
