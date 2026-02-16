@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import StarlingMascot from "../components/StarlingMascot";
-import ShootingStarIcon from "../components/ShootingStarIcon";
 import { HomeworkAnalysis } from "@/types/homework";
 import { toast } from "sonner";
 
@@ -131,11 +130,12 @@ const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError
     >
       <div className="max-w-sm w-full flex flex-col items-center gap-6">
         {/* Bouncing star */}
+        {/* Bird character bouncing/thinking during analysis */}
         <motion.div
           animate={{ y: [0, -12, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
         >
-          <ShootingStarIcon size={80} />
+          <StarlingMascot size="lg" animate expression="thinking" />
         </motion.div>
 
         {/* Fun cycling message */}
