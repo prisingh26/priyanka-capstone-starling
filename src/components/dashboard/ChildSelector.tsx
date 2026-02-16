@@ -1,8 +1,16 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check } from "lucide-react";
-import { children as mockChildren, Child } from "@/data/mockData";
+import { auth } from "@/lib/firebase";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Child {
+  id: string;
+  name: string;
+  grade: number;
+  avatar: string;
+}
 
 interface ChildSelectorProps {
   selectedChildId: string;
@@ -16,10 +24,34 @@ const avatarEmojis: Record<string, string> = {
   dog: '🐶',
   fox: '🦊',
   panda: '🐼',
+  owl: '🦉',
+  penguin: '🐧',
+  lion: '🦁',
+  frog: '🐸',
 };
 
 const ChildSelector: React.FC<ChildSelectorProps> = ({ selectedChildId, onSelectChild }) => {
-  const children = mockChildren;
+  const [children, setChildren] = useState<Child[]>([]);
+
+  useEffect(() => {
+    const fetchChildren = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      try {
+        const token = await user.getIdToken();
+        const { data } = await supabase.functions.invoke("db-proxy", {
+          body: { operation: "select", table: "children" },
+          headers: { "x-firebase-token": token },
+        });
+        if (data?.data) {
+          setChildren(data.data);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    fetchChildren();
+  }, []);
 
   if (children.length <= 1) return null;
 
@@ -39,7 +71,7 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({ selectedChildId, onSelect
             >
               <Card className={`transition-all border-2 ${
                 isSelected 
-                  ? 'border-primary shadow-float bg-sprout-green-light' 
+                  ? 'border-primary shadow-float' 
                   : 'border-transparent hover:border-border'
               }`}>
                 <CardContent className="p-4 flex items-center gap-3">

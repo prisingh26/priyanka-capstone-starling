@@ -1,21 +1,31 @@
 import React, { useMemo, useState } from "react";
-import { Camera, PenLine, TrendingUp, X, CheckCircle2, Target, Star, Sparkles } from "lucide-react";
+import { Camera, PenLine, TrendingUp, X, CheckCircle2, Target, Star, Sparkles, ArrowUpRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import StarlingMascot from "../components/StarlingMascot";
-import { recentWorksheets, weeklyStats } from "../data/mockData";
+
+interface HomeworkScan {
+  id: string;
+  date: string;
+  totalProblems: number;
+  correctAnswers: number;
+}
 
 interface HomeScreenProps {
   onNavigate: (screen: string) => void;
   studentName?: string;
+  recentHomework?: HomeworkScan[];
+  weeklyScanned?: number;
+  weeklyAccuracy?: number | null;
+  weeklyPracticed?: number;
 }
 
 const DAILY_MESSAGES = [
-  "🚀 3 more right than last week — you're unstoppable!",
-  "🌟 4-day streak! You're on FIRE! 🔥",
-  "💡 Every mistake = a superpower upgrade for your brain!",
-  "🎯 You absolutely CRUSHED fractions — what's next, champ?",
-  "🔥 Accuracy up 12%! You're leveling up like a boss!",
-  "⭐ 47 problems defeated this month — legend status!",
+  "🚀 Every problem you solve makes your brain stronger!",
+  "🌟 Ready to learn something awesome today?",
+  "💡 Mistakes are just your brain leveling up!",
+  "🎯 Let's crush some problems together!",
+  "🔥 You're building skills that last forever!",
+  "⭐ Today is a great day to get smarter!",
 ];
 
 function getDailyMessage() {
@@ -23,10 +33,19 @@ function getDailyMessage() {
   return DAILY_MESSAGES[(d.getFullYear() * 366 + d.getMonth() * 31 + d.getDate()) % DAILY_MESSAGES.length];
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
+const HomeScreen: React.FC<HomeScreenProps> = ({
+  onNavigate,
+  studentName,
+  recentHomework = [],
+  weeklyScanned = 0,
+  weeklyAccuracy = null,
+  weeklyPracticed = 0,
+}) => {
   const displayName = studentName?.trim() || null;
   const dailyMsg = useMemo(() => getDailyMessage(), []);
   const [showBanner, setShowBanner] = useState(true);
+
+  const hasAnyData = weeklyScanned > 0 || recentHomework.length > 0;
 
   return (
     <div className="min-h-screen pt-20 pb-24 px-4">
@@ -45,7 +64,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
                 background: "linear-gradient(135deg, hsl(var(--primary) / 0.12), hsl(30 95% 90% / 0.6))",
               }}
             >
-              {/* Sparkle accent */}
               <motion.div
                 animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -133,11 +151,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
                 </p>
               </div>
             </div>
-            <div className="absolute top-3 right-3">
-              <span className="bg-white/25 text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
-                5 New
-              </span>
-            </div>
           </motion.button>
         </motion.div>
 
@@ -155,7 +168,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="flex flex-col items-center gap-1.5">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-xl font-bold text-primary">{weeklyStats.worksheetsChecked}</span>
+                <span className="text-xl font-bold text-primary">{weeklyScanned}</span>
               </div>
               <div className="flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3 text-primary" />
@@ -164,7 +177,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
             </div>
             <div className="flex flex-col items-center gap-1.5">
               <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
-                <span className="text-xl font-bold text-success">{weeklyStats.averageAccuracy}%</span>
+                <span className="text-xl font-bold text-success">
+                  {weeklyAccuracy !== null ? `${weeklyAccuracy}%` : "—"}
+                </span>
               </div>
               <div className="flex items-center gap-1">
                 <Target className="w-3 h-3 text-success" />
@@ -173,7 +188,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
             </div>
             <div className="flex flex-col items-center gap-1.5">
               <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
-                <span className="text-xl font-bold text-secondary">{weeklyStats.practiceSessions}</span>
+                <span className="text-xl font-bold text-secondary">{weeklyPracticed}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Star className="w-3 h-3 text-secondary" />
@@ -181,6 +196,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
               </div>
             </div>
           </div>
+          {!hasAnyData && (
+            <p className="text-center text-xs text-muted-foreground mt-4">
+              Upload your first homework to get started! 📚
+            </p>
+          )}
         </motion.div>
 
         {/* ===== Recent Homework ===== */}
@@ -191,34 +211,51 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, studentName }) => {
         >
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-sm text-foreground">Recent Homework</h3>
-            <button className="text-xs text-primary font-medium">View All</button>
           </div>
-          {recentWorksheets.length > 0 ? (
+          {recentHomework.length > 0 ? (
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-              {recentWorksheets.map((worksheet) => (
+              {recentHomework.map((hw) => (
                 <div
-                  key={worksheet.id}
+                  key={hw.id}
                   className="flex-shrink-0 w-28 starling-card p-3 text-center cursor-pointer hover:shadow-float transition-shadow"
                   onClick={() => onNavigate("results")}
                 >
                   <div className="w-full h-16 bg-muted rounded-lg flex items-center justify-center text-2xl mb-2">
                     📄
                   </div>
-                  <p className="text-xs text-muted-foreground">{worksheet.date}</p>
+                  <p className="text-xs text-muted-foreground">{hw.date}</p>
                   <p className={`font-bold ${
-                    (worksheet.correctAnswers / worksheet.totalProblems) >= 0.8
+                    (hw.correctAnswers / hw.totalProblems) >= 0.8
                       ? "text-success"
                       : "text-warning"
                   }`}>
-                    {Math.round((worksheet.correctAnswers / worksheet.totalProblems) * 100)}%
+                    {Math.round((hw.correctAnswers / hw.totalProblems) * 100)}%
                   </p>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="starling-card bg-muted/50 text-center py-8">
-              <p className="text-muted-foreground">Upload your first homework to get started!</p>
-              <button onClick={() => onNavigate("camera")} className="mt-3 text-primary font-medium">
+            <div className="starling-card bg-muted/30 text-center py-8 relative">
+              <div className="flex justify-center mb-3">
+                <StarlingMascot size="sm" expression="encouraging" />
+              </div>
+              <p className="text-muted-foreground text-sm">
+                No homework scanned yet.
+              </p>
+              <p className="text-muted-foreground text-sm">
+                Tap <strong>"Scan Homework"</strong> to try it! 📸
+              </p>
+              <motion.div
+                className="absolute -top-2 left-1/4 text-primary"
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <ArrowUpRight className="w-5 h-5" />
+              </motion.div>
+              <button
+                onClick={() => onNavigate("camera")}
+                className="mt-4 text-primary font-semibold text-sm hover:underline"
+              >
                 Get Started →
               </button>
             </div>
