@@ -31,11 +31,10 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
-const SUPPORTED_IMAGE_FORMATS = ["image/png", "image/jpeg", "image/gif", "image/webp"];
-
 /**
- * Convert any image to JPEG via canvas.
- * Needed for HEIC and other formats not supported by the vision API.
+ * Convert ANY image file to a clean JPEG data URL via canvas.
+ * This ensures every image (HEIC, PNG, BMP, WebP, etc.) arrives
+ * at the API as a valid JPEG regardless of original format.
  */
 function convertImageToJpeg(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -49,7 +48,7 @@ function convertImageToJpeg(file: File): Promise<string> {
       const ctx = canvas.getContext("2d");
       if (!ctx) { reject(new Error("Canvas context unavailable")); return; }
       ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL("image/jpeg", 0.9));
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
     };
     img.onerror = () => {
       URL.revokeObjectURL(blobUrl);
@@ -60,9 +59,9 @@ function convertImageToJpeg(file: File): Promise<string> {
 }
 
 interface CapturedFile {
-  file: File | null;          // null when captured from camera (canvas)
-  previewUrl: string;         // blob URL for images, or empty for docs
-  dataUrl: string | null;     // pre-computed for camera captures; lazy for uploads
+  file: File | null;
+  previewUrl: string;
+  dataUrl: string | null;
   name: string;
   size: number;
   isImage: boolean;
@@ -81,7 +80,6 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Cleanup blob URLs on unmount or when capturedFile changes
   useEffect(() => {
     return () => {
       if (capturedFile?.previewUrl?.startsWith("blob:")) {
@@ -148,10 +146,10 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
     const ctx = canvas.getContext("2d");
     if (ctx) {
       ctx.drawImage(video, 0, 0);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
       setCapturedFile({
         file: null,
-        previewUrl: dataUrl, // data URL is fine for camera captures (it's the source)
+        previewUrl: dataUrl,
         dataUrl,
         name: "homework-photo.jpg",
         size: Math.round(dataUrl.length * 0.75),
@@ -167,7 +165,6 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
 
     const isImg = isImageFile(file);
 
-    // Revoke previous blob URL if any
     if (capturedFile?.previewUrl?.startsWith("blob:")) {
       URL.revokeObjectURL(capturedFile.previewUrl);
     }
@@ -175,14 +172,13 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
     setCapturedFile({
       file,
       previewUrl: isImg ? URL.createObjectURL(file) : "",
-      dataUrl: null, // will be read lazily on submit
+      dataUrl: null,
       name: file.name,
       size: file.size,
       isImage: isImg,
     });
     stopCamera();
 
-    // Reset the input so the same file can be re-selected
     event.target.value = "";
   };
 
@@ -200,19 +196,19 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
     try {
       let dataUrl = capturedFile.dataUrl;
 
-      // If we don't have a data URL yet (file upload), read it now
       if (!dataUrl && capturedFile.file) {
-        // For images in unsupported formats (HEIC, etc.), convert to JPEG via canvas
-        if (capturedFile.isImage && !SUPPORTED_IMAGE_FORMATS.includes(capturedFile.file.type)) {
-          console.log(`Converting ${capturedFile.file.type} to JPEG for API compatibility`);
+        if (capturedFile.isImage) {
+          // Convert ALL image formats to JPEG via canvas for consistency
+          console.log(`Converting ${capturedFile.file.type || "unknown"} to JPEG for API compatibility`);
           try {
             dataUrl = await convertImageToJpeg(capturedFile.file);
           } catch (convErr) {
-            // Conversion failed — file is likely not a real image (e.g., .pages disguised as HEIC)
+            // Conversion failed — file is likely not a real image
             console.warn("Image conversion failed, reading as raw data URL:", convErr);
             dataUrl = await readFileAsDataUrl(capturedFile.file);
           }
         } else {
+          // Non-image files (PDF, docx) — send as raw data URL
           dataUrl = await readFileAsDataUrl(capturedFile.file);
         }
       }
@@ -301,7 +297,6 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
       />
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <button onClick={onClose} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
           <X className="w-5 h-5 text-foreground" />
@@ -310,7 +305,6 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
         <div className="w-10" />
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 gap-8">
         <div className="text-center">
           <StarlingMascot size="md" animate expression="happy" />
@@ -322,9 +316,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
           </p>
         </div>
 
-        {/* Two Cards Side by Side */}
         <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
-          {/* Take a Photo */}
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
@@ -345,7 +337,6 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
             <span className="font-bold text-foreground text-sm">📸 Take a Photo</span>
           </motion.button>
 
-          {/* Upload a File */}
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
@@ -368,7 +359,6 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
         </p>
       </div>
 
-      {/* Camera overlay when active */}
       {(cameraActive || isStarting) && (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
           <div className="flex items-center justify-between p-4 bg-black/80 z-10">

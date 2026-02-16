@@ -9,9 +9,8 @@ const corsHeaders = {
 const OPENAI_API = "https://api.openai.com/v1/chat/completions";
 const CLAUDE_API = "https://api.anthropic.com/v1/messages";
 
-// ── Model config ────────────────────────────────────────────────────
-const OCR_MODEL = "gpt-4o"; // OpenAI latest for OCR + classification
-const REASONING_MODEL = "claude-sonnet-4-20250514"; // Claude latest for deep reasoning
+const OCR_MODEL = "gpt-4o";
+const REASONING_MODEL = "claude-sonnet-4-20250514";
 
 // ── Prompts ─────────────────────────────────────────────────────────
 
@@ -119,10 +118,10 @@ CRITICAL RULES:
 
 // Known image magic byte prefixes in base64
 const IMAGE_SIGNATURES: Record<string, string> = {
-  "/9j/": "image/jpeg",        // JPEG
-  "iVBOR": "image/png",        // PNG
-  "R0lGO": "image/gif",        // GIF
-  "UklGR": "image/webp",       // WebP (RIFF container)
+  "/9j/": "image/jpeg",
+  "iVBOR": "image/png",
+  "R0lGO": "image/gif",
+  "UklGR": "image/webp",
 };
 
 function detectImageFormat(base64Data: string): string | null {
@@ -132,21 +131,30 @@ function detectImageFormat(base64Data: string): string | null {
   return null;
 }
 
-function getImageParts(imageBase64: string) {
-  const base64Data = imageBase64.includes(",")
-    ? imageBase64.split(",")[1]
-    : imageBase64;
+/**
+ * Normalise the incoming base64 image payload.
+ * - Strips duplicate data URI prefixes
+ * - Validates the binary magic bytes
+ * - Returns clean base64 + detected MIME type
+ *
+ * Throws a tagged error so the caller can return 400 (not 500).
+ */
+function getImageParts(imageBase64: string): { base64Data: string; mediaType: string } {
+  // Strip the data URI prefix if present (handles double-prefix too)
+  let raw = imageBase64;
+  // Remove any "data:...;base64," prefix(es)
+  while (/^data:[^;]+;base64,/.test(raw)) {
+    raw = raw.replace(/^data:[^;]+;base64,/, "");
+  }
 
-  // Detect actual format from the binary content, ignoring the MIME header
-  const detectedMime = detectImageFormat(base64Data);
+  const detectedMime = detectImageFormat(raw);
   if (!detectedMime) {
     throw new Error("not_a_valid_image");
   }
 
-  return { base64Data, mediaType: detectedMime };
+  return { base64Data: raw, mediaType: detectedMime };
 }
 
-// Call OpenAI directly (for OCR / classification)
 async function callOpenAI(
   apiKey: string,
   model: string,
@@ -188,8 +196,8 @@ async function callOpenAI(
     console.error(`OpenAI API error [${status}]:`, body);
     if (status === 429) return { error: "rate_limited", message: "Too many requests — please wait a moment and try again." };
     if (status === 402 || status === 401) return { error: "payment_required", message: "Starling is taking a quick nap. Please try again later! 😴" };
-    if (body.includes("unsupported image") || body.includes("invalid_image_format")) {
-      throw new Error("unsupported image format");
+    if (body.includes("unsupported image") || body.includes("invalid_image_format") || body.includes("Could not process image")) {
+      throw new Error("not_a_valid_image");
     }
     throw new Error(`API error [${status}]`);
   }
@@ -198,7 +206,6 @@ async function callOpenAI(
   return { text: data.choices?.[0]?.message?.content ?? "" };
 }
 
-// Call Claude directly via Anthropic API (for deep reasoning)
 async function callClaude(
   apiKey: string,
   prompt: string,
@@ -334,9 +341,25 @@ serve(async (req) => {
       );
     }
 
+    // ── Validate image format early — return 400 not 500 ──────────
+    try {
+      getImageParts(imageBase64);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      if (msg === "not_a_valid_image") {
+        return new Response(
+          JSON.stringify({
+            error: "image_format_error",
+            message: "Hmm, Starling couldn't read that file. Try taking a clearer photo or uploading a different format! 📸",
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      throw e;
+    }
+
     console.log("Step 1: Classifying with OpenAI (GPT-4o)...");
 
-    // ── Step 1: Classify complexity with OpenAI ───────────────────
     const classifyResult = await callOpenAI(
       OPENAI_API_KEY,
       OCR_MODEL,
@@ -365,7 +388,6 @@ serve(async (req) => {
 
     console.log(`Complexity: ${complexity} (${classifyReason})`);
 
-    // ── Step 2: Analyze ─────────────────────────────────────────────
     const isSimple = complexity === "simple";
     const prompt = isSimple ? SIMPLE_ANALYSIS_PROMPT : COMPLEX_ANALYSIS_PROMPT;
     const maxTokens = isSimple ? 4000 : 8000;
@@ -375,28 +397,13 @@ serve(async (req) => {
     let modelUsed: string;
 
     if (isSimple) {
-      // Simple problems → OpenAI (fast)
       console.log("Step 2: Analyzing with OpenAI (GPT-4o)...");
       modelUsed = OCR_MODEL;
-      analysisResult = await callOpenAI(
-        OPENAI_API_KEY,
-        OCR_MODEL,
-        prompt,
-        imageBase64,
-        maxTokens,
-        temperature,
-      );
+      analysisResult = await callOpenAI(OPENAI_API_KEY, OCR_MODEL, prompt, imageBase64, maxTokens, temperature);
     } else {
-      // Complex problems → Claude (deep reasoning)
       console.log(`Step 2: Analyzing with Claude (${REASONING_MODEL})...`);
       modelUsed = REASONING_MODEL;
-      analysisResult = await callClaude(
-        ANTHROPIC_API_KEY,
-        prompt,
-        imageBase64,
-        maxTokens,
-        temperature,
-      );
+      analysisResult = await callClaude(ANTHROPIC_API_KEY, prompt, imageBase64, maxTokens, temperature);
     }
 
     if ("error" in analysisResult) {
@@ -415,25 +422,20 @@ serve(async (req) => {
         JSON.stringify({
           error: "parse_error",
           message: "Could not parse AI analysis. Please try again with a clearer photo.",
-          raw: analysisResult.text,
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // Attach metadata
     analysis.complexity = complexity;
     analysis.classifyReason = classifyReason;
     analysis.modelUsed = modelUsed;
 
-    // Compute summary stats
     const problems = analysis.problems ?? [];
     analysis.totalProblems = problems.length;
     analysis.correctAnswers = problems.filter((p: any) => p.isCorrect).length;
 
-    console.log(
-      `Analysis complete: ${analysis.correctAnswers}/${analysis.totalProblems} correct (${modelUsed})`,
-    );
+    console.log(`Analysis complete: ${analysis.correctAnswers}/${analysis.totalProblems} correct (${modelUsed})`);
 
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -441,14 +443,15 @@ serve(async (req) => {
   } catch (e) {
     console.error("analyze-homework error:", e);
 
-    // Determine a user-friendly error category — NEVER expose raw errors to users
     const rawMsg = e instanceof Error ? e.message : String(e);
     let userMessage = "Something didn't work right. Let's give it another try! 🌟";
     let errorCode = "server_error";
+    let statusCode = 500;
 
-    if (rawMsg.includes("unsupported image") || rawMsg.includes("invalid_image_format") || rawMsg.includes("not_a_valid_image")) {
+    if (rawMsg.includes("not_a_valid_image") || rawMsg.includes("unsupported image") || rawMsg.includes("invalid_image_format")) {
       userMessage = "Hmm, Starling couldn't read that file. Try taking a clearer photo or uploading a different format! 📸";
       errorCode = "image_format_error";
+      statusCode = 400;
     } else if (rawMsg.includes("timeout") || rawMsg.includes("ETIMEDOUT") || rawMsg.includes("network")) {
       userMessage = "Oops! Starling lost connection for a moment. Let's try again! 🔄";
       errorCode = "network_error";
@@ -459,7 +462,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ error: errorCode, message: userMessage }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: statusCode, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
