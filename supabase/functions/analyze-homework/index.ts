@@ -121,9 +121,14 @@ function getImageParts(imageBase64: string) {
   const base64Data = imageBase64.includes(",")
     ? imageBase64.split(",")[1]
     : imageBase64;
-  const mediaType = imageBase64.startsWith("data:image/png")
-    ? "image/png"
-    : "image/jpeg";
+
+  // Only allow formats supported by the vision APIs
+  let mediaType = "image/jpeg"; // safe default
+  if (imageBase64.startsWith("data:image/png")) mediaType = "image/png";
+  else if (imageBase64.startsWith("data:image/gif")) mediaType = "image/gif";
+  else if (imageBase64.startsWith("data:image/webp")) mediaType = "image/webp";
+  // Any other format (heic, etc.) defaults to image/jpeg — the client should have converted it
+
   return { base64Data, mediaType };
 }
 
@@ -167,9 +172,12 @@ async function callOpenAI(
     const status = response.status;
     const body = await response.text();
     console.error(`OpenAI API error [${status}]:`, body);
-    if (status === 429) return { error: "rate_limited", message: "Too many requests — please try again in a moment." };
-    if (status === 402 || status === 401) return { error: "payment_required", message: "OpenAI API key issue. Please check your billing or key." };
-    throw new Error(`OpenAI API error [${status}]: ${body}`);
+    if (status === 429) return { error: "rate_limited", message: "Too many requests — please wait a moment and try again." };
+    if (status === 402 || status === 401) return { error: "payment_required", message: "Starling is taking a quick nap. Please try again later! 😴" };
+    if (body.includes("unsupported image") || body.includes("invalid_image_format")) {
+      throw new Error("unsupported image format");
+    }
+    throw new Error(`API error [${status}]`);
   }
 
   const data = await response.json();
@@ -220,14 +228,13 @@ async function callClaude(
     const status = response.status;
     const body = await response.text();
     console.error(`Claude API error [${status}]:`, body);
-    if (status === 429) return { error: "rate_limited", message: "Claude rate limit reached — please try again in a moment." };
+    if (status === 429) return { error: "rate_limited", message: "Too many requests — please wait a moment and try again." };
     if (status === 402 || status === 400) {
-      // Check if it's a billing issue
       if (body.includes("credit") || body.includes("billing")) {
-        return { error: "payment_required", message: "Claude API credits exhausted. Please check your Anthropic billing." };
+        return { error: "payment_required", message: "Starling is taking a quick nap. Please try again later! 😴" };
       }
     }
-    throw new Error(`Claude API error [${status}]: ${body}`);
+    throw new Error(`API error [${status}]`);
   }
 
   const data = await response.json();
@@ -419,11 +426,25 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("analyze-homework error:", e);
+
+    // Determine a user-friendly error category — NEVER expose raw errors to users
+    const rawMsg = e instanceof Error ? e.message : String(e);
+    let userMessage = "Something didn't work right. Let's give it another try! 🌟";
+    let errorCode = "server_error";
+
+    if (rawMsg.includes("unsupported image") || rawMsg.includes("invalid_image_format")) {
+      userMessage = "Hmm, Starling couldn't read that file. Try taking a clearer photo or uploading a different format! 📸";
+      errorCode = "image_format_error";
+    } else if (rawMsg.includes("timeout") || rawMsg.includes("ETIMEDOUT") || rawMsg.includes("network")) {
+      userMessage = "Oops! Starling lost connection for a moment. Let's try again! 🔄";
+      errorCode = "network_error";
+    } else if (rawMsg.includes("API key") || rawMsg.includes("not configured") || rawMsg.includes("401")) {
+      userMessage = "Starling is taking a quick nap. Please try again later! 😴";
+      errorCode = "auth_error";
+    }
+
     return new Response(
-      JSON.stringify({
-        error: "server_error",
-        message: e instanceof Error ? e.message : "Unknown error",
-      }),
+      JSON.stringify({ error: errorCode, message: userMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
