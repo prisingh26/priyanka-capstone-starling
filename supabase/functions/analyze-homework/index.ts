@@ -117,19 +117,33 @@ CRITICAL RULES:
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
+// Known image magic byte prefixes in base64
+const IMAGE_SIGNATURES: Record<string, string> = {
+  "/9j/": "image/jpeg",        // JPEG
+  "iVBOR": "image/png",        // PNG
+  "R0lGO": "image/gif",        // GIF
+  "UklGR": "image/webp",       // WebP (RIFF container)
+};
+
+function detectImageFormat(base64Data: string): string | null {
+  for (const [sig, mime] of Object.entries(IMAGE_SIGNATURES)) {
+    if (base64Data.startsWith(sig)) return mime;
+  }
+  return null;
+}
+
 function getImageParts(imageBase64: string) {
   const base64Data = imageBase64.includes(",")
     ? imageBase64.split(",")[1]
     : imageBase64;
 
-  // Only allow formats supported by the vision APIs
-  let mediaType = "image/jpeg"; // safe default
-  if (imageBase64.startsWith("data:image/png")) mediaType = "image/png";
-  else if (imageBase64.startsWith("data:image/gif")) mediaType = "image/gif";
-  else if (imageBase64.startsWith("data:image/webp")) mediaType = "image/webp";
-  // Any other format (heic, etc.) defaults to image/jpeg — the client should have converted it
+  // Detect actual format from the binary content, ignoring the MIME header
+  const detectedMime = detectImageFormat(base64Data);
+  if (!detectedMime) {
+    throw new Error("not_a_valid_image");
+  }
 
-  return { base64Data, mediaType };
+  return { base64Data, mediaType: detectedMime };
 }
 
 // Call OpenAI directly (for OCR / classification)
@@ -432,7 +446,7 @@ serve(async (req) => {
     let userMessage = "Something didn't work right. Let's give it another try! 🌟";
     let errorCode = "server_error";
 
-    if (rawMsg.includes("unsupported image") || rawMsg.includes("invalid_image_format")) {
+    if (rawMsg.includes("unsupported image") || rawMsg.includes("invalid_image_format") || rawMsg.includes("not_a_valid_image")) {
       userMessage = "Hmm, Starling couldn't read that file. Try taking a clearer photo or uploading a different format! 📸";
       errorCode = "image_format_error";
     } else if (rawMsg.includes("timeout") || rawMsg.includes("ETIMEDOUT") || rawMsg.includes("network")) {
