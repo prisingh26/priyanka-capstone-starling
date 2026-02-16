@@ -66,19 +66,19 @@ const LandingPage = () => {
   }];
   const faqs = [{
     q: "What ages is Starling designed for?",
-    a: "Starling is built for kids in Kindergarten through 6th grade (ages 5–12). The AI automatically adjusts its language, hints, and difficulty based on your child's grade level — so a 1st grader gets simple, friendly guidance while a 5th grader gets more detailed explanations."
+    a: "Starling is built for kids in Kindergarten through 6th grade (ages 5–12). It automatically adjusts its language, hints, and difficulty based on your child's grade level — so a 1st grader gets simple, friendly guidance while a 5th grader gets more detailed explanations."
   }, {
-    q: "How does the AI analyze homework?",
-    a: "Just snap a photo or upload a file of your child's homework. Starling's AI reads each problem, checks the answers, and identifies exactly where your child got stuck. Then instead of just showing the right answer, it starts a friendly conversation to help your child figure it out on their own."
+    q: "How does Starling analyze homework?",
+    a: "Just snap a photo or upload a file of your child's homework. Starling reads each problem, checks the answers, and figures out exactly where your child got stuck. Then instead of just showing the right answer, it starts a friendly conversation to help your child figure it out on their own."
   }, {
     q: "Does it only work for math?",
-    a: "Not at all! Starling can help with math, reading comprehension, science, language arts, and more. If it's on a worksheet or homework page, Starling can analyze it and guide your child through it."
+    a: "Not at all! Starling helps with math, reading comprehension, science, language arts, and more. If it's on a worksheet or homework page, Starling can work through it with your child."
   }, {
     q: "Is my child's data safe?",
     a: "Absolutely. We take your child's privacy seriously. All data is encrypted and stored securely. We never sell or share personal information. Starling only uses your child's homework data to provide personalized learning guidance — nothing else."
   }, {
     q: "Do I need to be there while my child uses it?",
-    a: "Starling is designed to be safe for kids to use independently. The AI is patient, encouraging, and age-appropriate — it never gives negative feedback or uses harsh language. That said, younger kids (K–2) may enjoy having a parent nearby at first. You can always check your child's progress from the dashboard."
+    a: "Starling is designed to be safe for kids to use on their own. It's patient, encouraging, and age-appropriate — it never gives negative feedback or uses harsh language. That said, younger kids (K–2) may enjoy having a parent nearby at first. You can always check your child's progress from the dashboard."
   }, {
     q: "How is this different from other homework apps?",
     a: "Most homework apps just give your child the answer. Starling never does that. Instead, it asks guiding questions that help your child think through the problem and discover the answer themselves. This builds real understanding and confidence — not just correct answers they'll forget tomorrow."
