@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
-import ShootingStarIcon from "@/components/ShootingStarIcon";
+import StarlingMascot from "@/components/StarlingMascot";
 import StarlingLogo from "@/components/StarlingLogo";
 
 type DemoStep = "problem" | "loading" | "results";
@@ -92,7 +92,7 @@ const DemoPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                <ShootingStarIcon size={56} className="mx-auto mb-4" />
+                <div className="flex justify-center mb-4"><StarlingMascot size="lg" animate expression="waving" /></div>
                 <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-snug">
                   Hi! I'm <span className="text-gradient-primary">Starling</span>, your child's new learning buddy!
                 </h1>
@@ -181,7 +181,7 @@ const DemoPage: React.FC = () => {
                 className="w-full rounded-full py-6 text-lg gap-2 text-white hover:opacity-90 transition-opacity"
                 style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
               >
-                <ShootingStarIcon size={20} />
+                <StarlingMascot size="sm" animate={false} expression="happy" />
                 Give it to Starling
               </Button>
             </Card>
@@ -208,7 +208,7 @@ const DemoPage: React.FC = () => {
                 ease: "easeInOut",
               }}
             >
-              <ShootingStarIcon size={64} />
+              <StarlingMascot size="lg" animate expression="thinking" />
             </motion.div>
             <motion.p
               initial={{ opacity: 0, y: 10 }}
@@ -281,7 +281,7 @@ const DemoPage: React.FC = () => {
                     className="flex gap-3"
                   >
                     <div className="flex-shrink-0 mt-1">
-                      <ShootingStarIcon size={32} />
+                      <StarlingMascot size="sm" animate={false} expression="happy" />
                     </div>
                     <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-5 space-y-3 flex-1">
                       <p className="text-foreground text-lg leading-relaxed">
@@ -343,7 +343,7 @@ const DemoPage: React.FC = () => {
                       className="rounded-full px-6 py-5 text-base gap-2 text-white hover:opacity-90 transition-opacity"
                       style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
                     >
-                      <ShootingStarIcon size={18} />
+                      <StarlingMascot size="sm" animate={false} expression="encouraging" />
                       What would Starling ask next?
                     </Button>
                   </motion.div>
@@ -426,7 +426,7 @@ const DemoPage: React.FC = () => {
                     className="flex gap-3"
                   >
                     <div className="flex-shrink-0 mt-1">
-                      <ShootingStarIcon size={32} />
+                      <StarlingMascot size="sm" animate={false} expression="happy" />
                     </div>
                     <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-5 space-y-4 flex-1">
                       <p className="text-foreground font-semibold">
@@ -559,7 +559,7 @@ const DemoPage: React.FC = () => {
                   >
                     <div className="flex gap-3">
                       <div className="flex-shrink-0 mt-1">
-                        <ShootingStarIcon size={32} />
+                        <StarlingMascot size="sm" animate={false} expression="encouraging" />
                       </div>
                       <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-4 flex-1">
                         <p className="text-foreground">
@@ -624,7 +624,7 @@ const DemoPage: React.FC = () => {
                     className="flex gap-3"
                   >
                     <div className="flex-shrink-0 mt-1">
-                      <ShootingStarIcon size={32} />
+                      <StarlingMascot size="sm" animate={false} expression="excited" />
                     </div>
                     <div className="space-y-3 flex-1">
                       {retryAnswer === "A" ? (
