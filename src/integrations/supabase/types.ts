@@ -182,6 +182,48 @@ export type Database = {
         }
         Relationships: []
       }
+      practice_sessions: {
+        Row: {
+          completed_at: string | null
+          correct_first_try: number
+          created_at: string
+          difficulty: string
+          grade: number
+          id: string
+          incorrect_count: number
+          subject: string
+          topic: string
+          total_problems: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          correct_first_try?: number
+          created_at?: string
+          difficulty?: string
+          grade: number
+          id?: string
+          incorrect_count?: number
+          subject: string
+          topic: string
+          total_problems?: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          correct_first_try?: number
+          created_at?: string
+          difficulty?: string
+          grade?: number
+          id?: string
+          incorrect_count?: number
+          subject?: string
+          topic?: string
+          total_problems?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

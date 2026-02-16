@@ -18,7 +18,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentScreen, onNavigate }) =>
   const isActive = (id: string) => {
     const screenGroups: Record<string, string[]> = {
       home: ["home", "camera", "processing", "results", "tutoring", "problem-detail"],
-      "practice-sets": ["practice-sets", "practice", "completion"],
+      "practice-sets": ["practice-sets", "practice", "practice-home", "practice-session", "completion"],
       progress: ["progress"],
       settings: ["settings", "parent-dashboard"],
     };
