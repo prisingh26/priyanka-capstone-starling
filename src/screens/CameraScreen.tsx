@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Camera, Upload, X, Zap, RotateCcw, Check, Plus, Image as ImageIcon, FileText, File } from "lucide-react";
+import { Camera, Upload, X, RotateCcw, Image as ImageIcon, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import StarlingMascot from "../components/StarlingMascot";
 
@@ -18,22 +18,49 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function isImageFile(file: File | string): boolean {
-  if (typeof file === "string") return file.startsWith("data:image");
+function isImageFile(file: File): boolean {
   return file.type.startsWith("image/");
 }
 
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+interface CapturedFile {
+  file: File | null;          // null when captured from camera (canvas)
+  previewUrl: string;         // blob URL for images, or empty for docs
+  dataUrl: string | null;     // pre-computed for camera captures; lazy for uploads
+  name: string;
+  size: number;
+  isImage: boolean;
+}
+
 const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
-  const [capturedFile, setCapturedFile] = useState<{ data: string; name: string; size: number; isImage: boolean } | null>(null);
+  const [capturedFile, setCapturedFile] = useState<CapturedFile | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cleanup blob URLs on unmount or when capturedFile changes
+  useEffect(() => {
+    return () => {
+      if (capturedFile?.previewUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(capturedFile.previewUrl);
+      }
+    };
+  }, [capturedFile]);
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
@@ -93,8 +120,15 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
     const ctx = canvas.getContext("2d");
     if (ctx) {
       ctx.drawImage(video, 0, 0);
-      const imageData = canvas.toDataURL("image/jpeg", 0.9);
-      setCapturedFile({ data: imageData, name: "homework-photo.jpg", size: Math.round(imageData.length * 0.75), isImage: true });
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      setCapturedFile({
+        file: null,
+        previewUrl: dataUrl, // data URL is fine for camera captures (it's the source)
+        dataUrl,
+        name: "homework-photo.jpg",
+        size: Math.round(dataUrl.length * 0.75),
+        isImage: true,
+      });
       stopCamera();
     }
   };
@@ -102,27 +136,57 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      setCapturedFile({
-        data: result,
-        name: file.name,
-        size: file.size,
-        isImage: isImageFile(file),
-      });
-      stopCamera();
-    };
-    reader.readAsDataURL(file);
+
+    const isImg = isImageFile(file);
+
+    // Revoke previous blob URL if any
+    if (capturedFile?.previewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(capturedFile.previewUrl);
+    }
+
+    setCapturedFile({
+      file,
+      previewUrl: isImg ? URL.createObjectURL(file) : "",
+      dataUrl: null, // will be read lazily on submit
+      name: file.name,
+      size: file.size,
+      isImage: isImg,
+    });
+    stopCamera();
+
+    // Reset the input so the same file can be re-selected
+    event.target.value = "";
   };
 
   const handleRetake = () => {
+    if (capturedFile?.previewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(capturedFile.previewUrl);
+    }
     setCapturedFile(null);
   };
 
-  const handleSubmit = () => {
-    if (capturedFile) {
-      onCapture(capturedFile.data, capturedFile.name, capturedFile.size);
+  const handleSubmit = async () => {
+    if (!capturedFile || isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      let dataUrl = capturedFile.dataUrl;
+
+      // If we don't have a data URL yet (file upload), read it now
+      if (!dataUrl && capturedFile.file) {
+        dataUrl = await readFileAsDataUrl(capturedFile.file);
+      }
+
+      if (!dataUrl) {
+        console.error("No data URL available for submission");
+        setIsSubmitting(false);
+        return;
+      }
+
+      onCapture(dataUrl, capturedFile.name, capturedFile.size);
+    } catch (err) {
+      console.error("Failed to prepare file for submission:", err);
+      setIsSubmitting(false);
     }
   };
 
@@ -138,12 +202,13 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
           <div className="w-10" />
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center p-6 gap-4">
-          {capturedFile.isImage ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 gap-4 overflow-auto">
+          {capturedFile.isImage && capturedFile.previewUrl ? (
             <img
-              src={capturedFile.data}
+              src={capturedFile.previewUrl}
               alt="Homework preview"
-              className="max-w-full max-h-[50vh] object-contain rounded-2xl shadow-lg"
+              className="max-w-full rounded-2xl shadow-lg object-contain"
+              style={{ maxHeight: "400px" }}
             />
           ) : (
             <div className="w-40 h-48 bg-muted rounded-2xl flex flex-col items-center justify-center gap-3 shadow-lg">
@@ -164,13 +229,15 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleSubmit}
-            className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg"
+            disabled={isSubmitting}
+            className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg disabled:opacity-60"
           >
-            Let Starling take a look! 🔍
+            {isSubmitting ? "Preparing…" : "Let Starling take a look! 🔍"}
           </motion.button>
           <button
             onClick={handleRetake}
-            className="w-full py-3 rounded-xl bg-muted text-foreground font-medium flex items-center justify-center gap-2"
+            disabled={isSubmitting}
+            className="w-full py-3 rounded-xl bg-muted text-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-60"
           >
             <RotateCcw className="w-5 h-5" />
             Choose a different file
@@ -223,7 +290,6 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
             whileTap={{ scale: 0.97 }}
             onClick={() => {
               if (cameraError) {
-                // If camera failed before, try file input with camera capture
                 fileInputRef.current?.setAttribute("capture", "environment");
                 fileInputRef.current?.setAttribute("accept", ACCEPTED_IMAGE_TYPES);
                 fileInputRef.current?.click();
