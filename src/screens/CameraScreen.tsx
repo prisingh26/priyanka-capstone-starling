@@ -1,20 +1,35 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Camera, Upload, X, Zap, RotateCcw, Check, Plus, Image as ImageIcon } from "lucide-react";
+import { Camera, Upload, X, Zap, RotateCcw, Check, Plus, Image as ImageIcon, FileText, File } from "lucide-react";
+import { motion } from "framer-motion";
+import StarlingMascot from "../components/StarlingMascot";
 
 interface CameraScreenProps {
-  onCapture: (imageData: string) => void;
+  onCapture: (imageData: string, fileName?: string, fileSize?: number) => void;
   onClose: () => void;
 }
 
+const ACCEPTED_IMAGE_TYPES = "image/jpeg,image/png,image/heic,image/heif";
+const ACCEPTED_DOC_TYPES = "application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const ALL_ACCEPTED = `${ACCEPTED_IMAGE_TYPES},${ACCEPTED_DOC_TYPES}`;
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function isImageFile(file: File | string): boolean {
+  if (typeof file === "string") return file.startsWith("data:image");
+  return file.type.startsWith("image/");
+}
+
 const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [pages, setPages] = useState<string[]>([]);
-  const [flashEnabled, setFlashEnabled] = useState(false);
+  const [capturedFile, setCapturedFile] = useState<{ data: string; name: string; size: number; isImage: boolean } | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
-  
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -33,372 +48,280 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
     try {
       setCameraError(null);
       setIsStarting(true);
-      
-      // Stop any existing stream
       stopCamera();
-      
+
       const constraints: MediaStreamConstraints = {
-        video: {
-          facingMode: facingMode,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        }
+        video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
       };
 
-      // Some browsers (notably iOS Safari) may require a user gesture before camera permission resolves.
-      // Use a timeout so we can show a helpful prompt instead of hanging on "Starting camera...".
       const getStream = navigator.mediaDevices.getUserMedia(constraints);
-      const timeoutMs = 8000;
       const stream = await Promise.race([
         getStream,
         new Promise<MediaStream>((_, reject) =>
-          setTimeout(
-            () => reject(new Error("camera_start_timeout")),
-            timeoutMs,
-          ),
+          setTimeout(() => reject(new Error("camera_start_timeout")), 8000),
         ),
       ]);
       streamRef.current = stream;
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
         setCameraActive(true);
         setIsStarting(false);
       }
-    } catch (err) {
-      console.error("Camera error:", err);
-      setCameraError(
-        "Camera permission is blocked or unavailable. Tap the big camera button to try again, or upload a photo instead.",
-      );
+    } catch {
+      setCameraError("Camera unavailable. Use the upload option instead.");
       setCameraActive(false);
       setIsStarting(false);
     }
   }, [facingMode, stopCamera]);
 
-  // NOTE: We intentionally do NOT auto-start the camera on mount.
-  // Many browsers require a user gesture; starting automatically can hang on "Starting camera...".
   useEffect(() => {
-    return () => {
-      stopCamera();
-    };
+    return () => stopCamera();
   }, [stopCamera]);
 
-  const handleFlipCamera = () => {
-    setFacingMode(prev => prev === "environment" ? "user" : "environment");
-  };
-
   useEffect(() => {
-    if (cameraActive) {
-      startCamera();
-    }
+    if (cameraActive) startCamera();
   }, [facingMode, cameraActive, startCamera]);
 
   const handleCapture = () => {
     if (!videoRef.current || !canvasRef.current) return;
-    
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
     const ctx = canvas.getContext("2d");
     if (ctx) {
       ctx.drawImage(video, 0, 0);
       const imageData = canvas.toDataURL("image/jpeg", 0.9);
-      setCapturedImage(imageData);
+      setCapturedFile({ data: imageData, name: "homework-photo.jpg", size: Math.round(imageData.length * 0.75), isImage: true });
       stopCamera();
     }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setCapturedImage(result);
-        stopCamera();
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setCapturedFile({
+        data: result,
+        name: file.name,
+        size: file.size,
+        isImage: isImageFile(file),
+      });
+      stopCamera();
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleRetake = () => {
-    setCapturedImage(null);
-    startCamera();
+    setCapturedFile(null);
   };
 
-  const handleUsePhoto = () => {
-    if (capturedImage) {
-      if (pages.length > 0) {
-        onCapture(pages[0]);
-      } else {
-        onCapture(capturedImage);
-      }
+  const handleSubmit = () => {
+    if (capturedFile) {
+      onCapture(capturedFile.data, capturedFile.name, capturedFile.size);
     }
   };
 
-  const handleAddPage = () => {
-    if (capturedImage) {
-      setPages([...pages, capturedImage]);
-      setCapturedImage(null);
-      startCamera();
-    }
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handlePrimaryCameraAction = () => {
-    // If camera is not active, try starting it via user gesture.
-    // Only fall back to file upload if we already have an error.
-    if (!cameraActive) {
-      if (cameraError) return triggerFileInput();
-      return void startCamera();
-    }
-    return handleCapture();
-  };
-
-  const handleClose = () => {
-    stopCamera();
-    onClose();
-  };
-
-  // Preview screen after capture
-  if (capturedImage) {
+  // ─── Preview Screen ───
+  if (capturedFile) {
     return (
-      <div className="fixed inset-0 bg-black z-50 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 bg-black/80">
-          <button
-            onClick={handleClose}
-            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
-          >
-            <X className="w-6 h-6 text-white" />
+      <div className="fixed inset-0 bg-background z-50 flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+            <X className="w-5 h-5 text-foreground" />
           </button>
-          <span className="text-white font-medium">
-            Page {pages.length + 1} of {pages.length + 1}
-          </span>
+          <h2 className="font-bold text-foreground">Preview</h2>
           <div className="w-10" />
         </div>
 
-        {/* Image Preview */}
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="relative max-w-full max-h-full">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 gap-4">
+          {capturedFile.isImage ? (
             <img
-              src={capturedImage}
-              alt="Captured worksheet"
-              className="max-w-full max-h-[60vh] object-contain rounded-lg"
+              src={capturedFile.data}
+              alt="Homework preview"
+              className="max-w-full max-h-[50vh] object-contain rounded-2xl shadow-lg"
             />
-            {/* Success indicator */}
-            <div className="absolute top-4 right-4 bg-success text-success-foreground px-3 py-1 rounded-full text-sm flex items-center gap-1">
-              <Check className="w-4 h-4" />
-              Good photo!
+          ) : (
+            <div className="w-40 h-48 bg-muted rounded-2xl flex flex-col items-center justify-center gap-3 shadow-lg">
+              <FileText className="w-16 h-16 text-primary" />
+              <p className="text-xs text-muted-foreground text-center px-2 truncate max-w-full">
+                {capturedFile.name}
+              </p>
             </div>
+          )}
+
+          <div className="text-center">
+            <p className="font-medium text-foreground">{capturedFile.name}</p>
+            <p className="text-sm text-muted-foreground">{formatFileSize(capturedFile.size)}</p>
           </div>
         </div>
 
-        {/* Page thumbnails */}
-        {pages.length > 0 && (
-          <div className="px-4 pb-4">
-            <div className="flex gap-2 overflow-x-auto">
-              {pages.map((page, index) => (
-                <div key={index} className="relative flex-shrink-0">
-                  <img
-                    src={page}
-                    alt={`Page ${index + 1}`}
-                    className="w-16 h-20 object-cover rounded-lg border-2 border-primary"
-                  />
-                  <span className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1 rounded">
-                    {index + 1}
-                  </span>
-                </div>
-              ))}
-              <div className="w-16 h-20 border-2 border-dashed border-white/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-white/50 text-xs">New</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="p-4 bg-black/80 space-y-3">
-          <div className="flex gap-3">
-            <button
-              onClick={handleRetake}
-              className="flex-1 py-3 px-6 rounded-xl bg-white/10 text-white font-medium flex items-center justify-center gap-2"
-            >
-              <RotateCcw className="w-5 h-5" />
-              Retake
-            </button>
-            <button
-              onClick={handleUsePhoto}
-              className="flex-1 py-3 px-6 rounded-xl bg-primary text-primary-foreground font-bold flex items-center justify-center gap-2"
-            >
-              <Check className="w-5 h-5" />
-              Use This Photo
-            </button>
-          </div>
-          
-          <button
-            onClick={handleAddPage}
-            className="w-full py-3 px-6 rounded-xl bg-white/10 text-white font-medium flex items-center justify-center gap-2"
+        <div className="p-6 space-y-3">
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={handleSubmit}
+            className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg"
           >
-            <Plus className="w-5 h-5" />
-            Add Another Page
+            Let Starling take a look! 🔍
+          </motion.button>
+          <button
+            onClick={handleRetake}
+            className="w-full py-3 rounded-xl bg-muted text-foreground font-medium flex items-center justify-center gap-2"
+          >
+            <RotateCcw className="w-5 h-5" />
+            Choose a different file
           </button>
         </div>
-        
-        {/* Hidden canvas for capture */}
+
         <canvas ref={canvasRef} className="hidden" />
       </div>
     );
   }
 
-  // Camera view
+  // ─── Upload Selection Screen ───
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      {/* Hidden file input */}
+    <div className="fixed inset-0 bg-background z-50 flex flex-col">
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleFileUpload}
-        accept="image/*"
+        accept={ALL_ACCEPTED}
         className="hidden"
       />
-      
-      {/* Hidden canvas for capture */}
       <canvas ref={canvasRef} className="hidden" />
 
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-black/80 z-10">
-        <button
-          onClick={handleClose}
-          className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
-        >
-          <X className="w-6 h-6 text-white" />
+      <div className="flex items-center justify-between p-4 border-b border-border">
+        <button onClick={onClose} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+          <X className="w-5 h-5 text-foreground" />
         </button>
-        
-        <button
-          onClick={() => setFlashEnabled(!flashEnabled)}
-          className={`w-10 h-10 rounded-full flex items-center justify-center ${
-            flashEnabled ? "bg-warning" : "bg-white/10"
-          }`}
-        >
-          <Zap className={`w-6 h-6 ${flashEnabled ? "text-warning-foreground" : "text-white"}`} />
-        </button>
+        <h2 className="font-bold text-foreground">Scan Homework</h2>
+        <div className="w-10" />
       </div>
 
-      {/* Camera View */}
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-        {cameraActive ? (
-          <>
-            {/* Live video feed */}
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            
-            {/* Frame guide overlay */}
-            <div className="relative z-10 w-[90%] h-[70%] border-2 border-white/50 rounded-xl pointer-events-none">
-              <div className="absolute -top-8 left-0 right-0 text-center">
-                <span className="text-white/80 text-sm bg-black/40 px-3 py-1 rounded-full">
-                  📄 Fit your worksheet in the frame
-                </span>
-              </div>
-              
-              {/* Corner guides */}
-              <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg" />
-              <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg" />
-              <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-lg" />
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg" />
-              
-              {/* Tip */}
-              <div className="absolute bottom-4 left-4 right-4 text-center">
-                <span className="text-white/60 text-xs">
-                  Make sure all problems are visible
-                </span>
-              </div>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 gap-8">
+        <div className="text-center">
+          <StarlingMascot size="md" animate expression="happy" />
+          <h1 className="text-2xl font-bold text-foreground mt-4">
+            What are we working on today? 📚
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Take a photo or upload your homework
+          </p>
+        </div>
+
+        {/* Two Cards Side by Side */}
+        <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+          {/* Take a Photo */}
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => {
+              if (cameraError) {
+                // If camera failed before, try file input with camera capture
+                fileInputRef.current?.setAttribute("capture", "environment");
+                fileInputRef.current?.setAttribute("accept", ACCEPTED_IMAGE_TYPES);
+                fileInputRef.current?.click();
+              } else {
+                startCamera();
+              }
+            }}
+            className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Camera className="w-8 h-8 text-primary" />
             </div>
-          </>
-        ) : (
-          /* Fallback when camera not available */
-          <div className="flex flex-col items-center justify-center text-center p-8">
-            <div className="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mb-4">
-              <Camera className="w-12 h-12 text-white/50" />
+            <span className="font-bold text-foreground text-sm">📸 Take a Photo</span>
+          </motion.button>
+
+          {/* Upload a File */}
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => {
+              fileInputRef.current?.removeAttribute("capture");
+              fileInputRef.current?.setAttribute("accept", ALL_ACCEPTED);
+              fileInputRef.current?.click();
+            }}
+            className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-secondary/20 bg-secondary/5 hover:bg-secondary/10 transition-colors"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center">
+              <Upload className="w-8 h-8 text-secondary" />
             </div>
-            {cameraError ? (
+            <span className="font-bold text-foreground text-sm">📁 Upload a File</span>
+          </motion.button>
+        </div>
+
+        <p className="text-xs text-muted-foreground text-center">
+          Accepts JPEG, PNG, HEIC, PDF, and Word documents
+        </p>
+      </div>
+
+      {/* Camera overlay when active */}
+      {(cameraActive || isStarting) && (
+        <div className="fixed inset-0 bg-black z-50 flex flex-col">
+          <div className="flex items-center justify-between p-4 bg-black/80 z-10">
+            <button
+              onClick={() => { stopCamera(); }}
+              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+            <span className="text-white/80 text-sm">Fit your worksheet in the frame</span>
+            <div className="w-10" />
+          </div>
+
+          <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+            {cameraActive ? (
               <>
-                <p className="text-white/80 mb-2">{cameraError}</p>
-                <button
-                  onClick={startCamera}
-                  className="text-primary underline mb-4"
-                >
-                  Try again
-                </button>
+                <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
+                <div className="relative z-10 w-[90%] h-[70%] border-2 border-white/50 rounded-xl pointer-events-none">
+                  <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg" />
+                  <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg" />
+                  <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-lg" />
+                  <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg" />
+                </div>
               </>
             ) : (
-              <p className="text-white/60 mb-4">
-                {isStarting ? "Starting camera..." : "Tap the camera button to enable the camera"}
-              </p>
+              <div className="flex flex-col items-center justify-center text-center p-8">
+                <p className="text-white/60">{isStarting ? "Starting camera..." : "Preparing..."}</p>
+              </div>
             )}
+          </div>
+
+          <div className="p-6 bg-black/80 flex items-center justify-around">
+            <button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center gap-1">
+              <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center">
+                <ImageIcon className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-white/80 text-xs">Upload</span>
+            </button>
+
             <button
-              onClick={triggerFileInput}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium"
+              onClick={handleCapture}
+              disabled={!cameraActive}
+              className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg active:scale-95 transition-transform disabled:opacity-50"
             >
-              Upload from Gallery
+              <div className="w-16 h-16 rounded-full border-4 border-primary bg-white flex items-center justify-center">
+                <Camera className="w-8 h-8 text-primary" />
+              </div>
+            </button>
+
+            <button
+              onClick={() => setFacingMode(prev => prev === "environment" ? "user" : "environment")}
+              className="flex flex-col items-center gap-1"
+            >
+              <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center">
+                <RotateCcw className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-white/80 text-xs">Flip</span>
             </button>
           </div>
-        )}
-      </div>
-
-      {/* Bottom Controls */}
-      <div className="p-6 bg-black/80 flex items-center justify-around">
-        {/* Gallery/Upload */}
-        <button
-          onClick={triggerFileInput}
-          className="flex flex-col items-center gap-1"
-        >
-          <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center">
-            <ImageIcon className="w-7 h-7 text-white" />
-          </div>
-          <span className="text-white/80 text-xs">Upload</span>
-        </button>
-
-        {/* Capture Button */}
-        <button
-          onClick={handlePrimaryCameraAction}
-          className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-        >
-          <div className="w-16 h-16 rounded-full border-4 border-primary bg-white flex items-center justify-center">
-            <Camera className="w-8 h-8 text-primary" />
-          </div>
-        </button>
-
-        {/* Flip Camera */}
-        <button
-          onClick={handleFlipCamera}
-          className="flex flex-col items-center gap-1"
-        >
-          <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center">
-            <RotateCcw className="w-7 h-7 text-white" />
-          </div>
-          <span className="text-white/80 text-xs">Flip</span>
-        </button>
-      </div>
-
-      {/* Page counter */}
-      {pages.length > 0 && (
-        <div className="absolute bottom-32 left-0 right-0 flex justify-center">
-          <span className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium">
-            {pages.length} page{pages.length > 1 ? "s" : ""} captured
-          </span>
         </div>
       )}
     </div>

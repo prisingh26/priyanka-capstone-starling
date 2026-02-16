@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import AIAnalysisLoader from "../components/loading/AIAnalysisLoader";
-import { HomeworkAnalysis, AnalysisError, isAnalysisError } from "@/types/homework";
-import { supabase } from "@/integrations/supabase/client";
+import StarlingMascot from "../components/StarlingMascot";
+import ShootingStarIcon from "../components/ShootingStarIcon";
+import { HomeworkAnalysis } from "@/types/homework";
 import { toast } from "sonner";
 
 interface ProcessingScreenProps {
   onComplete: (analysis: HomeworkAnalysis) => void;
   onError: (error: string) => void;
   uploadedImage: string | null;
+  childGrade?: number;
 }
 
-/**
- * Convert any image data URL to JPEG via canvas.
- * This handles HEIC and other formats that AI providers can't process directly.
- */
 async function convertToJpeg(dataUrl: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -23,36 +20,60 @@ async function convertToJpeg(dataUrl: string): Promise<string> {
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
       const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        reject(new Error("Could not create canvas context"));
-        return;
-      }
+      if (!ctx) { reject(new Error("No canvas context")); return; }
       ctx.drawImage(img, 0, 0);
       resolve(canvas.toDataURL("image/jpeg", 0.85));
     };
-    img.onerror = () => reject(new Error("Failed to load image for conversion"));
+    img.onerror = () => reject(new Error("Failed to load image"));
     img.src = dataUrl;
   });
 }
 
-const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError, uploadedImage }) => {
-  const [status, setStatus] = useState("Scanning your homework...");
+const FUN_MESSAGES = [
+  { text: "Starling is reading your homework...", emoji: "📖" },
+  { text: "Hmm, interesting problems!", emoji: "🤔" },
+  { text: "Almost done checking...", emoji: "✏️" },
+  { text: "Looking at every detail...", emoji: "🔎" },
+  { text: "Checking your work carefully...", emoji: "🧐" },
+  { text: "This is exciting!", emoji: "✨" },
+];
+
+const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError, uploadedImage, childGrade }) => {
+  const [status, setStatus] = useState("Preparing...");
   const [hasCompleted, setHasCompleted] = useState(false);
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  // Cycle fun messages every 2 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMessageIndex(prev => (prev + 1) % FUN_MESSAGES.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Animate progress bar over ~8 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 90) return prev;
+        return prev + Math.random() * 8 + 2;
+      });
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!uploadedImage || hasCompleted) return;
 
     const analyze = async () => {
       try {
-        // Convert to JPEG if not already (handles HEIC, PNG, etc.)
         let imageToSend = uploadedImage;
-        if (!uploadedImage.startsWith("data:image/jpeg")) {
+        
+        // Only convert image types (not PDFs/docs)
+        if (uploadedImage.startsWith("data:image") && !uploadedImage.startsWith("data:image/jpeg")) {
           setStatus("Preparing image...");
-          try {
-            imageToSend = await convertToJpeg(uploadedImage);
-          } catch (convErr) {
-            console.warn("Image conversion failed, sending as-is:", convErr);
-          }
+          try { imageToSend = await convertToJpeg(uploadedImage); } catch { /* send as-is */ }
         }
 
         setStatus("Analyzing your homework with AI...");
@@ -65,18 +86,17 @@ const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError
               "Content-Type": "application/json",
               Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
-            body: JSON.stringify({ imageBase64: imageToSend }),
+            body: JSON.stringify({ imageBase64: imageToSend, grade: childGrade }),
           },
         );
 
         const data = await response.json();
 
         if (!response.ok) {
-          console.error("Edge function error:", data);
           if (data.error === "rate_limited") {
             toast.error("Too many requests — please wait a moment and try again.");
           } else if (data.error === "payment_required") {
-            toast.error("AI credits exhausted. Please add credits in workspace settings.");
+            toast.error("AI credits exhausted.");
           } else {
             toast.error(data.message || "Analysis failed. Try a clearer photo.");
           }
@@ -87,63 +107,61 @@ const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError
         const analysis = data as HomeworkAnalysis;
 
         if (!analysis.problems || analysis.problems.length === 0) {
-          onError("No problems detected in the image. Please try a clearer photo.");
+          onError("This doesn't look like homework — try uploading a worksheet or assignment! 📝");
           return;
         }
 
-        setStatus(`Found ${analysis.totalProblems} problems! Preparing results...`);
+        setProgress(100);
         setHasCompleted(true);
-
-        setTimeout(() => onComplete(analysis), 800);
-      } catch (e) {
-        console.error("Analysis error:", e);
-        onError("Something went wrong. Please try again.");
+        setTimeout(() => onComplete(analysis), 600);
+      } catch {
+        onError("Hmm, Starling couldn't read that clearly. Try taking a clearer photo! 📸");
       }
     };
 
     analyze();
-  }, [uploadedImage, hasCompleted, onComplete, onError]);
+  }, [uploadedImage, hasCompleted, onComplete, onError, childGrade]);
 
-  const funFacts = [
-    "Making mistakes is how we learn! Every error is a chance to get smarter.",
-    "Did you know? Your brain grows new connections every time you practice math!",
-    "The word 'mathematics' comes from the Greek word 'mathema' which means 'learning'.",
-    "Albert Einstein said: 'Do not worry about your difficulties in mathematics.'",
-  ];
-
-  const [factIndex] = useState(() => Math.floor(Math.random() * funFacts.length));
+  const currentMessage = FUN_MESSAGES[messageIndex];
 
   return (
-    <motion.div
-      className="min-h-screen pt-20 pb-24 px-4 flex flex-col items-center justify-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-6"
+      style={{ background: "linear-gradient(180deg, hsl(30 80% 96%), hsl(var(--background)))" }}
     >
-      <div className="max-w-md w-full">
-        <AIAnalysisLoader estimatedTime={15000} />
-
-        <motion.p
-          className="text-center text-muted-foreground mt-4 text-sm"
-          key={status}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          {status}
-        </motion.p>
-
+      <div className="max-w-sm w-full flex flex-col items-center gap-6">
+        {/* Bouncing star */}
         <motion.div
-          className="starling-card bg-starling-yellow-light mt-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          animate={{ y: [0, -12, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
         >
-          <p className="text-foreground text-center">
-            <span className="font-bold">💡 Fun fact:</span> {funFacts[factIndex]}
-          </p>
+          <ShootingStarIcon size={80} />
         </motion.div>
+
+        {/* Fun cycling message */}
+        <motion.div
+          key={messageIndex}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <span className="text-3xl mr-2">{currentMessage.emoji}</span>
+          <span className="text-lg font-bold text-foreground">{currentMessage.text}</span>
+        </motion.div>
+
+        {/* Progress bar */}
+        <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+          <motion.div
+            className="h-full rounded-full bg-gradient-to-r from-primary to-secondary"
+            animate={{ width: `${Math.min(progress, 100)}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+
+        {/* Status text */}
+        <p className="text-sm text-muted-foreground text-center">{status}</p>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
