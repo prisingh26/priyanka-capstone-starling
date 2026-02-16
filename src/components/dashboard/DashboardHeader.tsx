@@ -1,9 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, TrendingUp, TrendingDown, Flame, Brain, Clock } from "lucide-react";
+import { ArrowLeft, TrendingUp, Flame, Brain, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import NotificationBell from "./NotificationBell";
-import { parentDashboardStats } from "@/data/mockData";
 
 interface DashboardHeaderProps {
   parentName: string;
@@ -11,10 +10,6 @@ interface DashboardHeaderProps {
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ parentName, onBack }) => {
-  const stats = parentDashboardStats;
-  const trend = stats.problemsThisWeek - stats.problemsLastWeek;
-  const trendPositive = trend >= 0;
-
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -31,27 +26,25 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ parentName, onBack })
   const statCards = [
     {
       label: 'Problems This Week',
-      value: stats.problemsThisWeek,
-      trend: trend,
-      trendPositive,
+      value: 0,
       icon: TrendingUp,
       color: 'text-primary'
     },
     {
       label: 'Current Streak',
-      value: `${stats.currentStreak} days`,
+      value: '0 days',
       icon: Flame,
       color: 'text-warning'
     },
     {
       label: 'Concepts Mastered',
-      value: stats.conceptsMastered,
+      value: 0,
       icon: Brain,
       color: 'text-secondary'
     },
     {
       label: 'Avg. Session Time',
-      value: stats.avgSessionTime,
+      value: '—',
       icon: Clock,
       color: 'text-success'
     }
@@ -59,7 +52,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ parentName, onBack })
 
   return (
     <div className="bg-gradient-to-r from-primary to-success text-primary-foreground p-6 pt-4 pb-24 relative">
-      {/* Top Bar */}
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={onBack}
@@ -71,7 +63,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ parentName, onBack })
         <NotificationBell />
       </div>
 
-      {/* Welcome Message */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -82,7 +73,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ parentName, onBack })
         <p className="text-primary-foreground/80 text-sm">{currentDate} • {currentTime}</p>
       </motion.div>
 
-      {/* Stats Cards - positioned to overlap into content area */}
       <div className="absolute left-4 right-4 -bottom-16">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {statCards.map((stat, index) => (
@@ -94,15 +84,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ parentName, onBack })
             >
               <Card className="shadow-float border-0">
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                    {stat.trend !== undefined && (
-                      <div className={`flex items-center gap-1 text-xs ${stat.trendPositive ? 'text-success' : 'text-destructive'}`}>
-                        {stat.trendPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                        <span>{stat.trendPositive ? '+' : ''}{stat.trend}</span>
-                      </div>
-                    )}
-                  </div>
+                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
                   <p className="text-2xl font-bold text-foreground mt-2">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </CardContent>
