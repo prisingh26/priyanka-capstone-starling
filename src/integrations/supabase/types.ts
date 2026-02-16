@@ -110,6 +110,45 @@ export type Database = {
         }
         Relationships: []
       }
+      homework_scans: {
+        Row: {
+          analysis: Json
+          correct_answers: number
+          created_at: string
+          encouragement: string | null
+          grade: number | null
+          id: string
+          subject: string | null
+          topic: string | null
+          total_problems: number
+          user_id: string
+        }
+        Insert: {
+          analysis?: Json
+          correct_answers?: number
+          created_at?: string
+          encouragement?: string | null
+          grade?: number | null
+          id?: string
+          subject?: string | null
+          topic?: string | null
+          total_problems?: number
+          user_id: string
+        }
+        Update: {
+          analysis?: Json
+          correct_answers?: number
+          created_at?: string
+          encouragement?: string | null
+          grade?: number | null
+          id?: string
+          subject?: string | null
+          topic?: string | null
+          total_problems?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           created_at: string

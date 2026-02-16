@@ -3,7 +3,7 @@
  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
  
- type DbTable = 'profiles' | 'children' | 'notification_preferences';
+ type DbTable = 'profiles' | 'children' | 'notification_preferences' | 'conversations' | 'homework_scans';
  type DbOperation = 'select' | 'insert' | 'update' | 'upsert' | 'delete';
  
  interface DbRequest {

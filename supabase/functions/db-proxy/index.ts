@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
     const { operation, table, data, filters, match } = body;
 
     // Validate table name (whitelist)
-    const allowedTables = ['profiles', 'children', 'notification_preferences', 'conversations'];
+    const allowedTables = ['profiles', 'children', 'notification_preferences', 'conversations', 'homework_scans'];
     if (!allowedTables.includes(table)) {
       return new Response(
         JSON.stringify({ error: 'Invalid table' }),
