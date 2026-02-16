@@ -17,13 +17,21 @@ import { Button } from "@/components/ui/button";
  import { Checkbox } from "@/components/ui/checkbox";
  import { Label } from "@/components/ui/label";
  import { useNavigate, useLocation } from "react-router-dom";
- import { 
+import { 
    signInWithEmailAndPassword,
    signInWithPopup,
-   onAuthStateChanged
+   onAuthStateChanged,
+   sendPasswordResetEmail
  } from "firebase/auth";
  import { auth, googleProvider } from "@/lib/firebase";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
  
  interface FormErrors {
    email?: string;
@@ -46,7 +54,14 @@ import { supabase } from "@/integrations/supabase/client";
    
    // Focus states for floating labels
    const [emailFocused, setEmailFocused] = useState(false);
-   const [passwordFocused, setPasswordFocused] = useState(false);
+    const [passwordFocused, setPasswordFocused] = useState(false);
+
+  // Forgot password state
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotError, setForgotError] = useState("");
  
    // Redirect if already authenticated
    useEffect(() => {
@@ -115,20 +130,23 @@ import { supabase } from "@/integrations/supabase/client";
      setIsLoading(true);
      setErrors({});
  
-     try {
-       await signInWithPopup(auth, googleProvider);
-      // Navigation handled by onAuthStateChanged
-     } catch (error: any) {
-       let errorMessage = "Google sign-in failed. Please try again.";
-       
-       if (error.code === "auth/popup-closed-by-user") {
-         errorMessage = "Sign-in was cancelled.";
-       } else if (error.code === "auth/popup-blocked") {
-         errorMessage = "Pop-up was blocked. Please allow pop-ups for this site.";
-       }
-       
-       setErrors({ general: errorMessage });
-     } finally {
+      try {
+        await signInWithPopup(auth, googleProvider);
+       // Navigation handled by onAuthStateChanged
+      } catch (error: any) {
+        // Silently ignore user-cancelled popups
+        if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
+          setIsLoading(false);
+          return;
+        }
+        
+        let errorMessage = "Google sign-in failed. Please try again.";
+        if (error.code === "auth/popup-blocked") {
+          errorMessage = "Pop-up was blocked. Please allow pop-ups for this site.";
+        }
+        
+        setErrors({ general: errorMessage });
+      } finally {
        setIsLoading(false);
      }
    };
@@ -402,16 +420,17 @@ import { supabase } from "@/integrations/supabase/client";
                        Remember me
                      </Label>
                    </div>
-                   <a 
-                     href="#" 
-                     className="text-sm text-primary hover:underline font-medium"
-                     onClick={(e) => {
-                       e.preventDefault();
-                       // TODO: Implement forgot password flow
-                     }}
-                   >
-                     Forgot password?
-                   </a>
+                    <button 
+                      className="text-sm text-primary hover:underline font-medium"
+                      onClick={() => {
+                        setForgotEmail(email);
+                        setForgotSent(false);
+                        setForgotError("");
+                        setForgotOpen(true);
+                      }}
+                    >
+                      Forgot password?
+                    </button>
                  </div>
  
                  {/* Submit Button */}
@@ -468,6 +487,120 @@ import { supabase } from "@/integrations/supabase/client";
         open={earlyAccessOpen} 
         onClose={() => setEarlyAccessOpen(false)} 
       />
+
+      {/* Forgot Password Modal */}
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="items-center text-center">
+            <div className="mb-2">
+              <StarlingLogo />
+            </div>
+            {!forgotSent ? (
+              <>
+                <DialogTitle className="text-xl">Reset your password</DialogTitle>
+                <DialogDescription>
+                  Enter your email and we'll send you a reset link.
+                </DialogDescription>
+              </>
+            ) : (
+              <DialogTitle className="text-xl">Check your inbox! 📬</DialogTitle>
+            )}
+          </DialogHeader>
+
+          {!forgotSent ? (
+            <div className="space-y-4 pt-2">
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="email"
+                  placeholder="Email address"
+                  value={forgotEmail}
+                  onChange={(e) => {
+                    setForgotEmail(e.target.value);
+                    setForgotError("");
+                  }}
+                  className="pl-10 h-12 text-base"
+                />
+              </div>
+
+              <AnimatePresence>
+                {forgotError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="text-sm text-destructive flex items-center gap-1"
+                  >
+                    <X className="w-3 h-3 shrink-0" />
+                    <span>
+                      {forgotError}{" "}
+                      <a href="/signup" className="text-primary hover:underline font-medium">
+                        Want to sign up instead?
+                      </a>
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <Button
+                className="w-full h-12 text-base font-semibold"
+                disabled={forgotLoading}
+                onClick={async () => {
+                  if (!forgotEmail.trim() || !validateEmail(forgotEmail)) {
+                    setForgotError("Please enter a valid email address.");
+                    return;
+                  }
+                  setForgotLoading(true);
+                  setForgotError("");
+                  try {
+                    await sendPasswordResetEmail(auth, forgotEmail);
+                    setForgotSent(true);
+                  } catch (err: any) {
+                    if (err.code === "auth/user-not-found") {
+                      setForgotError("We couldn't find an account with that email.");
+                    } else {
+                      setForgotError("Something went wrong. Please try again.");
+                    }
+                  } finally {
+                    setForgotLoading(false);
+                  }
+                }}
+              >
+                {forgotLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Send reset link"
+                )}
+              </Button>
+
+              <p className="text-center text-sm text-muted-foreground">
+                <button
+                  onClick={() => setForgotOpen(false)}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Back to login
+                </button>
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4 pt-2 text-center">
+              <p className="text-muted-foreground text-sm">
+                We sent a reset link to <strong className="text-foreground">{forgotEmail}</strong>. 
+                It might take a minute — check your spam folder too.
+              </p>
+              <button
+                onClick={() => setForgotOpen(false)}
+                className="text-primary hover:underline font-medium text-sm"
+              >
+                Back to login
+              </button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
      </div>
    );
  };
