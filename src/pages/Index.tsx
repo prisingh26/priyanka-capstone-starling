@@ -12,12 +12,13 @@ import CameraScreen from "../screens/CameraScreen";
 import ProcessingScreen from "../screens/ProcessingScreen";
 import ResultsScreen from "../screens/ResultsScreen";
 import TutoringScreen from "../screens/TutoringScreen";
-import PracticeScreen from "../screens/PracticeScreen";
+import PracticeHomeScreen from "../screens/PracticeHomeScreen";
+import PracticeSessionScreen from "../screens/PracticeSessionScreen";
 import CompletionScreen from "../screens/CompletionScreen";
 import ProgressScreen from "../screens/ProgressScreen";
 import OnboardingScreen from "../screens/OnboardingScreen";
 import ProblemDetailScreen from "../screens/ProblemDetailScreen";
-import PracticeSetsScreen from "../screens/PracticeSetsScreen";
+import PracticeSetsScreen from "../screens/PracticeSetsScreen"; // kept for backwards compat
 import SettingsScreen from "../screens/SettingsScreen";
 import ParentDashboardScreen from "../screens/ParentDashboardScreen";
 import WireframeScreen from "../screens/WireframeScreen";
@@ -41,6 +42,8 @@ type Screen =
   | "tutoring"
   | "tutoring-response"
   | "practice-sets"
+  | "practice-home"
+  | "practice-session"
   | "practice"
   | "completion"
   | "progress"
@@ -52,8 +55,8 @@ type Screen =
 const screenOrder: Screen[] = [
   "onboarding", "home", "camera", "processing", "results", "problem-detail",
   "socratic-guidance", "tutoring", "tutoring-response", "practice-sets",
-  "practice", "completion", "progress", "settings", "parent-dashboard",
-  "student-profile", "wireframe",
+  "practice-home", "practice-session", "practice", "completion", "progress",
+  "settings", "parent-dashboard", "student-profile", "wireframe",
 ];
 
 interface HomeworkScan {
@@ -73,6 +76,7 @@ const Index = () => {
   const [recentHomework, setRecentHomework] = useState<HomeworkScan[]>([]);
   const [weeklyScanned, setWeeklyScanned] = useState(0);
   const [weeklyAccuracy, setWeeklyAccuracy] = useState<number | null>(null);
+  const [weeklyPracticed, setWeeklyPracticed] = useState(0);
 
   const loadDashboardData = useCallback(async (user: any) => {
     try {
@@ -117,6 +121,17 @@ const Index = () => {
       } else {
         setWeeklyAccuracy(null);
       }
+
+      // Get practice session stats
+      const { data: practiceData } = await supabase.functions.invoke("db-proxy", {
+        body: { operation: "select", table: "practice_sessions" },
+        headers: { "x-firebase-token": token },
+      });
+      const sessions = practiceData?.data || [];
+      const weekSessions = sessions.filter(
+        (s: any) => new Date(s.created_at) >= startOfWeek,
+      );
+      setWeeklyPracticed(weekSessions.reduce((sum: number, s: any) => sum + (s.total_problems || 0), 0));
     } catch (err) {
       console.error("Failed to load dashboard data:", err);
     }
@@ -178,6 +193,7 @@ const Index = () => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<HomeworkAnalysis | null>(null);
   const [selectedProblem, setSelectedProblem] = useState<{ problem: AnalyzedProblem; index: number } | null>(null);
+  const [practiceSelection, setPracticeSelection] = useState<{ subject: string; topic: string } | null>(null);
 
   const [showTutorial, setShowTutorial] = useState(() => {
     return localStorage.getItem("sprout_tutorial_completed") !== "true";
@@ -315,7 +331,7 @@ const Index = () => {
             recentHomework={recentHomework}
             weeklyScanned={weeklyScanned}
             weeklyAccuracy={weeklyAccuracy}
-            weeklyPracticed={0}
+            weeklyPracticed={weeklyPracticed}
           />
         );
 
@@ -402,10 +418,47 @@ const Index = () => {
         );
 
       case "practice-sets":
-        return <PracticeSetsScreen onNavigate={handleNavigate} onSelectSet={() => setCurrentScreen("practice")} />;
+        return (
+          <PracticeHomeScreen
+            childGrade={userProfile.grade}
+            onNavigate={handleNavigate}
+            onSelectTopic={(subject, topic) => {
+              setPracticeSelection({ subject, topic });
+              setPreviousScreen(currentScreen);
+              setCurrentScreen("practice-session");
+            }}
+          />
+        );
+
+      case "practice-session":
+        if (!practiceSelection) { setCurrentScreen("practice-sets"); return null; }
+        return (
+          <PracticeSessionScreen
+            subject={practiceSelection.subject}
+            topic={practiceSelection.topic}
+            childGrade={userProfile.grade}
+            childName={userProfile.name}
+            onBack={() => setCurrentScreen("practice-sets")}
+            onGoHome={() => setCurrentScreen("home")}
+            onChangeTopic={() => {
+              setPracticeSelection(null);
+              setCurrentScreen("practice-sets");
+            }}
+          />
+        );
 
       case "practice":
-        return <PracticeScreen onComplete={() => setCurrentScreen("completion")} />;
+        return (
+          <PracticeHomeScreen
+            childGrade={userProfile.grade}
+            onNavigate={handleNavigate}
+            onSelectTopic={(subject, topic) => {
+              setPracticeSelection({ subject, topic });
+              setPreviousScreen(currentScreen);
+              setCurrentScreen("practice-session");
+            }}
+          />
+        );
 
       case "completion":
         return <CompletionScreen onGoHome={() => setCurrentScreen("home")} onCheckMoreHomework={() => setCurrentScreen("camera")} />;
@@ -430,7 +483,7 @@ const Index = () => {
     }
   };
 
-  const hideNavigation = currentScreen === "onboarding" || currentScreen === "camera" || currentScreen === "parent-dashboard" || currentScreen === "student-profile" || currentScreen === "socratic-guidance";
+  const hideNavigation = currentScreen === "onboarding" || currentScreen === "camera" || currentScreen === "parent-dashboard" || currentScreen === "student-profile" || currentScreen === "socratic-guidance" || currentScreen === "practice-session";
 
   if (!authChecked) return <AppLoader onComplete={() => {}} />;
   if (isAppLoading) return <AppLoader onComplete={handleAppLoadComplete} />;
