@@ -92,14 +92,18 @@ const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError
         const data = await response.json();
 
         if (!response.ok) {
+          // Map error codes to friendly messages — never show raw API errors
           if (data.error === "rate_limited") {
-            toast.error("Too many requests — please wait a moment and try again.");
-          } else if (data.error === "payment_required") {
-            toast.error("AI credits exhausted.");
+            onError("Too many requests — please wait a moment and try again.");
+          } else if (data.error === "image_format_error") {
+            onError("Hmm, Starling couldn't read that file. Try taking a clearer photo or uploading a different format! 📸");
+          } else if (data.error === "auth_error" || data.error === "payment_required") {
+            onError("Starling is taking a quick nap. Please try again later! 😴");
+          } else if (data.error === "network_error") {
+            onError("Oops! Starling lost connection for a moment. Let's try again! 🔄");
           } else {
-            toast.error(data.message || "Analysis failed. Try a clearer photo.");
+            onError(data.message || "Something didn't work right. Let's give it another try! 🌟");
           }
-          onError(data.message || "Analysis failed");
           return;
         }
 

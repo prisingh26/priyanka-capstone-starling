@@ -31,6 +31,34 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
+const SUPPORTED_IMAGE_FORMATS = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+
+/**
+ * Convert any image to JPEG via canvas.
+ * Needed for HEIC and other formats not supported by the vision API.
+ */
+function convertImageToJpeg(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const blobUrl = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      URL.revokeObjectURL(blobUrl);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { reject(new Error("Canvas context unavailable")); return; }
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/jpeg", 0.9));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(blobUrl);
+      reject(new Error("Could not load image for conversion"));
+    };
+    img.src = blobUrl;
+  });
+}
+
 interface CapturedFile {
   file: File | null;          // null when captured from camera (canvas)
   previewUrl: string;         // blob URL for images, or empty for docs
@@ -174,7 +202,13 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
 
       // If we don't have a data URL yet (file upload), read it now
       if (!dataUrl && capturedFile.file) {
-        dataUrl = await readFileAsDataUrl(capturedFile.file);
+        // For images in unsupported formats (HEIC, etc.), convert to JPEG via canvas
+        if (capturedFile.isImage && !SUPPORTED_IMAGE_FORMATS.includes(capturedFile.file.type)) {
+          console.log(`Converting ${capturedFile.file.type} to JPEG for API compatibility`);
+          dataUrl = await convertImageToJpeg(capturedFile.file);
+        } else {
+          dataUrl = await readFileAsDataUrl(capturedFile.file);
+        }
       }
 
       if (!dataUrl) {
