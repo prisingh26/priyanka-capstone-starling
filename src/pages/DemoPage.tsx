@@ -78,7 +78,7 @@ interface UploadAnalysis {
   total_problems?: number;
   correct_answers?: number;
   encouragement?: string;
-  problems: Array<{ question: string; studentAnswer: string; isCorrect: boolean; errorType?: string }>;
+  problems: Array<{ question: string; studentAnswer: string; correctAnswer: string; isCorrect: boolean; errorType?: string; rootCause?: string }>;
 }
 
 const FUN_UPLOAD_MESSAGES = [
@@ -1024,21 +1024,57 @@ const DemoPage: React.FC = () => {
           if (pct >= 78) { scoreEmoji = "🎉"; scoreMsg = `Wow, you're so close to perfect! Just ${incorrect} little thing${incorrect !== 1 ? "s" : ""} to polish!`; }
           else if (pct >= 44) { scoreEmoji = "🌟"; scoreMsg = `Nice work! You got ${correct} right — let's make sure you nail the rest too!`; }
 
-          // Error-type tip map
-          const errorTips: Record<string, string> = {
-            "carrying": "Oops! Looks like a carrying mistake here. This happens a lot — super easy to fix once you see the pattern!",
-            "borrowing": "Looks like a borrowing slip! It's one of the trickiest steps in subtraction — totally normal.",
-            "multiplication": "Hmm, a small multiplication mix-up. Let's slow down on this one — it'll click fast!",
-            "place value": "Place value tripped things up here. Once that clicks, these become much easier!",
-            "addition": "Small addition hiccup! These are very fixable with a bit of practice.",
-            "subtraction": "A subtraction slip — happens to everyone! Let's nail this together.",
-            "division": "Division can be sneaky! This is exactly the kind of thing Starling loves to explain step by step.",
-            "default": "Starling noticed something off here — but it's totally fixable with a little guidance!",
+          // Error-type tip map — index-based so each problem gets a unique tip
+          const errorTipsByType: Record<string, string[]> = {
+            "carrying": [
+              "Oops! Looks like a carrying mistake here. This is one of the most common — super easy to fix once you see the pattern!",
+              "A small carrying slip on this one! Try writing the carry digit above the next column to keep track.",
+              "Carrying tripped things up here. Slow down on that step and it'll click fast!",
+            ],
+            "borrowing": [
+              "Looks like a borrowing slip! It's one of the trickiest steps in subtraction — totally normal.",
+              "Borrowing can be sneaky! Try crossing out and writing the new digit above to stay organised.",
+              "A borrowing hiccup here — happens to everyone. Starling can walk through it step by step!",
+            ],
+            "multiplication": [
+              "Hmm, a small multiplication mix-up. Let's slow down on this one — it'll click fast!",
+              "Looks like a times-table slip! Reviewing that row will make these feel automatic.",
+              "Multiplication tripped things up here — just a bit more practice and it'll stick!",
+            ],
+            "place value": [
+              "Place value tripped things up here. Once that clicks, these become much easier!",
+              "Watch which column the digit lands in — that's the place value trick right there!",
+              "A place value mix-up on this one. Lining up the columns neatly really helps!",
+            ],
+            "addition": [
+              "Small addition hiccup! A quick re-check and this one's totally fixable.",
+              "The numbers got a little mixed up in the addition here — easy to correct!",
+              "Almost! Just a small addition slip — Starling can show the step-by-step fix.",
+            ],
+            "subtraction": [
+              "A subtraction slip — happens to everyone! Let's nail this together.",
+              "Subtraction can trip you up when regrouping is involved. Easy to sort out!",
+              "Just a small subtraction hiccup. Starling loves explaining these step by step!",
+            ],
+            "division": [
+              "Division can be sneaky! This is exactly the kind of thing Starling loves to explain step by step.",
+              "A division mix-up here — let Starling break it down into simple steps!",
+              "Division tripped things up, but it's very fixable with a little guided practice.",
+            ],
+            "default": [
+              "Starling noticed something off here — but it's totally fixable with a little guidance!",
+              "This one needs a small correction — Starling can walk through it together!",
+              "Almost right! Just a small slip that's easy to fix with Starling's help.",
+            ],
           };
-          const getTip = (errorType?: string) => {
-            if (!errorType) return errorTips["default"];
-            const key = Object.keys(errorTips).find(k => errorType.toLowerCase().includes(k));
-            return key ? errorTips[key] : errorTips["default"];
+          const getTip = (errorType: string | undefined, index: number) => {
+            if (!errorType) {
+              const tips = errorTipsByType["default"];
+              return tips[index % tips.length];
+            }
+            const key = Object.keys(errorTipsByType).find(k => k !== "default" && errorType.toLowerCase().includes(k));
+            const tips = errorTipsByType[key ?? "default"];
+            return tips[index % tips.length];
           };
 
           return (
@@ -1151,29 +1187,45 @@ const DemoPage: React.FC = () => {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.15 + i * 0.1 }}
                         >
-                          <Card className={`p-4 space-y-3 ${!prob.isCorrect ? "border-l-4 border-warning" : "border-l-4 border-success"}`}>
+                          <Card className={`p-4 space-y-3 ${!prob.isCorrect ? "border-l-4 border-destructive/60" : ""}`}>
                             <div className="flex items-start gap-3">
                               <div className="flex-shrink-0 mt-0.5">
                                 {prob.isCorrect ? (
                                   <CheckCircle2 className="w-5 h-5 text-success" />
                                 ) : (
-                                  <XCircle className="w-5 h-5 text-warning" />
+                                  <XCircle className="w-5 h-5 text-destructive" />
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-foreground leading-snug">{prob.question}</p>
+                                {/* Student answer vs correct answer */}
                                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${prob.isCorrect ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
-                                    {prob.isCorrect ? "✓ Correct" : "✗ Incorrect"}
-                                    {!prob.isCorrect && prob.errorType ? ` — ${prob.errorType}` : ""}
-                                  </span>
+                                  {prob.isCorrect ? (
+                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-success/10 text-success">
+                                      = {prob.studentAnswer} ✓
+                                    </span>
+                                  ) : (
+                                    <>
+                                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
+                                        = {prob.studentAnswer} ✗
+                                      </span>
+                                      {prob.correctAnswer && (
+                                        <span className="text-xs text-muted-foreground">
+                                          (correct: <span className="font-semibold text-success">{prob.correctAnswer}</span>)
+                                        </span>
+                                      )}
+                                      {prob.errorType && (
+                                        <span className="text-xs text-muted-foreground">· {prob.errorType}</span>
+                                      )}
+                                    </>
+                                  )}
                                 </div>
                                 {/* Starling reaction */}
                                 {prob.isCorrect ? (
                                   <p className="text-xs text-success mt-2 font-medium">✅ Correct — Nice job on this one! 🌟</p>
                                 ) : (
                                   <p className="text-xs text-muted-foreground mt-2 italic">
-                                    💡 {getTip(prob.errorType)}
+                                    💡 {getTip(prob.errorType, i)}
                                   </p>
                                 )}
                               </div>
