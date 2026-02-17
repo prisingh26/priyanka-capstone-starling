@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Camera, FileText, ImageIcon, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Camera, FileText, ImageIcon, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -1010,148 +1010,250 @@ const DemoPage: React.FC = () => {
         )}
 
         {/* ===== UPLOAD RESULTS ===== */}
-        {step === "upload-results" && (
-          <motion.div
-            key="upload-results"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: "spring", stiffness: 200, damping: 25 }}
-            className="container mx-auto px-4 py-6 max-w-2xl"
-          >
-            <ScrollArea className="h-[calc(100vh-120px)]">
-              <div className="space-y-5 pr-2">
+        {step === "upload-results" && (() => {
+          const correct = uploadAnalysis ? (uploadAnalysis.correctAnswers ?? uploadAnalysis.correct_answers ?? 0) : 0;
+          const total = uploadAnalysis ? (uploadAnalysis.totalProblems ?? uploadAnalysis.total_problems ?? uploadAnalysis.problems.length) : 0;
+          const incorrect = total - correct;
+          const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+          const visibleProblems = uploadAnalysis ? uploadAnalysis.problems.slice(0, 5) : [];
+          const hiddenCount = uploadAnalysis ? Math.max(0, uploadAnalysis.problems.length - 5) : 0;
 
-                {/* Error state — inline, no scary colors */}
-                {uploadError && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex gap-3 items-start"
-                  >
-                    <div className="flex-shrink-0 mt-1">
-                      <StarlingMascot size="sm" animate={false} expression="thinking" />
-                    </div>
-                    <div className="flex-1 bg-muted/60 rounded-2xl rounded-tl-md p-4">
-                      <p className="text-foreground font-semibold text-sm">
-                        Upload failed — try a clearer photo 📸
-                      </p>
-                      <button
-                        onClick={() => {
-                          setStep("problem");
-                          setUploadedFile(null);
-                          setUploadError(null);
-                          if (fileInputRef.current) fileInputRef.current.value = "";
-                        }}
-                        className="mt-2 text-xs text-primary font-semibold hover:underline underline-offset-4 transition-colors"
-                      >
-                        ↩ Try again
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
+          // Score card message
+          let scoreEmoji = "💪";
+          let scoreMsg = `Tough worksheet! That's okay — this is exactly what I'm here for. Let's fix these together!`;
+          if (pct >= 78) { scoreEmoji = "🎉"; scoreMsg = `Wow, you're so close to perfect! Just ${incorrect} little thing${incorrect !== 1 ? "s" : ""} to polish!`; }
+          else if (pct >= 44) { scoreEmoji = "🌟"; scoreMsg = `Nice work! You got ${correct} right — let's make sure you nail the rest too!`; }
 
-                {/* Success results */}
-                {uploadAnalysis && !uploadError && (
-                  <>
-                    {/* Score summary */}
-                    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
-                      <div className="flex-shrink-0 mt-1"><StarlingMascot size="sm" animate={false} expression="excited" /></div>
-                      <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-5 flex-1 space-y-3">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div>
-                            <p className="font-bold text-foreground text-lg">
-                              {uploadAnalysis.subject || "Homework"} {uploadAnalysis.topic ? `· ${uploadAnalysis.topic}` : ""}
-                            </p>
-                            <p className="text-sm text-muted-foreground">Here's what I found!</p>
-                          </div>
-                          <div className="text-center bg-card border border-border rounded-2xl px-4 py-2">
-                            <p className="text-2xl font-bold text-foreground">
-                              {uploadAnalysis.correctAnswers ?? uploadAnalysis.correct_answers ?? 0}/
-                              {uploadAnalysis.totalProblems ?? uploadAnalysis.total_problems ?? uploadAnalysis.problems.length}
-                            </p>
-                            <p className="text-xs text-muted-foreground">correct</p>
-                          </div>
-                        </div>
-                        {uploadAnalysis.encouragement && (
-                          <p className="text-sm text-foreground italic">"{uploadAnalysis.encouragement}"</p>
-                        )}
+          // Error-type tip map
+          const errorTips: Record<string, string> = {
+            "carrying": "Oops! Looks like a carrying mistake here. This happens a lot — super easy to fix once you see the pattern!",
+            "borrowing": "Looks like a borrowing slip! It's one of the trickiest steps in subtraction — totally normal.",
+            "multiplication": "Hmm, a small multiplication mix-up. Let's slow down on this one — it'll click fast!",
+            "place value": "Place value tripped things up here. Once that clicks, these become much easier!",
+            "addition": "Small addition hiccup! These are very fixable with a bit of practice.",
+            "subtraction": "A subtraction slip — happens to everyone! Let's nail this together.",
+            "division": "Division can be sneaky! This is exactly the kind of thing Starling loves to explain step by step.",
+            "default": "Starling noticed something off here — but it's totally fixable with a little guidance!",
+          };
+          const getTip = (errorType?: string) => {
+            if (!errorType) return errorTips["default"];
+            const key = Object.keys(errorTips).find(k => errorType.toLowerCase().includes(k));
+            return key ? errorTips[key] : errorTips["default"];
+          };
+
+          return (
+            <motion.div
+              key="upload-results"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ type: "spring", stiffness: 180, damping: 22, delay: 0.1 }}
+              className="container mx-auto px-4 py-6 max-w-2xl"
+            >
+              <ScrollArea className="h-[calc(100vh-120px)]">
+                <div className="space-y-5 pr-2">
+
+                  {/* Error state */}
+                  {uploadError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex gap-3 items-start"
+                    >
+                      <div className="flex-shrink-0 mt-1">
+                        <StarlingMascot size="sm" animate={false} expression="thinking" />
+                      </div>
+                      <div className="flex-1 bg-muted/60 rounded-2xl rounded-tl-md p-4">
+                        <p className="text-foreground font-semibold text-sm">
+                          Hmm, I had trouble reading that — try a clearer photo! 📸
+                        </p>
+                        <button
+                          onClick={() => {
+                            setStep("problem");
+                            setUploadedFile(null);
+                            setUploadError(null);
+                            if (fileInputRef.current) fileInputRef.current.value = "";
+                          }}
+                          className="mt-2 text-xs text-primary font-semibold hover:underline underline-offset-4 transition-colors"
+                        >
+                          ↩ Try again
+                        </button>
                       </div>
                     </motion.div>
+                  )}
 
-                    {/* Problem list */}
-                    {uploadAnalysis.problems.slice(0, 5).map((prob, i) => (
+                  {/* Success results */}
+                  {uploadAnalysis && !uploadError && (
+                    <>
+                      {/* ── Score Card with personality ── */}
                       <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 15 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 + i * 0.08 }}
+                        transition={{ delay: 0.05 }}
+                        className="flex gap-3"
                       >
-                        <Card className="p-4 space-y-2">
-                          <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0 mt-0.5">
-                              {prob.isCorrect ? (
-                                <CheckCircle2 className="w-5 h-5 text-success" />
-                              ) : (
-                                <XCircle className="w-5 h-5 text-destructive" />
-                              )}
+                        <div className="flex-shrink-0 mt-1">
+                          <StarlingMascot size="sm" animate={false} expression={pct >= 78 ? "excited" : pct >= 44 ? "happy" : "encouraging"} />
+                        </div>
+                        <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-5 flex-1 space-y-4">
+                          <div>
+                            <p className="font-bold text-foreground text-base">
+                              {uploadAnalysis.subject || "Homework"}{uploadAnalysis.topic ? ` · ${uploadAnalysis.topic}` : ""}
+                            </p>
+                            <p className="text-foreground text-lg leading-snug mt-1">
+                              <span className="text-2xl mr-2">{scoreEmoji}</span>
+                              {scoreMsg}
+                            </p>
+                          </div>
+
+                          {/* Visual progress bar + score */}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm font-semibold">
+                              <span className="text-success">{correct} correct ✅</span>
+                              <span className="text-foreground font-bold">{correct}/{total}</span>
+                              <span className="text-warning">{incorrect} to fix 🔶</span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-foreground leading-snug">{prob.question}</p>
-                              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${prob.isCorrect ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
-                                  {prob.isCorrect ? "✓ Correct" : "✗ Incorrect"}
-                                </span>
-                                {!prob.isCorrect && prob.errorType && (
-                                  <span className="text-xs text-muted-foreground">{prob.errorType}</span>
+                            <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
+                              <motion.div
+                                className="h-full rounded-full"
+                                style={{ background: "linear-gradient(90deg, #22c55e, #86efac)" }}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pct}%` }}
+                                transition={{ duration: 0.9, ease: "easeOut", delay: 0.3 }}
+                              />
+                            </div>
+                            {/* Star rating */}
+                            <div className="flex gap-1 justify-center pt-1">
+                              {Array.from({ length: 5 }).map((_, i) => {
+                                const filled = i < Math.round((pct / 100) * 5);
+                                return (
+                                  <motion.span
+                                    key={i}
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ delay: 0.5 + i * 0.1, type: "spring", stiffness: 300 }}
+                                    className={`text-xl ${filled ? "text-yellow-400" : "text-muted"}`}
+                                  >
+                                    ★
+                                  </motion.span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      {/* ── Problem cards with Starling reactions ── */}
+                      {visibleProblems.map((prob, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 18 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.15 + i * 0.1 }}
+                        >
+                          <Card className={`p-4 space-y-3 ${!prob.isCorrect ? "border-l-4 border-warning" : "border-l-4 border-success"}`}>
+                            <div className="flex items-start gap-3">
+                              <div className="flex-shrink-0 mt-0.5">
+                                {prob.isCorrect ? (
+                                  <CheckCircle2 className="w-5 h-5 text-success" />
+                                ) : (
+                                  <XCircle className="w-5 h-5 text-warning" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground leading-snug">{prob.question}</p>
+                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${prob.isCorrect ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
+                                    {prob.isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                                    {!prob.isCorrect && prob.errorType ? ` — ${prob.errorType}` : ""}
+                                  </span>
+                                </div>
+                                {/* Starling reaction */}
+                                {prob.isCorrect ? (
+                                  <p className="text-xs text-success mt-2 font-medium">✅ Correct — Nice job on this one! 🌟</p>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground mt-2 italic">
+                                    💡 {getTip(prob.errorType)}
+                                  </p>
                                 )}
                               </div>
                             </div>
-                          </div>
-                        </Card>
-                      </motion.div>
-                    ))}
+                          </Card>
+                        </motion.div>
+                      ))}
 
-                    {uploadAnalysis.problems.length > 5 && (
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground text-center justify-center py-1">
-                          <AlertCircle className="w-4 h-4" />
-                          +{uploadAnalysis.problems.length - 5} more problems — sign up to see everything
-                        </div>
-                      </motion.div>
-                    )}
+                      {/* ── Blurred gated cards ── */}
+                      {hiddenCount > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.2 + visibleProblems.length * 0.1 }}
+                          className="space-y-3"
+                        >
+                          {Array.from({ length: Math.min(hiddenCount, 3) }).map((_, i) => (
+                            <div key={i} className="relative">
+                              {/* Blurred card */}
+                              <Card className="p-4 space-y-2 select-none pointer-events-none">
+                                <div className="flex items-start gap-3">
+                                  <div className="flex-shrink-0 mt-0.5">
+                                    <XCircle className="w-5 h-5 text-warning opacity-50" />
+                                  </div>
+                                  <div className="flex-1 min-w-0 space-y-2">
+                                    <div className="h-3 bg-muted rounded w-3/4" />
+                                    <div className="h-3 bg-muted rounded w-1/2" />
+                                    <div className="h-3 bg-muted rounded w-2/3" />
+                                  </div>
+                                </div>
+                              </Card>
+                              {/* Frosted overlay */}
+                              <div className="absolute inset-0 rounded-lg backdrop-blur-sm bg-background/60 flex items-center justify-center gap-2">
+                                <span className="text-lg">🔒</span>
+                                <span className="text-xs font-semibold text-muted-foreground">Sign up to unlock</span>
+                              </div>
+                            </div>
+                          ))}
+                          {hiddenCount > 3 && (
+                            <p className="text-xs text-muted-foreground text-center">+ {hiddenCount - 3} more locked problems</p>
+                          )}
+                        </motion.div>
+                      )}
 
-                    {/* Signup CTA — only shown after successful results */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.8 }}
-                      className="bg-muted/50 border border-border rounded-xl p-5 text-center space-y-3"
-                    >
-                      <p className="text-foreground font-semibold">
-                        🎉 Want full step-by-step help for every problem?
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Sign up free and Starling will guide your child through each mistake with Socratic tutoring
-                      </p>
-                      <Button
-                        size="lg"
-                        onClick={() => navigate("/signup")}
-                        className="w-full rounded-full py-5 text-lg gap-2 text-white hover:opacity-90"
-                        style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                      {/* ── Emotional Signup CTA ── */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 + visibleProblems.length * 0.1 }}
+                        className="rounded-2xl p-5 space-y-4 border border-primary/20"
+                        style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.06), hsl(var(--secondary)/0.06))" }}
                       >
-                        <StarlingMascot size="sm" animate={false} expression="waving" />
-                        Sign Up Free — It's Magic ✨
-                      </Button>
-                      <p className="text-xs text-muted-foreground">No credit card required</p>
-                    </motion.div>
-                  </>
-                )}
+                        <div className="flex gap-3 items-start">
+                          <div className="flex-shrink-0 mt-1">
+                            <StarlingMascot size="sm" animate={false} expression="encouraging" />
+                          </div>
+                          <div>
+                            <p className="text-foreground font-semibold leading-snug">
+                              I found <span className="text-warning font-bold">{incorrect}</span> mistake{incorrect !== 1 ? "s" : ""} I can help fix — want me to teach your child how to solve each one, step by step?
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          size="lg"
+                          onClick={() => navigate("/signup")}
+                          className="w-full rounded-full py-5 text-base font-bold gap-2 text-white hover:opacity-90 transition-opacity"
+                          style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                        >
+                          Yes, let Starling help! →
+                        </Button>
+                        <p className="text-xs text-muted-foreground text-center">No credit card required</p>
+                      </motion.div>
+                    </>
+                  )}
 
-              </div>
-            </ScrollArea>
-          </motion.div>
-        )}
+                </div>
+              </ScrollArea>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
     </div>
   );
