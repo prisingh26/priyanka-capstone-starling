@@ -35,14 +35,16 @@ async function convertPdfToJpeg(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const page = await pdf.getPage(1);
-  const scale = 2;
-  const viewport = page.getViewport({ scale });
+  const viewport = page.getViewport({ scale: 2 });
   const canvas = document.createElement("canvas");
   canvas.width = viewport.width;
   canvas.height = viewport.height;
-  await page.render({ canvasContext: canvas.getContext("2d")!, viewport, canvas }).promise;
-  return canvas.toDataURL("image/jpeg", 0.9);
+  const ctx = canvas.getContext("2d")!;
+  await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+  // Return raw base64 — strip the data URI prefix before sending to API
+  return canvas.toDataURL("image/jpeg", 0.9).replace(/^data:[^;]+;base64,/, "");
 }
+
 
 async function convertImageToJpeg(file: File, maxWidth = 0): Promise<string> {
   return new Promise((resolve) => {
@@ -115,9 +117,8 @@ const DemoPage: React.FC = () => {
         const result = await mammoth.extractRawText({ arrayBuffer });
         body = { textContent: result.value.trim() };
       } else if (uploadedFile.type === "application/pdf") {
-        const jpeg = await convertPdfToJpeg(uploadedFile);
-        // Strip data URI prefix — send raw base64 only
-        body = { imageBase64: jpeg.replace(/^data:[^;]+;base64,/, "") };
+        const jpeg = await convertPdfToJpeg(uploadedFile); // already raw base64
+        body = { imageBase64: jpeg };
       } else {
         // Resize large images to max 1600px wide before encoding
         const jpeg = await convertImageToJpeg(uploadedFile, 1600);
