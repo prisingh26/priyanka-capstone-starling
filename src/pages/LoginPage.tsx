@@ -552,8 +552,11 @@ import {
                   }
                   setForgotLoading(true);
                   setForgotError("");
-                  try {
-                    await sendPasswordResetEmail(auth, forgotEmail);
+                   try {
+                    await sendPasswordResetEmail(auth, forgotEmail, {
+                      url: `${window.location.origin}/login`,
+                      handleCodeInApp: false,
+                    });
                     setForgotSent(true);
                   } catch (err: any) {
                     if (err.code === "auth/user-not-found") {
