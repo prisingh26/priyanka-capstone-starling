@@ -2,6 +2,32 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Camera, Upload, X, RotateCcw, Image as ImageIcon, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import StarlingMascot from "../components/StarlingMascot";
+import * as pdfjsLib from "pdfjs-dist";
+
+// Point pdf.js worker at the CDN bundle so we don't need a local worker file
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+
+/**
+ * Render the FIRST PAGE of a PDF file to a JPEG data URL.
+ * This lets us send any PDF homework sheet to the AI vision API
+ * as if it were a normal photo.
+ */
+async function convertPdfToJpeg(file: File): Promise<string> {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const page = await pdf.getPage(1);
+  const scale = 2; // 2x for high enough resolution to read text clearly
+  const viewport = page.getViewport({ scale });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  const ctx = canvas.getContext("2d")!;
+
+  await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+  return canvas.toDataURL("image/jpeg", 0.9);
+}
+
 
 interface CameraScreenProps {
   onCapture: (imageData: string, fileName?: string, fileSize?: number) => void;
@@ -203,12 +229,21 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
           try {
             dataUrl = await convertImageToJpeg(capturedFile.file);
           } catch (convErr) {
-            // Conversion failed — file is likely not a real image
             console.warn("Image conversion failed, reading as raw data URL:", convErr);
             dataUrl = await readFileAsDataUrl(capturedFile.file);
           }
+        } else if (capturedFile.file.type === "application/pdf") {
+          // Render first page of PDF to JPEG so vision API can read it
+          console.log("Rendering PDF first page to JPEG for API compatibility");
+          try {
+            dataUrl = await convertPdfToJpeg(capturedFile.file);
+          } catch (pdfErr) {
+            console.error("PDF rendering failed:", pdfErr);
+            setIsSubmitting(false);
+            return;
+          }
         } else {
-          // Non-image files (PDF, docx) — send as raw data URL
+          // Other doc types — send as raw data URL
           dataUrl = await readFileAsDataUrl(capturedFile.file);
         }
       }
