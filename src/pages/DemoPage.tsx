@@ -44,17 +44,23 @@ async function convertPdfToJpeg(file: File): Promise<string> {
   return canvas.toDataURL("image/jpeg", 0.9);
 }
 
-async function convertImageToJpeg(file: File): Promise<string> {
+async function convertImageToJpeg(file: File, maxWidth = 0): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
+      let w = img.width;
+      let h = img.height;
+      if (maxWidth > 0 && w > maxWidth) {
+        h = Math.round((h * maxWidth) / w);
+        w = maxWidth;
+      }
       const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      canvas.getContext("2d")!.drawImage(img, 0, 0);
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.9));
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
     };
     img.src = url;
   });
@@ -110,36 +116,65 @@ const DemoPage: React.FC = () => {
         body = { textContent: result.value.trim() };
       } else if (uploadedFile.type === "application/pdf") {
         const jpeg = await convertPdfToJpeg(uploadedFile);
-        body = { imageBase64: jpeg };
+        // Strip data URI prefix — send raw base64 only
+        body = { imageBase64: jpeg.replace(/^data:[^;]+;base64,/, "") };
       } else {
-        const jpeg = await convertImageToJpeg(uploadedFile);
-        body = { imageBase64: jpeg };
+        // Resize large images to max 1600px wide before encoding
+        const jpeg = await convertImageToJpeg(uploadedFile, 1600);
+        body = { imageBase64: jpeg.replace(/^data:[^;]+;base64,/, "") };
       }
 
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      console.log("[Demo] Calling analyze-homework, url:", SUPABASE_URL);
+
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-homework`,
+        `${SUPABASE_URL}/functions/v1/analyze-homework`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${ANON_KEY}`,
+            "apikey": ANON_KEY,
           },
           body: JSON.stringify(body),
         }
       );
 
-      const data = await response.json();
+      console.log("[Demo] Response status:", response.status);
 
-      if (!response.ok || !data.problems?.length) {
-        setUploadError(data?.message || "Hmm, Starling had trouble reading that. Try a clearer photo or a different file! 📸");
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        console.error("[Demo] Failed to parse response JSON:", parseErr);
+        setUploadError("Starling had trouble reading that. Try a clearer photo! 📸");
+        setStep("upload-results");
+        return;
+      }
+
+      console.log("[Demo] Response data keys:", Object.keys(data));
+
+      if (!response.ok) {
+        console.error("[Demo] Non-OK response:", response.status, data);
+        setUploadError(data?.message || "Starling had trouble reading that. Try a clearer photo! 📸");
+        setStep("upload-results");
+        return;
+      }
+
+      if (!data.problems?.length) {
+        console.warn("[Demo] No problems found in response:", data);
+        setUploadError("This doesn't look like homework — try uploading a worksheet or assignment! 📝");
         setStep("upload-results");
         return;
       }
 
       setUploadAnalysis(data as UploadAnalysis);
       setStep("upload-results");
-    } catch {
-      setUploadError("Something went wrong. Try uploading again! 📸");
+    } catch (err) {
+      console.error("[Demo] handleGiveToStarling caught error:", err);
+      setUploadError("Something went wrong connecting to Starling. Check your connection and try again!");
       setStep("upload-results");
     }
   };
