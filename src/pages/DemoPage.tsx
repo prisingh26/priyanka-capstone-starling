@@ -98,6 +98,11 @@ const DemoPage: React.FC = () => {
   const [uploadMsgIndex, setUploadMsgIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Live tutoring demo state
+  const [tutoringActive, setTutoringActive] = useState(false);
+  const [tutoringBubbles, setTutoringBubbles] = useState<string[]>([]);
+  const [tutoringDone, setTutoringDone] = useState(false);
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setUploadedFile(file);
@@ -182,6 +187,9 @@ const DemoPage: React.FC = () => {
 
       console.log("[Demo] Success! Problems:", data.problems.length);
       setUploadAnalysis(data as UploadAnalysis);
+      setTutoringActive(false);
+      setTutoringBubbles([]);
+      setTutoringDone(false);
       setStep("upload-results");
     } catch (err) {
       console.error("[Demo] CAUGHT ERROR:", err instanceof Error ? err.message : String(err), err);
@@ -1016,6 +1024,72 @@ const DemoPage: React.FC = () => {
           const incorrect = total - correct;
           const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
           const visibleProblems = uploadAnalysis ? uploadAnalysis.problems.slice(0, 5) : [];
+          const firstIncorrectIndex = visibleProblems.findIndex(p => !p.isCorrect);
+          const firstIncorrect = firstIncorrectIndex >= 0 ? visibleProblems[firstIncorrectIndex] : null;
+
+          // Build tutoring steps for the first incorrect problem
+          const buildTutoringSteps = (prob: typeof firstIncorrect): string[] => {
+            if (!prob) return [];
+            const q = prob.question || "";
+            const ans = prob.correctAnswer || "?";
+            const err = (prob.errorType || "").toLowerCase();
+
+            // Try to extract numbers from question
+            const nums = q.match(/\d+/g) || [];
+            const [a, b] = [nums[0] || "?", nums[1] || "?"];
+
+            if (err.includes("carry") || err.includes("addition")) {
+              return [
+                "Let's break this down together! 💛",
+                `Look at the ones column first: ${a.slice(-1)} + ${b.slice(-1)} — what do you get?`,
+                `If the sum is 10 or more, we write the ones digit and carry the 1 up to the next column 👆`,
+                `Now add the tens column — don't forget the carry!`,
+                `So the answer is ${ans} ✓ You were really close — just the carry tripped you up!`,
+              ];
+            }
+            if (err.includes("borrow") || err.includes("subtraction")) {
+              return [
+                "Let's work through this one together! 💛",
+                `Start at the ones column: the top digit is smaller than the bottom one.`,
+                `We need to borrow from the tens column — cross out and subtract 1 from it 👆`,
+                `Add 10 to the ones digit, then subtract. Now the tens column too!`,
+                `The answer is ${ans} ✓ Borrowing is tricky — now you know the trick!`,
+              ];
+            }
+            if (err.includes("multiplication")) {
+              return [
+                "Let's go through this step by step! 💛",
+                `Multiply the ones digits first: ${a.slice(-1)} × ${b.slice(-1)}`,
+                `Then multiply by the tens — and line it up one place to the left 👆`,
+                `Now add the two rows together!`,
+                `The answer is ${ans} ✓ Multiplication layouts just need a bit of practice!`,
+              ];
+            }
+            // Generic fallback
+            return [
+              "Let's break this one down together! 💛",
+              `The question is: ${q}`,
+              `Let's take it step by step — start small and work up.`,
+              `Double-check each step as you go — that's how mistakes get caught! 🔍`,
+              `The correct answer is ${ans} ✓ You were close — Starling can teach you exactly where it went wrong!`,
+            ];
+          };
+
+          const tutoringSteps = firstIncorrect ? buildTutoringSteps(firstIncorrect) : [];
+
+          const startTutoring = () => {
+            if (tutoringActive || tutoringDone) return;
+            setTutoringActive(true);
+            setTutoringBubbles([]);
+            tutoringSteps.forEach((bubble, i) => {
+              setTimeout(() => {
+                setTutoringBubbles(prev => [...prev, bubble]);
+                if (i === tutoringSteps.length - 1) {
+                  setTimeout(() => setTutoringDone(true), 800);
+                }
+              }, i * 1800 + 400);
+            });
+          };
           const hiddenCount = uploadAnalysis ? Math.max(0, uploadAnalysis.problems.length - 5) : 0;
 
           // Score card message
@@ -1234,6 +1308,161 @@ const DemoPage: React.FC = () => {
                         </motion.div>
                       ))}
 
+
+                      {/* ── Live Starling Tutoring Demo ── */}
+                      {firstIncorrect && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.15 + visibleProblems.length * 0.1 }}
+                          className="space-y-3"
+                        >
+                          {/* "Watch Starling teach" trigger */}
+                          {!tutoringActive && !tutoringDone && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 0.4 + visibleProblems.length * 0.1 }}
+                              className="flex gap-3 items-center bg-primary/5 border border-primary/20 rounded-2xl p-4"
+                            >
+                              <StarlingMascot size="sm" animate={false} expression="encouraging" />
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-foreground">
+                                  Want to see how I'd teach this? 👇
+                                </p>
+                                <p className="text-xs text-muted-foreground">Watch Starling walk through the first mistake, live</p>
+                              </div>
+                              <Button
+                                size="sm"
+                                onClick={startTutoring}
+                                className="rounded-full text-xs px-4 text-white shrink-0"
+                                style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                              >
+                                Watch →
+                              </Button>
+                            </motion.div>
+                          )}
+
+                          {/* Chat bubbles tutoring sequence */}
+                          {tutoringActive && (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground font-semibold px-1">
+                                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                                Starling is teaching live…
+                              </div>
+                              <AnimatePresence>
+                                {tutoringBubbles.map((bubble, i) => (
+                                  <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, x: -20, y: 8 }}
+                                    animate={{ opacity: 1, x: 0, y: 0 }}
+                                    transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                                    className="flex gap-3 items-end"
+                                  >
+                                    {/* Avatar — bounces on each new bubble */}
+                                    <motion.div
+                                      className="flex-shrink-0 mb-0.5"
+                                      animate={i === tutoringBubbles.length - 1
+                                        ? { y: [0, -6, 0, -4, 0] }
+                                        : {}}
+                                      transition={{ duration: 0.55, ease: "easeInOut" }}
+                                    >
+                                      <StarlingMascot
+                                        size="sm"
+                                        animate={false}
+                                        expression={i === tutoringBubbles.length - 1 && tutoringDone ? "excited" : "happy"}
+                                      />
+                                    </motion.div>
+                                    <div className="bg-primary/10 border border-primary/20 rounded-2xl rounded-bl-md px-4 py-3 max-w-xs sm:max-w-sm">
+                                      <p className="text-sm text-foreground leading-relaxed">{bubble}</p>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </AnimatePresence>
+
+                              {/* Typing indicator while more bubbles are coming */}
+                              {tutoringActive && !tutoringDone && tutoringBubbles.length < tutoringSteps.length && (
+                                <motion.div
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  exit={{ opacity: 0 }}
+                                  className="flex gap-3 items-end"
+                                >
+                                  <div className="flex-shrink-0 mb-0.5">
+                                    <StarlingMascot size="sm" animate={true} expression="thinking" />
+                                  </div>
+                                  <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex gap-1.5 items-center">
+                                    {[0, 1, 2].map(j => (
+                                      <motion.span
+                                        key={j}
+                                        className="w-2 h-2 rounded-full bg-muted-foreground/50"
+                                        animate={{ y: [0, -5, 0], opacity: [0.4, 1, 0.4] }}
+                                        transition={{ duration: 0.7, repeat: Infinity, delay: j * 0.18 }}
+                                      />
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* After tutoring — final Starling message + inline CTA */}
+                          {tutoringDone && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 12 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.2 }}
+                              className="space-y-3"
+                            >
+                              {/* Starling closing line */}
+                              <div className="flex gap-3 items-end">
+                                <motion.div
+                                  className="flex-shrink-0 mb-0.5"
+                                  animate={{ y: [0, -6, 0, -4, 0] }}
+                                  transition={{ duration: 0.6 }}
+                                >
+                                  <StarlingMascot size="sm" animate={false} expression="excited" />
+                                </motion.div>
+                                <div className="bg-primary/10 border border-primary/20 rounded-2xl rounded-bl-md px-4 py-3 max-w-xs sm:max-w-sm">
+                                  <p className="text-sm text-foreground leading-relaxed">
+                                    That's exactly how I work through every mistake — patiently, step by step 💛
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Inline CTA after tutoring */}
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.97 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.4 }}
+                                className="rounded-2xl p-5 space-y-4 border border-primary/20"
+                                style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.08), hsl(var(--secondary)/0.06))" }}
+                              >
+                                <div className="flex gap-3 items-start">
+                                  <div className="flex-shrink-0 mt-1">
+                                    <StarlingMascot size="sm" animate={false} expression="encouraging" />
+                                  </div>
+                                  <p className="text-foreground font-semibold leading-snug text-sm">
+                                    Want me to do this for all{" "}
+                                    <span className="text-warning font-bold">{incorrect}</span> mistake{incorrect !== 1 ? "s" : ""}?
+                                    I'll teach your child every single one, just like that. 🌟
+                                  </p>
+                                </div>
+                                <Button
+                                  size="lg"
+                                  onClick={() => navigate("/signup")}
+                                  className="w-full rounded-full py-5 text-base font-bold gap-2 text-white hover:opacity-90 transition-opacity"
+                                  style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                                >
+                                  Yes, let Starling help! →
+                                </Button>
+                                <p className="text-xs text-muted-foreground text-center">No credit card required</p>
+                              </motion.div>
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      )}
+
                       {/* ── Blurred gated cards ── */}
                       {hiddenCount > 0 && (
                         <motion.div
@@ -1270,34 +1499,38 @@ const DemoPage: React.FC = () => {
                         </motion.div>
                       )}
 
-                      {/* ── Emotional Signup CTA ── */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 + visibleProblems.length * 0.1 }}
-                        className="rounded-2xl p-5 space-y-4 border border-primary/20"
-                        style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.06), hsl(var(--secondary)/0.06))" }}
-                      >
-                        <div className="flex gap-3 items-start">
-                          <div className="flex-shrink-0 mt-1">
-                            <StarlingMascot size="sm" animate={false} expression="encouraging" />
-                          </div>
-                          <div>
-                            <p className="text-foreground font-semibold leading-snug">
-                              I found <span className="text-warning font-bold">{incorrect}</span> mistake{incorrect !== 1 ? "s" : ""} I can help fix — want me to teach your child how to solve each one, step by step?
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          size="lg"
-                          onClick={() => navigate("/signup")}
-                          className="w-full rounded-full py-5 text-base font-bold gap-2 text-white hover:opacity-90 transition-opacity"
-                          style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                      {/* ── Emotional Signup CTA (shown when no tutoring or tutoring not done yet) ── */}
+                      {!tutoringDone && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 + visibleProblems.length * 0.1 }}
+                          className="rounded-2xl p-5 space-y-4 border border-primary/20"
+                          style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.06), hsl(var(--secondary)/0.06))" }}
                         >
-                          Yes, let Starling help! →
-                        </Button>
-                        <p className="text-xs text-muted-foreground text-center">No credit card required</p>
-                      </motion.div>
+                          <div className="flex gap-3 items-start">
+                            <div className="flex-shrink-0 mt-1">
+                              <StarlingMascot size="sm" animate={false} expression="encouraging" />
+                            </div>
+                            <div>
+                              <p className="text-foreground font-semibold leading-snug">
+                                I found{" "}
+                                <span className="text-warning font-bold">{incorrect}</span>{" "}
+                                mistake{incorrect !== 1 ? "s" : ""} I can help fix — want me to teach your child how to solve each one, step by step?
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            size="lg"
+                            onClick={() => navigate("/signup")}
+                            className="w-full rounded-full py-5 text-base font-bold gap-2 text-white hover:opacity-90 transition-opacity"
+                            style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                          >
+                            Yes, let Starling help! →
+                          </Button>
+                          <p className="text-xs text-muted-foreground text-center">No credit card required</p>
+                        </motion.div>
+                      )}
                     </>
                   )}
 
