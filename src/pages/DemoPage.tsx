@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Camera } from "lucide-react";
+import { ArrowLeft, Camera, Upload, FileText, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -23,6 +23,13 @@ const answerOptions = [
 const DemoPage: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<DemoStep>("problem");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setUploadedFile(file);
+  };
 
   // Socratic sub-steps within "results"
   const [socraticStep, setSocraticStep] = useState(1);
@@ -122,6 +129,78 @@ const DemoPage: React.FC = () => {
               </div>
 
             </div>
+
+            {/* Upload CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="space-y-3"
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf,.doc,.docx"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+
+              {!uploadedFile ? (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-full text-primary-foreground font-bold text-lg shadow-float hover:shadow-glow hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300"
+                  style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                >
+                  <Camera className="w-5 h-5" />
+                  📸 Upload Homework Photo
+                </button>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-card border border-border rounded-2xl p-4 space-y-3 shadow-soft"
+                >
+                  <div className="flex items-center gap-3">
+                    {uploadedFile.type.startsWith("image/") ? (
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <ImageIcon className="w-5 h-5 text-primary" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-5 h-5 text-secondary" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-foreground text-sm truncate">{uploadedFile.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {(uploadedFile.size / 1024).toFixed(0)} KB · Ready to analyze
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => { setUploadedFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                      className="text-muted-foreground hover:text-foreground transition-colors text-xs font-medium px-2 py-1 rounded-lg hover:bg-muted"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => navigate("/signup")}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-full text-primary-foreground font-bold text-base shadow-float hover:shadow-glow hover:-translate-y-0.5 transition-all duration-200"
+                    style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                  >
+                    <Upload className="w-4 h-4" />
+                    Try it out →
+                  </button>
+                  <p className="text-center text-xs text-muted-foreground">Sign up free to analyze your homework with Starling ✨</p>
+                </motion.div>
+              )}
+
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground font-medium">or try the sample below</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+            </motion.div>
 
             {/* Sample Problem */}
             <Card id="demo-problem" className="p-6 md:p-8 space-y-6">
