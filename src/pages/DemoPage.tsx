@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Camera, Upload, FileText, ImageIcon } from "lucide-react";
+import { ArrowLeft, Camera, FileText, ImageIcon, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import StarlingMascot from "@/components/StarlingMascot";
 import StarlingLogo from "@/components/StarlingLogo";
+import * as pdfjsLib from "pdfjs-dist";
+import mammoth from "mammoth";
 
-type DemoStep = "problem" | "loading" | "results";
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+
+type DemoStep = "problem" | "loading" | "results" | "upload-loading" | "upload-results";
 
 const answerOptions = [
   { label: "A", value: 2 },
@@ -19,16 +22,122 @@ const answerOptions = [
   { label: "E", value: 6 },
 ];
 
+function isWordFile(file: File) {
+  return (
+    file.type === "application/msword" ||
+    file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    file.name.endsWith(".doc") ||
+    file.name.endsWith(".docx")
+  );
+}
+
+async function convertPdfToJpeg(file: File): Promise<string> {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const page = await pdf.getPage(1);
+  const scale = 2;
+  const viewport = page.getViewport({ scale });
+  const canvas = document.createElement("canvas");
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: canvas.getContext("2d")!, viewport, canvas }).promise;
+  return canvas.toDataURL("image/jpeg", 0.9);
+}
+
+async function convertImageToJpeg(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.9));
+    };
+    img.src = url;
+  });
+}
+
+interface UploadAnalysis {
+  subject?: string;
+  topic?: string;
+  total_problems: number;
+  correct_answers: number;
+  encouragement?: string;
+  problems: Array<{ question: string; studentAnswer: string; isCorrect: boolean; errorType?: string }>;
+}
+
+const FUN_UPLOAD_MESSAGES = [
+  { text: "Starling is reading your homework...", emoji: "📖" },
+  { text: "Hmm, interesting problems!", emoji: "🤔" },
+  { text: "Almost done checking...", emoji: "✏️" },
+  { text: "Looking at every detail...", emoji: "🔎" },
+  { text: "This is exciting!", emoji: "✨" },
+];
 
 const DemoPage: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<DemoStep>("problem");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadAnalysis, setUploadAnalysis] = useState<UploadAnalysis | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadMsgIndex, setUploadMsgIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setUploadedFile(file);
+  };
+
+  const handleGiveToStarling = async () => {
+    if (!uploadedFile) return;
+    setStep("upload-loading");
+    setUploadError(null);
+    setUploadMsgIndex(0);
+
+    try {
+      let body: Record<string, unknown>;
+
+      if (isWordFile(uploadedFile)) {
+        const arrayBuffer = await uploadedFile.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        body = { textContent: result.value.trim() };
+      } else if (uploadedFile.type === "application/pdf") {
+        const jpeg = await convertPdfToJpeg(uploadedFile);
+        body = { imageBase64: jpeg };
+      } else {
+        const jpeg = await convertImageToJpeg(uploadedFile);
+        body = { imageBase64: jpeg };
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-homework`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.problems?.length) {
+        setUploadError(data?.message || "Hmm, Starling had trouble reading that. Try a clearer photo or a different file! 📸");
+        setStep("upload-results");
+        return;
+      }
+
+      setUploadAnalysis(data as UploadAnalysis);
+      setStep("upload-results");
+    } catch {
+      setUploadError("Something went wrong. Try uploading again! 📸");
+      setStep("upload-results");
+    }
   };
 
   // Socratic sub-steps within "results"
@@ -37,6 +146,15 @@ const DemoPage: React.FC = () => {
   const [retryAnswer, setRetryAnswer] = useState<string | null>(null);
   const [showDiagramStep, setShowDiagramStep] = useState(0); // 0=cats only, 1=connecting, 2=full
 
+
+  // Cycle upload loading messages
+  useEffect(() => {
+    if (step !== "upload-loading") return;
+    const interval = setInterval(() => {
+      setUploadMsgIndex(prev => (prev + 1) % FUN_UPLOAD_MESSAGES.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [step]);
 
   // Progress diagram build-up when entering step 4
   useEffect(() => {
@@ -184,7 +302,7 @@ const DemoPage: React.FC = () => {
                     </button>
                   </div>
                   <motion.button
-                    onClick={() => navigate("/signup")}
+                    onClick={handleGiveToStarling}
                     className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-full text-primary-foreground font-bold text-lg shadow-float hover:shadow-glow transition-all duration-200"
                     style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
                     whileHover={{ scale: 1.02, y: -2 }}
@@ -193,7 +311,6 @@ const DemoPage: React.FC = () => {
                     <StarlingMascot size="sm" animate={false} expression="happy" />
                     Give it to Starling
                   </motion.button>
-                  <p className="text-center text-xs text-muted-foreground">Sign up free to analyze your homework with Starling ✨</p>
                 </motion.div>
               )}
 
@@ -801,9 +918,182 @@ const DemoPage: React.FC = () => {
             </ScrollArea>
           </motion.div>
         )}
+        {/* ===== UPLOAD LOADING ===== */}
+        {step === "upload-loading" && (
+          <motion.div
+            key="upload-loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="container mx-auto px-4 py-8 max-w-2xl flex flex-col items-center justify-center min-h-[60vh] gap-6"
+          >
+            <motion.div
+              animate={{ y: [0, -14, 0], rotate: [0, 15, -15, 0] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <StarlingMascot size="lg" animate expression="thinking" />
+            </motion.div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={uploadMsgIndex}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="text-center"
+              >
+                <span className="text-3xl mr-2">{FUN_UPLOAD_MESSAGES[uploadMsgIndex].emoji}</span>
+                <span className="text-lg font-bold text-foreground">{FUN_UPLOAD_MESSAGES[uploadMsgIndex].text}</span>
+              </motion.div>
+            </AnimatePresence>
+            <motion.div className="flex gap-2">
+              {[0, 1, 2].map((i) => (
+                <motion.span
+                  key={i}
+                  className="w-3 h-3 rounded-full"
+                  style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                  animate={{ scale: [0.8, 1.3, 0.8], opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
+                />
+              ))}
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* ===== UPLOAD RESULTS ===== */}
+        {step === "upload-results" && (
+          <motion.div
+            key="upload-results"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 25 }}
+            className="container mx-auto px-4 py-6 max-w-2xl"
+          >
+            <ScrollArea className="h-[calc(100vh-120px)]">
+              <div className="space-y-5 pr-2">
+
+                {/* Error state */}
+                {uploadError && (
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
+                    <div className="flex-shrink-0 mt-1"><StarlingMascot size="sm" animate={false} expression="thinking" /></div>
+                    <div className="bg-destructive/10 border border-destructive/30 rounded-2xl rounded-tl-md p-5 flex-1">
+                      <p className="font-bold text-destructive mb-1">Hmm, couldn't read that one!</p>
+                      <p className="text-foreground text-sm">{uploadError}</p>
+                      <button
+                        onClick={() => { setStep("problem"); setUploadedFile(null); setUploadError(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                        className="mt-3 text-sm text-primary font-semibold underline underline-offset-4"
+                      >
+                        Try another file →
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Success results */}
+                {uploadAnalysis && !uploadError && (
+                  <>
+                    {/* Score summary */}
+                    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
+                      <div className="flex-shrink-0 mt-1"><StarlingMascot size="sm" animate={false} expression="excited" /></div>
+                      <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-5 flex-1 space-y-3">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div>
+                            <p className="font-bold text-foreground text-lg">
+                              {uploadAnalysis.subject || "Homework"} {uploadAnalysis.topic ? `· ${uploadAnalysis.topic}` : ""}
+                            </p>
+                            <p className="text-sm text-muted-foreground">Here's what I found!</p>
+                          </div>
+                          <div className="text-center bg-card border border-border rounded-2xl px-4 py-2">
+                            <p className="text-2xl font-bold text-foreground">
+                              {uploadAnalysis.correct_answers}/{uploadAnalysis.total_problems}
+                            </p>
+                            <p className="text-xs text-muted-foreground">correct</p>
+                          </div>
+                        </div>
+                        {uploadAnalysis.encouragement && (
+                          <p className="text-sm text-foreground italic">"{uploadAnalysis.encouragement}"</p>
+                        )}
+                      </div>
+                    </motion.div>
+
+                    {/* Problem list */}
+                    {uploadAnalysis.problems.slice(0, 5).map((prob, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 + i * 0.08 }}
+                      >
+                        <Card className="p-4 space-y-2">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-0.5">
+                              {prob.isCorrect ? (
+                                <CheckCircle2 className="w-5 h-5 text-success" />
+                              ) : (
+                                <XCircle className="w-5 h-5 text-destructive" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground leading-snug">{prob.question}</p>
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${prob.isCorrect ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                                  {prob.isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                                </span>
+                                {!prob.isCorrect && prob.errorType && (
+                                  <span className="text-xs text-muted-foreground">{prob.errorType}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      </motion.div>
+                    ))}
+
+                    {uploadAnalysis.problems.length > 5 && (
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground text-center justify-center py-1">
+                          <AlertCircle className="w-4 h-4" />
+                          +{uploadAnalysis.problems.length - 5} more problems — sign up to see everything
+                        </div>
+                      </motion.div>
+                    )}
+                  </>
+                )}
+
+                {/* Signup CTA */}
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: uploadAnalysis ? 0.8 : 0.3 }}
+                  className="bg-muted/50 border border-border rounded-xl p-5 text-center space-y-3"
+                >
+                  <p className="text-foreground font-semibold">
+                    {uploadAnalysis ? "🎉 Want full step-by-step help for every problem?" : "📸 Try with a clearer photo!"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {uploadAnalysis
+                      ? "Sign up free and Starling will guide your child through each mistake with Socratic tutoring"
+                      : "Sign up to upload unlimited homework and get personalized AI feedback"}
+                  </p>
+                  <Button
+                    size="lg"
+                    onClick={() => navigate("/signup")}
+                    className="w-full rounded-full py-5 text-lg gap-2 text-white hover:opacity-90"
+                    style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                  >
+                    <StarlingMascot size="sm" animate={false} expression="waving" />
+                    Sign Up Free — It's Magic ✨
+                  </Button>
+                  <p className="text-xs text-muted-foreground">No credit card required</p>
+                </motion.div>
+              </div>
+            </ScrollArea>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
 };
 
 export default DemoPage;
+
