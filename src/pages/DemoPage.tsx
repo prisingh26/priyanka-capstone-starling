@@ -183,14 +183,16 @@ const DemoPage: React.FC = () => {
                       ✕
                     </button>
                   </div>
-                  <button
+                  <motion.button
                     onClick={() => navigate("/signup")}
-                    className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-full text-primary-foreground font-bold text-base shadow-float hover:shadow-glow hover:-translate-y-0.5 transition-all duration-200"
+                    className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-full text-primary-foreground font-bold text-lg shadow-float hover:shadow-glow transition-all duration-200"
                     style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.97 }}
                   >
-                    <Upload className="w-4 h-4" />
-                    Try it out →
-                  </button>
+                    <StarlingMascot size="sm" animate={false} expression="happy" />
+                    Give it to Starling
+                  </motion.button>
                   <p className="text-center text-xs text-muted-foreground">Sign up free to analyze your homework with Starling ✨</p>
                 </motion.div>
               )}
