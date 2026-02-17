@@ -191,6 +191,7 @@ const Index = () => {
   });
 
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedTextContent, setUploadedTextContent] = useState<string | undefined>(undefined);
   const [analysisResult, setAnalysisResult] = useState<HomeworkAnalysis | null>(null);
   const [selectedProblem, setSelectedProblem] = useState<{ problem: AnalyzedProblem; index: number } | null>(null);
   const [practiceSelection, setPracticeSelection] = useState<{ subject: string; topic: string } | null>(null);
@@ -242,9 +243,10 @@ const Index = () => {
     setCurrentScreen("home");
   };
 
-  const handleCameraCapture = (imageData: string) => {
+  const handleCameraCapture = (imageData: string, _fileName?: string, _fileSize?: number, textContent?: string) => {
     setPreviousScreen(currentScreen);
     setUploadedImage(imageData);
+    setUploadedTextContent(textContent);
     setAnalysisResult(null);
     setCurrentScreen("processing");
   };
@@ -342,6 +344,7 @@ const Index = () => {
         return (
           <ProcessingScreen
             uploadedImage={uploadedImage}
+            textContent={uploadedTextContent}
             onComplete={handleAnalysisComplete}
             onError={handleAnalysisError}
             childGrade={userProfile.grade}

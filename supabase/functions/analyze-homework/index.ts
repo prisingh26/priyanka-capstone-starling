@@ -333,10 +333,66 @@ serve(async (req) => {
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
 
-    const { imageBase64 } = await req.json();
+    const { imageBase64, textContent } = await req.json();
+
+    // ── Word document path (text-only, no image) ──────────────────
+    if (textContent && typeof textContent === "string") {
+      console.log("Processing Word document as text content...");
+
+      const wordPrompt = `You are an expert math tutor for elementary school students (grades 1-5).
+The following is the TEXT content extracted from a student's Word document homework file.
+Analyze each problem and the student's answer.
+
+${COMPLEX_ANALYSIS_PROMPT}
+
+HOMEWORK TEXT:
+${textContent}`;
+
+      const response = await fetch(OPENAI_API, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: OCR_MODEL,
+          messages: [{ role: "user", content: wordPrompt }],
+          max_tokens: 8000,
+          temperature: 0.4,
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        const body = await response.text();
+        console.error(`OpenAI error [${status}]:`, body);
+        if (status === 429) return new Response(JSON.stringify({ error: "rate_limited", message: "Too many requests — please wait a moment and try again." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        throw new Error(`API error [${status}]`);
+      }
+
+      const data = await response.json();
+      const rawText = data.choices?.[0]?.message?.content ?? "";
+      let analysis;
+      try {
+        analysis = parseJSON(rawText);
+      } catch {
+        console.error("Failed to parse Word doc analysis:", rawText);
+        return new Response(JSON.stringify({ error: "parse_error", message: "Could not parse AI analysis. Please try again." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const problems = analysis.problems ?? [];
+      analysis.totalProblems = problems.length;
+      analysis.correctAnswers = problems.filter((p: any) => p.isCorrect).length;
+      analysis.modelUsed = OCR_MODEL;
+      analysis.complexity = "complex";
+
+      console.log(`Word doc analysis complete: ${analysis.correctAnswers}/${analysis.totalProblems} correct`);
+      return new Response(JSON.stringify(analysis), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (!imageBase64) {
       return new Response(
-        JSON.stringify({ error: "missing_image", message: "No image provided" }),
+        JSON.stringify({ error: "missing_image", message: "No image or document content provided" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }

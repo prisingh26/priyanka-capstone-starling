@@ -3,6 +3,7 @@ import { Camera, Upload, X, RotateCcw, Image as ImageIcon, FileText } from "luci
 import { motion } from "framer-motion";
 import StarlingMascot from "../components/StarlingMascot";
 import * as pdfjsLib from "pdfjs-dist";
+import mammoth from "mammoth";
 
 // Point pdf.js worker at the CDN bundle so we don't need a local worker file
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
@@ -28,9 +29,27 @@ async function convertPdfToJpeg(file: File): Promise<string> {
   return canvas.toDataURL("image/jpeg", 0.9);
 }
 
+/**
+ * Extract plain text from a .docx / .doc Word document using mammoth.
+ */
+async function extractWordText(file: File): Promise<string> {
+  const arrayBuffer = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer });
+  if (!result.value?.trim()) throw new Error("Word document appears to be empty or unreadable");
+  return result.value.trim();
+}
+
+function isWordFile(file: File): boolean {
+  return (
+    file.type === "application/msword" ||
+    file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    file.name.endsWith(".doc") ||
+    file.name.endsWith(".docx")
+  );
+}
 
 interface CameraScreenProps {
-  onCapture: (imageData: string, fileName?: string, fileSize?: number) => void;
+  onCapture: (imageData: string, fileName?: string, fileSize?: number, textContent?: string) => void;
   onClose: () => void;
 }
 
@@ -221,20 +240,21 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
 
     try {
       let dataUrl = capturedFile.dataUrl;
+      let textContent: string | undefined;
 
       if (!dataUrl && capturedFile.file) {
         if (capturedFile.isImage) {
-          // Convert ALL image formats to JPEG via canvas for consistency
-          console.log(`Converting ${capturedFile.file.type || "unknown"} to JPEG for API compatibility`);
+          // Convert ALL image formats (JPEG, PNG, HEIC, etc.) to JPEG via canvas
+          console.log(`Converting ${capturedFile.file.type || "unknown"} to JPEG`);
           try {
             dataUrl = await convertImageToJpeg(capturedFile.file);
           } catch (convErr) {
-            console.warn("Image conversion failed, reading as raw data URL:", convErr);
+            console.warn("Image conversion failed, reading raw:", convErr);
             dataUrl = await readFileAsDataUrl(capturedFile.file);
           }
-        } else if (capturedFile.file.type === "application/pdf") {
-          // Render first page of PDF to JPEG so vision API can read it
-          console.log("Rendering PDF first page to JPEG for API compatibility");
+        } else if (capturedFile.file.type === "application/pdf" || capturedFile.file.name.endsWith(".pdf")) {
+          // Render PDF first page to JPEG
+          console.log("Rendering PDF first page to JPEG");
           try {
             dataUrl = await convertPdfToJpeg(capturedFile.file);
           } catch (pdfErr) {
@@ -242,19 +262,30 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ onCapture, onClose }) => {
             setIsSubmitting(false);
             return;
           }
+        } else if (isWordFile(capturedFile.file)) {
+          // Extract text from Word document — no image needed
+          console.log("Extracting text from Word document");
+          try {
+            textContent = await extractWordText(capturedFile.file);
+            // Use a placeholder so onCapture still has a non-null first arg
+            dataUrl = "data:text/plain;base64,";
+          } catch (wordErr) {
+            console.error("Word extraction failed:", wordErr);
+            setIsSubmitting(false);
+            return;
+          }
         } else {
-          // Other doc types — send as raw data URL
           dataUrl = await readFileAsDataUrl(capturedFile.file);
         }
       }
 
       if (!dataUrl) {
-        console.error("No data URL available for submission");
+        console.error("No data available for submission");
         setIsSubmitting(false);
         return;
       }
 
-      onCapture(dataUrl, capturedFile.name, capturedFile.size);
+      onCapture(dataUrl, capturedFile.name, capturedFile.size, textContent);
     } catch (err) {
       console.error("Failed to prepare file for submission:", err);
       setIsSubmitting(false);
