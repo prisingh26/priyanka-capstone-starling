@@ -109,26 +109,35 @@ const DemoPage: React.FC = () => {
     setUploadError(null);
     setUploadMsgIndex(0);
 
+    console.log("[Demo] Starting upload. File:", uploadedFile.name, uploadedFile.type, uploadedFile.size);
+
     try {
       let body: Record<string, unknown>;
 
       if (isWordFile(uploadedFile)) {
+        console.log("[Demo] Processing as Word doc");
         const arrayBuffer = await uploadedFile.arrayBuffer();
         const result = await mammoth.extractRawText({ arrayBuffer });
         body = { textContent: result.value.trim() };
+        console.log("[Demo] Word text length:", result.value.length);
       } else if (uploadedFile.type === "application/pdf") {
-        const jpeg = await convertPdfToJpeg(uploadedFile); // already raw base64
+        console.log("[Demo] Processing as PDF");
+        const jpeg = await convertPdfToJpeg(uploadedFile);
+        console.log("[Demo] PDF converted, base64 length:", jpeg.length, "starts with:", jpeg.substring(0, 30));
         body = { imageBase64: jpeg };
       } else {
-        // Resize large images to max 1600px wide before encoding
+        console.log("[Demo] Processing as image");
         const jpeg = await convertImageToJpeg(uploadedFile, 1600);
-        body = { imageBase64: jpeg.replace(/^data:[^;]+;base64,/, "") };
+        console.log("[Demo] Image converted, raw output starts with:", jpeg.substring(0, 40));
+        const raw = jpeg.replace(/^data:[^;]+;base64,/, "");
+        console.log("[Demo] After strip, base64 starts with:", raw.substring(0, 30), "length:", raw.length);
+        body = { imageBase64: raw };
       }
 
       const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
       const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      console.log("[Demo] Calling analyze-homework, url:", SUPABASE_URL);
+      console.log("[Demo] Calling analyze-homework. URL defined:", !!SUPABASE_URL, "Key defined:", !!ANON_KEY);
 
       const response = await fetch(
         `${SUPABASE_URL}/functions/v1/analyze-homework`,
@@ -155,7 +164,7 @@ const DemoPage: React.FC = () => {
         return;
       }
 
-      console.log("[Demo] Response data keys:", Object.keys(data));
+      console.log("[Demo] Response data:", JSON.stringify(data).substring(0, 200));
 
       if (!response.ok) {
         console.error("[Demo] Non-OK response:", response.status, data);
@@ -165,17 +174,18 @@ const DemoPage: React.FC = () => {
       }
 
       if (!data.problems?.length) {
-        console.warn("[Demo] No problems found in response:", data);
+        console.warn("[Demo] No problems in response. Keys:", Object.keys(data));
         setUploadError("This doesn't look like homework — try uploading a worksheet or assignment! 📝");
         setStep("upload-results");
         return;
       }
 
+      console.log("[Demo] Success! Problems:", data.problems.length);
       setUploadAnalysis(data as UploadAnalysis);
       setStep("upload-results");
     } catch (err) {
-      console.error("[Demo] handleGiveToStarling caught error:", err);
-      setUploadError("Something went wrong connecting to Starling. Check your connection and try again!");
+      console.error("[Demo] CAUGHT ERROR:", err instanceof Error ? err.message : String(err), err);
+      setUploadError("Something went wrong. Please try again!");
       setStep("upload-results");
     }
   };
