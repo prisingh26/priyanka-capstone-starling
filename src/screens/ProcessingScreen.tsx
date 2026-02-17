@@ -8,6 +8,7 @@ interface ProcessingScreenProps {
   onError: (error: string) => void;
   uploadedImage: string | null;
   childGrade?: number;
+  textContent?: string;
 }
 
 const FUN_MESSAGES = [
@@ -19,7 +20,7 @@ const FUN_MESSAGES = [
   { text: "This is exciting!", emoji: "✨" },
 ];
 
-const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError, uploadedImage, childGrade }) => {
+const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError, uploadedImage, childGrade, textContent }) => {
   const [status, setStatus] = useState("Preparing...");
   const [hasCompleted, setHasCompleted] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
@@ -45,11 +46,18 @@ const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError
   }, []);
 
   useEffect(() => {
-    if (!uploadedImage || hasCompleted) return;
+    if (hasCompleted) return;
+    // Need either an image OR text content to proceed
+    if (!uploadedImage && !textContent) return;
 
     const analyze = async () => {
       try {
         setStatus("Analyzing your homework with AI...");
+
+        // Build the request body: text-only for Word docs, image for everything else
+        const body = textContent
+          ? { textContent, grade: childGrade }
+          : { imageBase64: uploadedImage, grade: childGrade };
 
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-homework`,
@@ -59,7 +67,7 @@ const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError
               "Content-Type": "application/json",
               Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
-            body: JSON.stringify({ imageBase64: uploadedImage, grade: childGrade }),
+            body: JSON.stringify(body),
           },
         );
 
@@ -67,17 +75,13 @@ const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError
         try {
           data = await response.json();
         } catch {
-          // Response wasn't JSON — treat as server error
           console.error("Non-JSON response from analyze-homework, status:", response.status);
           onError("Hmm, Starling had trouble with that one. Let's try again! 📸");
           return;
         }
 
         if (!response.ok) {
-          // Log full error for debugging, show friendly message to user
           console.error("analyze-homework error:", response.status, data);
-
-          // Use the message from the API if available, otherwise fallback
           const friendlyMessage = data?.message || "Hmm, Starling had trouble with that one. Let's try again! 📸";
           onError(friendlyMessage);
           return;
@@ -94,14 +98,13 @@ const ProcessingScreen: React.FC<ProcessingScreenProps> = ({ onComplete, onError
         setHasCompleted(true);
         setTimeout(() => onComplete(analysis), 600);
       } catch (err) {
-        // Network failure, timeout, or any other unhandled exception
         console.error("analyze-homework caught error:", err);
         onError("Hmm, Starling had trouble with that one. Let's try again! 📸");
       }
     };
 
     analyze();
-  }, [uploadedImage, hasCompleted, onComplete, onError, childGrade]);
+  }, [uploadedImage, textContent, hasCompleted, onComplete, onError, childGrade]);
 
   const currentMessage = FUN_MESSAGES[messageIndex];
 
