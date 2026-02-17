@@ -10,7 +10,7 @@ import StarlingLogo from "@/components/StarlingLogo";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 type DemoStep = "problem" | "loading" | "results" | "upload-loading" | "upload-results";
 
