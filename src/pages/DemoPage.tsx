@@ -63,8 +63,12 @@ async function convertImageToJpeg(file: File): Promise<string> {
 interface UploadAnalysis {
   subject?: string;
   topic?: string;
-  total_problems: number;
-  correct_answers: number;
+  // API returns camelCase
+  totalProblems?: number;
+  correctAnswers?: number;
+  // fallback snake_case
+  total_problems?: number;
+  correct_answers?: number;
   encouragement?: string;
   problems: Array<{ question: string; studentAnswer: string; isCorrect: boolean; errorType?: string }>;
 }
@@ -972,18 +976,30 @@ const DemoPage: React.FC = () => {
             <ScrollArea className="h-[calc(100vh-120px)]">
               <div className="space-y-5 pr-2">
 
-                {/* Error state */}
+                {/* Error state — inline, no scary colors */}
                 {uploadError && (
-                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
-                    <div className="flex-shrink-0 mt-1"><StarlingMascot size="sm" animate={false} expression="thinking" /></div>
-                    <div className="bg-destructive/10 border border-destructive/30 rounded-2xl rounded-tl-md p-5 flex-1">
-                      <p className="font-bold text-destructive mb-1">Hmm, couldn't read that one!</p>
-                      <p className="text-foreground text-sm">{uploadError}</p>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex gap-3 items-start"
+                  >
+                    <div className="flex-shrink-0 mt-1">
+                      <StarlingMascot size="sm" animate={false} expression="thinking" />
+                    </div>
+                    <div className="flex-1 bg-muted/60 rounded-2xl rounded-tl-md p-4">
+                      <p className="text-foreground font-semibold text-sm">
+                        Upload failed — try a clearer photo 📸
+                      </p>
                       <button
-                        onClick={() => { setStep("problem"); setUploadedFile(null); setUploadError(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                        className="mt-3 text-sm text-primary font-semibold underline underline-offset-4"
+                        onClick={() => {
+                          setStep("problem");
+                          setUploadedFile(null);
+                          setUploadError(null);
+                          if (fileInputRef.current) fileInputRef.current.value = "";
+                        }}
+                        className="mt-2 text-xs text-primary font-semibold hover:underline underline-offset-4 transition-colors"
                       >
-                        Try another file →
+                        ↩ Try again
                       </button>
                     </div>
                   </motion.div>
@@ -1005,7 +1021,8 @@ const DemoPage: React.FC = () => {
                           </div>
                           <div className="text-center bg-card border border-border rounded-2xl px-4 py-2">
                             <p className="text-2xl font-bold text-foreground">
-                              {uploadAnalysis.correct_answers}/{uploadAnalysis.total_problems}
+                              {uploadAnalysis.correctAnswers ?? uploadAnalysis.correct_answers ?? 0}/
+                              {uploadAnalysis.totalProblems ?? uploadAnalysis.total_problems ?? uploadAnalysis.problems.length}
                             </p>
                             <p className="text-xs text-muted-foreground">correct</p>
                           </div>
@@ -1057,35 +1074,34 @@ const DemoPage: React.FC = () => {
                         </div>
                       </motion.div>
                     )}
+
+                    {/* Signup CTA — only shown after successful results */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8 }}
+                      className="bg-muted/50 border border-border rounded-xl p-5 text-center space-y-3"
+                    >
+                      <p className="text-foreground font-semibold">
+                        🎉 Want full step-by-step help for every problem?
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Sign up free and Starling will guide your child through each mistake with Socratic tutoring
+                      </p>
+                      <Button
+                        size="lg"
+                        onClick={() => navigate("/signup")}
+                        className="w-full rounded-full py-5 text-lg gap-2 text-white hover:opacity-90"
+                        style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                      >
+                        <StarlingMascot size="sm" animate={false} expression="waving" />
+                        Sign Up Free — It's Magic ✨
+                      </Button>
+                      <p className="text-xs text-muted-foreground">No credit card required</p>
+                    </motion.div>
                   </>
                 )}
 
-                {/* Signup CTA */}
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: uploadAnalysis ? 0.8 : 0.3 }}
-                  className="bg-muted/50 border border-border rounded-xl p-5 text-center space-y-3"
-                >
-                  <p className="text-foreground font-semibold">
-                    {uploadAnalysis ? "🎉 Want full step-by-step help for every problem?" : "📸 Try with a clearer photo!"}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {uploadAnalysis
-                      ? "Sign up free and Starling will guide your child through each mistake with Socratic tutoring"
-                      : "Sign up to upload unlimited homework and get personalized AI feedback"}
-                  </p>
-                  <Button
-                    size="lg"
-                    onClick={() => navigate("/signup")}
-                    className="w-full rounded-full py-5 text-lg gap-2 text-white hover:opacity-90"
-                    style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
-                  >
-                    <StarlingMascot size="sm" animate={false} expression="waving" />
-                    Sign Up Free — It's Magic ✨
-                  </Button>
-                  <p className="text-xs text-muted-foreground">No credit card required</p>
-                </motion.div>
               </div>
             </ScrollArea>
           </motion.div>
