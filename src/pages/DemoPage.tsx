@@ -263,20 +263,49 @@ const DemoPage: React.FC = () => {
                 </p>
               </motion.div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Connecting dotted line on desktop */}
+                <div className="hidden sm:block absolute top-1/2 left-[calc(33%+8px)] right-[calc(33%+8px)] -translate-y-1/2 z-0 pointer-events-none">
+                  <div className="w-full border-t-2 border-dashed border-primary/25" />
+                </div>
+
                 {[
-                  { icon: "📸", title: "Upload homework photos", desc: "Snap a photo and get instant feedback" },
-                  { icon: "💬", title: "Clear AI explanations", desc: "Patient, step-by-step help every time" },
-                  { icon: "📈", title: "Personalized practice", desc: "Build skills with targeted exercises" },
+                  {
+                    num: "1",
+                    icon: (
+                      <span className="relative inline-block">
+                        <span className="text-4xl">📸</span>
+                        <span className="absolute -top-1 -right-2 text-lg">✨</span>
+                      </span>
+                    ),
+                    title: "Snap any homework",
+                    desc: "Photo, PDF, or worksheet — Starling reads it instantly",
+                  },
+                  {
+                    num: "2",
+                    icon: <StarlingMascot size="sm" animate expression="happy" />,
+                    title: "Starling explains every tricky one",
+                    desc: "Step-by-step, visual, patient — like a tutor sitting right there",
+                  },
+                  {
+                    num: "3",
+                    icon: <span className="text-4xl">⭐</span>,
+                    title: "Gets smarter for your child",
+                    desc: "Tracks progress and focuses on exactly what they need",
+                  },
                 ].map((feature, i) => (
                   <motion.div
                     key={feature.title}
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 + i * 0.1 }}
-                    className="bg-card border border-border rounded-2xl p-5 text-center space-y-2 shadow-soft"
+                    className="relative bg-card border border-primary/20 rounded-2xl p-5 text-center space-y-2 shadow-soft z-10"
                   >
-                    <span className="text-3xl block">{feature.icon}</span>
+                    {/* Number badge */}
+                    <div className="absolute -top-3 -left-3 w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shadow-soft">
+                      {feature.num}
+                    </div>
+                    <div className="flex justify-center">{feature.icon}</div>
                     <h3 className="font-bold text-foreground text-sm">{feature.title}</h3>
                     <p className="text-xs text-muted-foreground">{feature.desc}</p>
                   </motion.div>
