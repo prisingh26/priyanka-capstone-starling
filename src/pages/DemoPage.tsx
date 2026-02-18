@@ -378,7 +378,7 @@ const DemoPage: React.FC = () => {
                     whileTap={{ scale: 0.97 }}
                   >
                     <StarlingMascot size="sm" animate={false} expression="happy" />
-                    Give it to Starling
+                    Let Starling work the magic! ✨
                   </motion.button>
                 </motion.div>
               )}
@@ -449,7 +449,7 @@ const DemoPage: React.FC = () => {
                 style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
               >
                 <StarlingMascot size="sm" animate={false} expression="happy" />
-                Give it to Starling
+                Let Starling work the magic! ✨
               </Button>
             </Card>
           </motion.div>
