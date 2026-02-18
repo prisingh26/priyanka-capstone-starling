@@ -23,6 +23,7 @@ const TutoringSequence: React.FC<TutoringSequenceProps> = ({ problems, incorrect
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedIndices, setCompletedIndices] = useState<number[]>([]);
   const [sequenceDone, setSequenceDone] = useState(false);
+  const [autoAdvanceTimer, setAutoAdvanceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   if (incorrectProblems.length === 0) return null;
 
@@ -34,15 +35,27 @@ const TutoringSequence: React.FC<TutoringSequenceProps> = ({ problems, incorrect
     if (!completedIndices.includes(currentIndex)) {
       setCompletedIndices(prev => [...prev, currentIndex]);
     }
+    // Auto-advance after 1.5s pause
+    const t = setTimeout(() => {
+      if (isLastProblem) {
+        setSequenceDone(true);
+      } else {
+        setCurrentIndex(i => i + 1);
+      }
+    }, 1500);
+    setAutoAdvanceTimer(t);
   };
 
   const handleNextProblem = () => {
+    // Manual skip — cancel any pending auto-advance
+    if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
     if (isLastProblem) {
       setSequenceDone(true);
     } else {
       setCurrentIndex(i => i + 1);
     }
   };
+
 
   return (
     <motion.div
