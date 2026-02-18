@@ -70,7 +70,7 @@ const TutoringSequence: React.FC<TutoringSequenceProps> = ({ problems, incorrect
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-muted-foreground">
-                  Tricky one {currentIndex + 1} of {incorrectProblems.length}
+                  {currentIndex + 1} of {incorrectProblems.length}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {completedIndices.length} fixed ✓
