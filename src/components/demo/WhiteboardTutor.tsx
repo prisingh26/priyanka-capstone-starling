@@ -492,35 +492,48 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
 // ── Main WhiteboardTutor ───────────────────────────────────────────────────
 const TOTAL_STEPS = 6;
 const STEP_DURATION_MS = 2600; // 2.6s per step
+const STARTUP_DELAY_MS = 350;  // wait for reset to settle before first auto-advance
 
 const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, totalSteps, onComplete, onExit }) => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [currentStep, setCurrentStep] = useState(0); // 0 = not started yet
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false); // don't start until startup delay done
   const [showConfetti, setShowConfetti] = useState(false);
   const [showNextButton, setShowNextButton] = useState(false);
   const parsed = parseMath(problem.question, problem.correctAnswer);
 
   // Word-problem step state
   const WORD_STEPS = 4;
-  const [wordStep, setWordStep] = useState(1);
-  const [wordAutoPlaying, setWordAutoPlaying] = useState(true);
+  const [wordStep, setWordStep] = useState(0); // 0 = not started yet
+  const [wordAutoPlaying, setWordAutoPlaying] = useState(false);
   const [wordDone, setWordDone] = useState(false);
 
-  // Reset on new problem
+  // Full reset + startup delay whenever the problem changes (stepIndex is the most reliable dep)
   useEffect(() => {
-    setCurrentStep(1);
-    setIsAutoPlaying(true);
+    // Hard reset everything synchronously
+    setCurrentStep(0);
+    setIsAutoPlaying(false);
     setShowConfetti(false);
     setShowNextButton(false);
-    setWordStep(1);
-    setWordAutoPlaying(true);
+    setWordStep(0);
+    setWordAutoPlaying(false);
     setWordDone(false);
-  }, [problem.question]);
+
+    // After a short pause, kick off step 1
+    const startTimer = setTimeout(() => {
+      setCurrentStep(1);
+      setWordStep(1);
+      setIsAutoPlaying(true);
+      setWordAutoPlaying(true);
+    }, STARTUP_DELAY_MS);
+
+    return () => clearTimeout(startTimer);
+  }, [stepIndex]); // stepIndex changes for every new problem — most reliable key
 
   // Auto-play for arithmetic
   useEffect(() => {
     if (!parsed) return;
     if (!isAutoPlaying) return;
+    if (currentStep === 0) return; // not started yet
     if (currentStep >= TOTAL_STEPS) {
       setIsAutoPlaying(false);
       // Small delay before showing confetti/next
@@ -536,16 +549,17 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
   useEffect(() => {
     if (parsed) return; // only for word problems
     if (!wordAutoPlaying) return;
+    if (wordStep === 0) return; // not started yet
     if (wordStep >= WORD_STEPS) {
       setWordAutoPlaying(false);
-      const t1 = setTimeout(() => setWordDone(true), 200);
+      const t1 = setTimeout(() => setWordDone(true), 1000); // 1s celebration pause before button
       return () => clearTimeout(t1);
     }
     const t = setTimeout(() => setWordStep(s => Math.min(s + 1, WORD_STEPS)), STEP_DURATION_MS);
     return () => clearTimeout(t);
   }, [wordAutoPlaying, wordStep, parsed]);
 
-  const isDone = currentStep >= TOTAL_STEPS;
+  const isDone = currentStep >= TOTAL_STEPS && currentStep > 0;
   const stepLabel = parsed && currentStep > 0 ? buildStepLabel(Math.min(currentStep, TOTAL_STEPS), parsed) : "";
   const encouragement = getEncouragementMessage(problem.errorType, false);
 
