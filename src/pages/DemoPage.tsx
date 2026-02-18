@@ -42,10 +42,8 @@ async function convertPdfToJpeg(file: File): Promise<string> {
   canvas.height = viewport.height;
   const ctx = canvas.getContext("2d")!;
   await page.render({ canvasContext: ctx, viewport, canvas }).promise;
-  // Return raw base64 — strip the data URI prefix before sending to API
   return canvas.toDataURL("image/jpeg", 0.9).replace(/^data:[^;]+;base64,/, "");
 }
-
 
 async function convertImageToJpeg(file: File, maxWidth = 0): Promise<string> {
   return new Promise((resolve) => {
@@ -72,14 +70,19 @@ async function convertImageToJpeg(file: File, maxWidth = 0): Promise<string> {
 interface UploadAnalysis {
   subject?: string;
   topic?: string;
-  // API returns camelCase
   totalProblems?: number;
   correctAnswers?: number;
-  // fallback snake_case
   total_problems?: number;
   correct_answers?: number;
   encouragement?: string;
-  problems: Array<{ question: string; studentAnswer: string; correctAnswer: string; isCorrect: boolean; errorType?: string; rootCause?: string }>;
+  problems: Array<{
+    question: string;
+    studentAnswer: string;
+    correctAnswer: string;
+    isCorrect: boolean;
+    errorType?: string;
+    rootCause?: string;
+  }>;
 }
 
 const FUN_UPLOAD_MESSAGES = [
@@ -94,112 +97,17 @@ const DemoPage: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<DemoStep>("problem");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [uploadAnalysis, setUploadAnalysis] = useState<UploadAnalysis | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadMsgIndex, setUploadMsgIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-
-
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setUploadedFile(file);
-  };
-
-  const handleGiveToStarling = async () => {
-    if (!uploadedFile) return;
-    setStep("upload-loading");
-    setUploadError(null);
-    setUploadMsgIndex(0);
-
-    console.log("[Demo] Starting upload. File:", uploadedFile.name, uploadedFile.type, uploadedFile.size);
-
-    try {
-      let body: Record<string, unknown>;
-
-      if (isWordFile(uploadedFile)) {
-        console.log("[Demo] Processing as Word doc");
-        const arrayBuffer = await uploadedFile.arrayBuffer();
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        body = { textContent: result.value.trim() };
-        console.log("[Demo] Word text length:", result.value.length);
-      } else if (uploadedFile.type === "application/pdf") {
-        console.log("[Demo] Processing as PDF");
-        const jpeg = await convertPdfToJpeg(uploadedFile);
-        console.log("[Demo] PDF converted, base64 length:", jpeg.length, "starts with:", jpeg.substring(0, 30));
-        body = { imageBase64: jpeg };
-      } else {
-        console.log("[Demo] Processing as image");
-        const jpeg = await convertImageToJpeg(uploadedFile, 1600);
-        console.log("[Demo] Image converted, raw output starts with:", jpeg.substring(0, 40));
-        const raw = jpeg.replace(/^data:[^;]+;base64,/, "");
-        console.log("[Demo] After strip, base64 starts with:", raw.substring(0, 30), "length:", raw.length);
-        body = { imageBase64: raw };
-      }
-
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-      const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-      console.log("[Demo] Calling analyze-homework. URL defined:", !!SUPABASE_URL, "Key defined:", !!ANON_KEY);
-
-      const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/analyze-homework`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${ANON_KEY}`,
-            "apikey": ANON_KEY,
-          },
-          body: JSON.stringify(body),
-        }
-      );
-
-      console.log("[Demo] Response status:", response.status);
-
-      let data: any;
-      try {
-        data = await response.json();
-      } catch (parseErr) {
-        console.error("[Demo] Failed to parse response JSON:", parseErr);
-        setUploadError("Starling had trouble reading that. Try a clearer photo! 📸");
-        setStep("upload-results");
-        return;
-      }
-
-      console.log("[Demo] Response data:", JSON.stringify(data).substring(0, 200));
-
-      if (!response.ok) {
-        console.error("[Demo] Non-OK response:", response.status, data);
-        setUploadError(data?.message || "Starling had trouble reading that. Try a clearer photo! 📸");
-        setStep("upload-results");
-        return;
-      }
-
-      if (!data.problems?.length) {
-        console.warn("[Demo] No problems in response. Keys:", Object.keys(data));
-        setUploadError("This doesn't look like homework — try uploading a worksheet or assignment! 📝");
-        setStep("upload-results");
-        return;
-      }
-
-      console.log("[Demo] Success! Problems:", data.problems.length);
-      setUploadAnalysis(data as UploadAnalysis);
-      setStep("upload-results");
-    } catch (err) {
-      console.error("[Demo] CAUGHT ERROR:", err instanceof Error ? err.message : String(err), err);
-      setUploadError("Something went wrong. Please try again!");
-      setStep("upload-results");
-    }
-  };
-
-  // Socratic sub-steps within "results"
+  // Socratic demo sub-steps
   const [socraticStep, setSocraticStep] = useState(1);
   const [userChoice, setUserChoice] = useState<string | null>(null);
   const [retryAnswer, setRetryAnswer] = useState<string | null>(null);
-  const [showDiagramStep, setShowDiagramStep] = useState(0); // 0=cats only, 1=connecting, 2=full
-
+  const [showDiagramStep, setShowDiagramStep] = useState(0);
 
   // Cycle upload loading messages
   useEffect(() => {
@@ -219,15 +127,93 @@ const DemoPage: React.FC = () => {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [socraticStep]);
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      if (file.type.startsWith("image/")) {
+        setUploadedImageUrl(URL.createObjectURL(file));
+      } else {
+        setUploadedImageUrl(null);
+      }
+    }
+  };
+
+  const handleGiveToStarling = async () => {
+    if (!uploadedFile) return;
+    setStep("upload-loading");
+    setUploadError(null);
+    setUploadMsgIndex(0);
+
+    try {
+      let body: Record<string, unknown>;
+
+      if (isWordFile(uploadedFile)) {
+        const arrayBuffer = await uploadedFile.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        body = { textContent: result.value.trim() };
+      } else if (uploadedFile.type === "application/pdf") {
+        const jpeg = await convertPdfToJpeg(uploadedFile);
+        body = { imageBase64: jpeg };
+      } else {
+        const jpeg = await convertImageToJpeg(uploadedFile, 1600);
+        const raw = jpeg.replace(/^data:[^;]+;base64,/, "");
+        body = { imageBase64: raw };
+      }
+
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/analyze-homework`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${ANON_KEY}`,
+            "apikey": ANON_KEY,
+          },
+          body: JSON.stringify(body),
+        }
+      );
+
+      let data: any;
+      try {
+        data = await response.json();
+      } catch {
+        setUploadError("Starling had trouble reading that. Try a clearer photo! 📸");
+        setStep("upload-results");
+        return;
+      }
+
+      if (!response.ok) {
+        setUploadError(data?.message || "Starling had trouble reading that. Try a clearer photo! 📸");
+        setStep("upload-results");
+        return;
+      }
+
+      if (!data.problems?.length) {
+        setUploadError("This doesn't look like homework — try uploading a worksheet or assignment! 📝");
+        setStep("upload-results");
+        return;
+      }
+
+      setUploadAnalysis(data as UploadAnalysis);
+      setStep("upload-results");
+    } catch (err) {
+      console.error("[Demo] Error:", err);
+      setUploadError("Something went wrong. Please try again!");
+      setStep("upload-results");
+    }
+  };
+
   const handleUserChoice = (choice: string) => {
     setUserChoice(choice);
-    // Auto-advance to step 4 after a brief pause
     setTimeout(() => setSocraticStep(4), 1200);
   };
 
   const handleRetryAnswer = (label: string) => {
     setRetryAnswer(label);
-    // Auto-advance to reveal after brief pause
     setTimeout(() => setSocraticStep(6), 1500);
   };
 
@@ -255,7 +241,8 @@ const DemoPage: React.FC = () => {
       </nav>
 
       <AnimatePresence mode="wait">
-        {/* ===== STEP 1: SHOW PROBLEM ===== */}
+
+        {/* ===== STEP 1: UPLOAD / WELCOME ===== */}
         {step === "problem" && (
           <motion.div
             key="problem"
@@ -264,14 +251,11 @@ const DemoPage: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             className="container mx-auto px-4 py-8 max-w-2xl"
           >
-            {/* Welcome Section */}
             <div className="text-center space-y-8 mb-10">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <div className="flex justify-center mb-4"><StarlingMascot size="lg" animate expression="waving" /></div>
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                <div className="flex justify-center mb-4">
+                  <StarlingMascot size="lg" animate expression="waving" />
+                </div>
                 <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-snug">
                   Hi! I'm <span className="text-gradient-primary">Starling</span>, your child's new learning buddy!
                 </h1>
@@ -299,7 +283,6 @@ const DemoPage: React.FC = () => {
                   </motion.div>
                 ))}
               </div>
-
             </div>
 
             {/* Upload CTA */}
@@ -349,7 +332,11 @@ const DemoPage: React.FC = () => {
                       </p>
                     </div>
                     <button
-                      onClick={() => { setUploadedFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                      onClick={() => {
+                        setUploadedFile(null);
+                        setUploadedImageUrl(null);
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
                       className="text-muted-foreground hover:text-foreground transition-colors text-xs font-medium px-2 py-1 rounded-lg hover:bg-muted"
                     >
                       ✕
@@ -376,7 +363,7 @@ const DemoPage: React.FC = () => {
             </motion.div>
 
             {/* Sample Problem */}
-            <Card id="demo-problem" className="p-6 md:p-8 space-y-6">
+            <Card id="demo-problem" className="p-6 md:p-8 space-y-6 mt-4">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">🐱</span>
                 <div>
@@ -440,7 +427,7 @@ const DemoPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* ===== LOADING TRANSITION ===== */}
+        {/* ===== LOADING ===== */}
         {step === "loading" && (
           <motion.div
             key="loading"
@@ -450,15 +437,8 @@ const DemoPage: React.FC = () => {
             className="container mx-auto px-4 py-8 max-w-2xl flex flex-col items-center justify-center min-h-[60vh] gap-6"
           >
             <motion.div
-              animate={{
-                y: [0, -14, 0],
-                rotate: [0, 15, -15, 0],
-              }}
-              transition={{
-                duration: 1.2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
+              animate={{ y: [0, -14, 0], rotate: [0, 15, -15, 0] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
             >
               <StarlingMascot size="lg" animate expression="thinking" />
             </motion.div>
@@ -484,8 +464,7 @@ const DemoPage: React.FC = () => {
           </motion.div>
         )}
 
-
-        {/* ===== STEP 3: SOCRATIC GUIDED RESULTS ===== */}
+        {/* ===== SOCRATIC RESULTS (sample problem) ===== */}
         {step === "results" && (
           <motion.div
             key="results"
@@ -495,15 +474,10 @@ const DemoPage: React.FC = () => {
             transition={{ type: "spring", stiffness: 200, damping: 25 }}
             className="container mx-auto px-4 py-6 max-w-2xl"
           >
-            {/* Socratic callout badge */}
             <ScrollArea className="h-[calc(100vh-180px)]">
               <div className="space-y-5 pr-2">
 
-                {/* ── Socratic Step 1: Show incorrect answer, no correct answer ── */}
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
+                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
                   <Card className="p-5 space-y-4">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">🐱</span>
@@ -525,13 +499,8 @@ const DemoPage: React.FC = () => {
                   </Card>
                 </motion.div>
 
-                {/* ── Socratic Step 2: Starling asks a guiding question ── */}
                 {socraticStep >= 2 ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex gap-3"
-                  >
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
                     <div className="flex-shrink-0 mt-1">
                       <StarlingMascot size="sm" animate={false} expression="happy" />
                     </div>
@@ -539,57 +508,21 @@ const DemoPage: React.FC = () => {
                       <p className="text-foreground text-lg leading-relaxed">
                         Hmm, interesting guess! Let me ask you this — does each mouse have to belong to <strong>only ONE</strong> cat? Or could a mouse be friends with <strong>more than one</strong> cat? 🤔
                       </p>
-                      
-                      {/* Animated "Think about it" section */}
                       <div className="flex items-center gap-3 pt-2">
-                        <motion.div
-                          className="flex gap-1.5 items-center"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.5 }}
-                        >
-                          <motion.span
-                            animate={{ rotate: [0, 15, -15, 15, 0], scale: [1, 1.2, 1, 1.2, 1] }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                            className="text-2xl"
-                          >
-                            🤔
-                          </motion.span>
-                          <motion.span
-                            className="text-primary font-bold italic text-base"
-                            animate={{ opacity: [0.5, 1, 0.5] }}
-                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                          >
-                            Think about it
-                          </motion.span>
+                        <motion.div className="flex gap-1.5 items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+                          <motion.span animate={{ rotate: [0, 15, -15, 15, 0], scale: [1, 1.2, 1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} className="text-2xl">🤔</motion.span>
+                          <motion.span className="text-primary font-bold italic text-base" animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}>Think about it</motion.span>
                           <motion.div className="flex gap-1 ml-1">
                             {[0, 1, 2].map((i) => (
-                              <motion.span
-                                key={i}
-                                className="w-2 h-2 rounded-full bg-primary"
-                                animate={{ y: [0, -6, 0], opacity: [0.3, 1, 0.3] }}
-                                transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
-                              />
+                              <motion.span key={i} className="w-2 h-2 rounded-full bg-primary" animate={{ y: [0, -6, 0], opacity: [0.3, 1, 0.3] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }} />
                             ))}
                           </motion.div>
-                          <motion.span
-                            animate={{ rotate: [0, 360] }}
-                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                            className="text-lg ml-1"
-                          >
-                            ✨
-                          </motion.span>
                         </motion.div>
                       </div>
                     </div>
                   </motion.div>
                 ) : (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.0 }}
-                    className="text-center"
-                  >
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0 }} className="text-center">
                     <Button
                       onClick={() => setSocraticStep(2)}
                       className="rounded-full px-6 py-5 text-base gap-2 text-white hover:opacity-90 transition-opacity"
@@ -601,26 +534,15 @@ const DemoPage: React.FC = () => {
                   </motion.div>
                 )}
 
-                {/* ── Socratic Step 3: User interaction — choose ── */}
                 {socraticStep >= 3 && socraticStep < 4 && !userChoice && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-3"
-                  >
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
                     <p className="text-sm font-semibold text-muted-foreground text-center">What do you think?</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <button
-                        onClick={() => handleUserChoice("one")}
-                        className="p-4 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-primary/5 transition-all text-left space-y-1"
-                      >
+                      <button onClick={() => handleUserChoice("one")} className="p-4 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-primary/5 transition-all text-left space-y-1">
                         <p className="font-semibold text-foreground text-sm">🐭 One cat only</p>
                         <p className="text-xs text-muted-foreground">A mouse can only be friends with one cat</p>
                       </button>
-                      <button
-                        onClick={() => handleUserChoice("multiple")}
-                        className="p-4 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-primary/5 transition-all text-left space-y-1"
-                      >
+                      <button onClick={() => handleUserChoice("multiple")} className="p-4 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-primary/5 transition-all text-left space-y-1">
                         <p className="font-semibold text-foreground text-sm">🐭🐱🐱 Multiple cats</p>
                         <p className="text-xs text-muted-foreground">A mouse can be friends with more than one cat</p>
                       </button>
@@ -628,115 +550,54 @@ const DemoPage: React.FC = () => {
                   </motion.div>
                 )}
 
-                {/* Show user's choice */}
                 {userChoice && socraticStep >= 3 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex justify-end"
-                  >
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
                     <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-tr-md p-4 max-w-sm">
-                      <p className="text-sm">
-                        {userChoice === "multiple"
-                          ? "I think a mouse can be friends with multiple cats!"
-                          : "I think a mouse can only be friends with one cat."}
-                      </p>
+                      <p className="text-sm">{userChoice === "multiple" ? "I think a mouse can be friends with multiple cats!" : "I think a mouse can only be friends with one cat."}</p>
                     </div>
                   </motion.div>
                 )}
 
-                {/* ── Socratic Step 2→3 auto-advance ── */}
                 {socraticStep === 2 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.5 }}
-                    className="flex flex-col sm:flex-row gap-3 justify-center items-center"
-                  >
-                    <Button
-                      onClick={() => setSocraticStep(3)}
-                      className="rounded-full px-6 text-white hover:opacity-90 transition-opacity"
-                      style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
-                    >
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                    <Button onClick={() => setSocraticStep(3)} className="rounded-full px-6 text-white hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}>
                       I'm ready to answer! 💪
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setSocraticStep(3)}
-                      className="rounded-full px-6"
-                    >
+                    <Button variant="outline" onClick={() => setSocraticStep(3)} className="rounded-full px-6">
                       One more hint please 🤔
                     </Button>
                   </motion.div>
                 )}
 
-                {/* ── Socratic Step 4: Visual hint — diagram builds up ── */}
                 {socraticStep >= 4 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex gap-3"
-                  >
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
                     <div className="flex-shrink-0 mt-1">
                       <StarlingMascot size="sm" animate={false} expression="happy" />
                     </div>
                     <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-5 space-y-4 flex-1">
                       <p className="text-foreground font-semibold">
-                        {userChoice === "multiple"
-                          ? "Great thinking! 🎉 Let's explore together and see what happens!"
-                          : "Interesting idea! Let's explore together and test it out!"}
+                        {userChoice === "multiple" ? "Great thinking! 🎉 Let's explore together and see what happens!" : "Interesting idea! Let's explore together and test it out!"}
                       </p>
-
-                      {/* Cats appear first */}
                       <div className="relative flex flex-col items-center gap-2 py-4">
                         <div className="flex gap-10 justify-center">
                           {["Cat 1", "Cat 2", "Cat 3"].map((cat, i) => (
-                            <motion.div
-                              key={cat}
-                              initial={{ opacity: 0, scale: 0.5 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: i * 0.15 }}
-                              className="text-center"
-                            >
+                            <motion.div key={cat} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.15 }} className="text-center">
                               <span className="text-4xl">🐱</span>
                               <p className="text-xs text-muted-foreground mt-1">{cat}</p>
                             </motion.div>
                           ))}
                         </div>
-
-                        {/* Step-by-step prompt */}
                         {showDiagramStep === 0 && (
-                          <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.6 }}
-                            className="text-sm text-muted-foreground text-center mt-3"
-                          >
+                          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="text-sm text-muted-foreground text-center mt-3">
                             Here are our 3 cats. Each needs 2 mouse friends...
                           </motion.p>
                         )}
-
-                        {/* Ask about connecting */}
                         {showDiagramStep >= 1 && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="w-full space-y-3"
-                          >
-                            <p className="text-sm text-foreground text-center font-medium">
-                              What if we connect Mouse A to Cat 1 <strong>AND</strong> Cat 2? 🤔
-                            </p>
-
-                            {/* Partial diagram with mice */}
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full space-y-3">
+                            <p className="text-sm text-foreground text-center font-medium">What if we connect Mouse A to Cat 1 <strong>AND</strong> Cat 2? 🤔</p>
                             <div className="flex gap-12 justify-center mt-2">
                               {["Mouse A", "Mouse B"].map((mouse, i) => (
-                                <motion.div
-                                  key={mouse}
-                                  initial={{ opacity: 0, scale: 0.5 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{ delay: i * 0.2 }}
-                                  className="text-center bg-success/10 rounded-xl px-5 py-3 border border-success/30"
-                                >
+                                <motion.div key={mouse} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.2 }} className="text-center bg-success/10 rounded-xl px-5 py-3 border border-success/30">
                                   <span className="text-4xl">🐭</span>
                                   <p className="text-xs text-success font-bold mt-1">{mouse}</p>
                                 </motion.div>
@@ -744,21 +605,9 @@ const DemoPage: React.FC = () => {
                             </div>
                           </motion.div>
                         )}
-
-                        {/* Full connections */}
                         {showDiagramStep >= 2 && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="w-full"
-                          >
-                            <motion.svg
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              viewBox="0 0 300 60"
-                              className="w-full max-w-xs h-16 mx-auto"
-                              fill="none"
-                            >
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full">
+                            <motion.svg initial={{ opacity: 0 }} animate={{ opacity: 1 }} viewBox="0 0 300 60" className="w-full max-w-xs h-16 mx-auto" fill="none">
                               <line x1="50" y1="0" x2="100" y2="60" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 3" />
                               <line x1="50" y1="0" x2="200" y2="60" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 3" />
                               <line x1="150" y1="0" x2="100" y2="60" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 3" />
@@ -766,16 +615,8 @@ const DemoPage: React.FC = () => {
                               <line x1="250" y1="0" x2="100" y2="60" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 3" />
                               <line x1="250" y1="0" x2="200" y2="60" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 3" />
                             </motion.svg>
-
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: 0.5 }}
-                              className="bg-warning/10 border border-warning/30 rounded-xl p-3 text-center mt-3"
-                            >
-                              <p className="text-sm text-foreground font-medium">
-                                ✏️ Count the lines — does every cat still have exactly 2 mouse friends?
-                              </p>
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="bg-warning/10 border border-warning/30 rounded-xl p-3 text-center mt-3">
+                              <p className="text-sm text-foreground font-medium">✏️ Count the lines — does every cat still have exactly 2 mouse friends?</p>
                             </motion.div>
                           </motion.div>
                         )}
@@ -784,163 +625,76 @@ const DemoPage: React.FC = () => {
                   </motion.div>
                 )}
 
-                {/* ── Socratic Step 4→5 transition ── */}
                 {socraticStep === 4 && showDiagramStep >= 2 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.0 }}
-                    className="text-center"
-                  >
-                    <Button
-                      onClick={() => setSocraticStep(5)}
-                      className="rounded-full px-6 text-white hover:opacity-90 transition-opacity"
-                      style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
-                    >
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0 }} className="text-center">
+                    <Button onClick={() => setSocraticStep(5)} className="rounded-full px-6 text-white hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}>
                       I think I know the answer now!
                     </Button>
                   </motion.div>
                 )}
 
-                {/* ── Socratic Step 5: Let them answer again ── */}
                 {socraticStep === 5 && !retryAnswer && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-4"
-                  >
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                     <div className="flex gap-3">
-                      <div className="flex-shrink-0 mt-1">
-                        <StarlingMascot size="sm" animate={false} expression="encouraging" />
-                      </div>
+                      <div className="flex-shrink-0 mt-1"><StarlingMascot size="sm" animate={false} expression="encouraging" /></div>
                       <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-4 flex-1">
-                        <p className="text-foreground">
-                          Now that you've explored the diagram, what do you think the <strong>smallest</strong> number of mice is? Try again! 💪
-                        </p>
+                        <p className="text-foreground">Now that you've explored the diagram, what do you think the <strong>smallest</strong> number of mice is? Try again! 💪</p>
                       </div>
                     </div>
-
                     <div className="grid grid-cols-5 gap-3">
                       {answerOptions.map((opt) => (
-                        <button
-                          key={opt.label}
-                          onClick={() => handleRetryAnswer(opt.label)}
-                          className="rounded-xl p-3 text-center border-2 border-border bg-card hover:border-primary hover:bg-primary/5 transition-all"
-                        >
+                        <button key={opt.label} onClick={() => handleRetryAnswer(opt.label)} className="rounded-xl p-3 text-center border-2 border-border bg-card hover:border-primary hover:bg-primary/5 transition-all">
                           <p className="text-xs text-muted-foreground font-medium">({opt.label})</p>
                           <p className="text-xl font-bold text-foreground">{opt.value}</p>
                         </button>
                       ))}
                     </div>
-
-                    {/* Still not sure option */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 2.0 }}
-                      className="text-center pt-2"
-                    >
-                      <button
-                        onClick={() => {
-                          setRetryAnswer("hint");
-                          setSocraticStep(6);
-                        }}
-                        className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-4"
-                      >
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.0 }} className="text-center pt-2">
+                      <button onClick={() => { setRetryAnswer("hint"); setSocraticStep(6); }} className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
                         Hmm, I'm still not sure... 🤔
                       </button>
                     </motion.div>
                   </motion.div>
                 )}
 
-                {/* Show retry choice */}
                 {retryAnswer && socraticStep >= 5 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex justify-end"
-                  >
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
                     <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-tr-md p-4">
-                      <p className="text-sm">
-                        My answer: ({retryAnswer}) {answerOptions.find(o => o.label === retryAnswer)?.value}
-                      </p>
+                      <p className="text-sm">My answer: ({retryAnswer}) {answerOptions.find(o => o.label === retryAnswer)?.value}</p>
                     </div>
                   </motion.div>
                 )}
 
-                {/* ── Socratic Step 6: Reveal ── */}
                 {socraticStep >= 6 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex gap-3"
-                  >
-                    <div className="flex-shrink-0 mt-1">
-                      <StarlingMascot size="sm" animate={false} expression="excited" />
-                    </div>
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
+                    <div className="flex-shrink-0 mt-1"><StarlingMascot size="sm" animate={false} expression="excited" /></div>
                     <div className="space-y-3 flex-1">
                       {retryAnswer === "A" ? (
                         <div className="bg-success/10 border border-success/30 rounded-2xl rounded-tl-md p-5">
                           <p className="text-success font-bold text-lg">🎉 Amazing! You got it!</p>
-                          <p className="text-foreground text-sm mt-2">
-                            The answer is <strong>(A) 2 mice</strong>. Since mice can be shared between cats, just 2 mice can each be friends with all 3 cats — and every cat still has exactly 2 mouse friends!
-                          </p>
-                          <p className="text-muted-foreground text-sm mt-2 italic">
-                            See? You figured it out yourself! That's the Starling way. ⭐
-                          </p>
+                          <p className="text-foreground text-sm mt-2">The answer is <strong>(A) 2 mice</strong>. Since mice can be shared between cats, just 2 mice can each be friends with all 3 cats — and every cat still has exactly 2 mouse friends!</p>
+                          <p className="text-muted-foreground text-sm mt-2 italic">See? You figured it out yourself! That's the Starling way. ⭐</p>
                         </div>
                       ) : retryAnswer === "hint" ? (
                         <div className="space-y-3">
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="bg-primary/10 border border-primary/20 rounded-2xl rounded-tl-md p-5"
-                          >
-                            <div className="flex items-center gap-2 mb-2">
-                              <motion.span
-                                animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
-                                transition={{ duration: 1.5, repeat: 2 }}
-                                className="text-2xl"
-                              >
-                                💡
-                              </motion.span>
-                              <p className="text-foreground font-bold text-lg">I think I know the answer now!</p>
-                            </div>
-                            <p className="text-foreground text-sm mt-1">
-                              No worries — this one's tricky! Let me walk you through it step by step...
-                            </p>
-                            <p className="text-foreground text-sm mt-3">
-                              Look at the diagram: Mouse A is friends with <strong>all 3 cats</strong>, and Mouse B is <em>also</em> friends with <strong>all 3 cats</strong>. So every cat has exactly 2 mouse friends — and we only needed…
-                            </p>
-                          </motion.div>
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 1.0 }}
-                            className="bg-success/10 border border-success/30 rounded-2xl rounded-tl-md p-5"
-                          >
+                          <div className="bg-primary/10 border border-primary/20 rounded-2xl rounded-tl-md p-5">
+                            <p className="text-foreground text-sm mt-1">No worries — this one's tricky! Look at the diagram: Mouse A is friends with <strong>all 3 cats</strong>, and Mouse B is <em>also</em> friends with <strong>all 3 cats</strong>. So every cat has exactly 2 mouse friends — and we only needed…</p>
+                          </div>
+                          <div className="bg-success/10 border border-success/30 rounded-2xl rounded-tl-md p-5">
                             <p className="text-success font-bold text-lg">✅ Answer: (A) 2 mice!</p>
-                            <p className="text-foreground text-sm mt-2">
-                              Mice can be shared! The trick is that a mouse can be friends with <strong>more than one cat</strong> at the same time. So just 2 mice is enough! 🐭🐭
-                            </p>
-                            <p className="text-muted-foreground text-sm mt-2 italic">
-                              Now you know the trick — next time, you'll get it! That's the Starling way. ⭐
-                            </p>
-                          </motion.div>
+                            <p className="text-foreground text-sm mt-2">Mice can be shared! The trick is that a mouse can be friends with <strong>more than one cat</strong> at the same time.</p>
+                            <p className="text-muted-foreground text-sm mt-2 italic">Now you know the trick — next time, you'll get it! That's the Starling way. ⭐</p>
+                          </div>
                         </div>
                       ) : (
                         <div className="space-y-3">
                           <div className="bg-warning/10 border border-warning/30 rounded-2xl rounded-tl-md p-5">
                             <p className="text-foreground font-semibold">Almost there! 💪</p>
-                            <p className="text-foreground text-sm mt-2">
-                              Look at the diagram again — both Mouse A and Mouse B are connected to <strong>all 3 cats</strong>. That means every cat has exactly 2 mouse friends, and we only needed…
-                            </p>
+                            <p className="text-foreground text-sm mt-2">Look at the diagram again — both Mouse A and Mouse B are connected to <strong>all 3 cats</strong>. That means every cat has exactly 2 mouse friends, and we only needed…</p>
                           </div>
                           <div className="bg-success/10 border border-success/30 rounded-2xl rounded-tl-md p-5">
                             <p className="text-success font-bold text-lg">✅ Answer: (A) 2 mice</p>
-                            <p className="text-foreground text-sm mt-2">
-                              Mice can be shared! 2 mice is enough because each mouse can be friends with multiple cats at the same time.
-                            </p>
+                            <p className="text-foreground text-sm mt-2">Mice can be shared! 2 mice is enough because each mouse can be friends with multiple cats at the same time.</p>
                           </div>
                         </div>
                       )}
@@ -948,30 +702,22 @@ const DemoPage: React.FC = () => {
                   </motion.div>
                 )}
 
-                {/* ── CTA: Upload your own ── */}
                 {socraticStep >= 6 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.0 }}
-                    className="bg-muted/50 border border-border rounded-xl p-5 text-center space-y-3"
-                  >
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }} className="bg-muted/50 border border-border rounded-xl p-5 text-center space-y-3">
                     <p className="text-foreground font-semibold">📸 Want Starling to help your child like this?</p>
                     <p className="text-sm text-muted-foreground">Upload a homework photo and see the magic</p>
-                    <Button
-                      size="lg"
-                      onClick={() => navigate("/signup")}
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-5 text-lg gap-2"
-                    >
+                    <Button size="lg" onClick={() => navigate("/signup")} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-5 text-lg gap-2">
                       <Camera className="w-5 h-5" />
                       Upload Homework Photo
                     </Button>
                   </motion.div>
                 )}
+
               </div>
             </ScrollArea>
           </motion.div>
         )}
+
         {/* ===== UPLOAD LOADING ===== */}
         {step === "upload-loading" && (
           <motion.div
@@ -1013,74 +759,18 @@ const DemoPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* ===== UPLOAD RESULTS ===== */}
+        {/* ===== UPLOAD RESULTS — Linear narrative flow ===== */}
         {step === "upload-results" && (() => {
           const correct = uploadAnalysis ? (uploadAnalysis.correctAnswers ?? uploadAnalysis.correct_answers ?? 0) : 0;
           const total = uploadAnalysis ? (uploadAnalysis.totalProblems ?? uploadAnalysis.total_problems ?? uploadAnalysis.problems.length) : 0;
           const incorrect = total - correct;
           const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
-          const visibleProblems = uploadAnalysis ? uploadAnalysis.problems.slice(0, 5) : [];
-          const hiddenCount = uploadAnalysis ? Math.max(0, uploadAnalysis.problems.length - 5) : 0;
+          const allProblems = uploadAnalysis ? uploadAnalysis.problems : [];
 
-
-          // Score card message
           let scoreEmoji = "💪";
-          let scoreMsg = `Tough worksheet! That's okay — this is exactly what I'm here for. Let's fix these together!`;
-          if (pct >= 78) { scoreEmoji = "🎉"; scoreMsg = `Wow, you're so close to perfect! Just ${incorrect} little thing${incorrect !== 1 ? "s" : ""} to polish!`; }
-          else if (pct >= 44) { scoreEmoji = "🌟"; scoreMsg = `Nice work! You got ${correct} right — let's make sure you nail the rest too!`; }
-
-          // Error-type tip map — index-based so each problem gets a unique tip
-          const errorTipsByType: Record<string, string[]> = {
-            "carrying": [
-              "Oops! Looks like a carrying mistake here. This is one of the most common — super easy to fix once you see the pattern!",
-              "A small carrying slip on this one! Try writing the carry digit above the next column to keep track.",
-              "Carrying tripped things up here. Slow down on that step and it'll click fast!",
-            ],
-            "borrowing": [
-              "Looks like a borrowing slip! It's one of the trickiest steps in subtraction — totally normal.",
-              "Borrowing can be sneaky! Try crossing out and writing the new digit above to stay organised.",
-              "A borrowing hiccup here — happens to everyone. Starling can walk through it step by step!",
-            ],
-            "multiplication": [
-              "Hmm, a small multiplication mix-up. Let's slow down on this one — it'll click fast!",
-              "Looks like a times-table slip! Reviewing that row will make these feel automatic.",
-              "Multiplication tripped things up here — just a bit more practice and it'll stick!",
-            ],
-            "place value": [
-              "Place value tripped things up here. Once that clicks, these become much easier!",
-              "Watch which column the digit lands in — that's the place value trick right there!",
-              "A place value mix-up on this one. Lining up the columns neatly really helps!",
-            ],
-            "addition": [
-              "Small addition hiccup! A quick re-check and this one's totally fixable.",
-              "The numbers got a little mixed up in the addition here — easy to correct!",
-              "Almost! Just a small addition slip — Starling can show the step-by-step fix.",
-            ],
-            "subtraction": [
-              "A subtraction slip — happens to everyone! Let's nail this together.",
-              "Subtraction can trip you up when regrouping is involved. Easy to sort out!",
-              "Just a small subtraction hiccup. Starling loves explaining these step by step!",
-            ],
-            "division": [
-              "Division can be sneaky! This is exactly the kind of thing Starling loves to explain step by step.",
-              "A division mix-up here — let Starling break it down into simple steps!",
-              "Division tripped things up, but it's very fixable with a little guided practice.",
-            ],
-            "default": [
-              "Starling noticed something off here — but it's totally fixable with a little guidance!",
-              "This one needs a small correction — Starling can walk through it together!",
-              "Almost right! Just a small slip that's easy to fix with Starling's help.",
-            ],
-          };
-          const getTip = (errorType: string | undefined, index: number) => {
-            if (!errorType) {
-              const tips = errorTipsByType["default"];
-              return tips[index % tips.length];
-            }
-            const key = Object.keys(errorTipsByType).find(k => k !== "default" && errorType.toLowerCase().includes(k));
-            const tips = errorTipsByType[key ?? "default"];
-            return tips[index % tips.length];
-          };
+          let scoreLine = `I found ${incorrect} mistake${incorrect !== 1 ? "s" : ""} on this worksheet — let me show you exactly how to fix ${incorrect !== 1 ? "each one" : "it"} 👇`;
+          if (incorrect === 0) { scoreEmoji = "🎉"; scoreLine = "Perfect score! Every answer is correct — amazing work! 🌟"; }
+          else if (pct >= 78) { scoreEmoji = "🌟"; scoreLine = `So close to perfect! I found ${incorrect} little thing${incorrect !== 1 ? "s" : ""} to polish — let me walk you through ${incorrect !== 1 ? "them" : "it"} 👇`; }
 
           return (
             <motion.div
@@ -1092,29 +782,18 @@ const DemoPage: React.FC = () => {
               className="container mx-auto px-4 py-6 max-w-2xl"
             >
               <ScrollArea className="h-[calc(100vh-120px)]">
-                <div className="space-y-5 pr-2">
+                <div className="space-y-6 pr-2">
 
                   {/* Error state */}
                   {uploadError && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex gap-3 items-start"
-                    >
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3 items-start">
                       <div className="flex-shrink-0 mt-1">
                         <StarlingMascot size="sm" animate={false} expression="thinking" />
                       </div>
                       <div className="flex-1 bg-muted/60 rounded-2xl rounded-tl-md p-4">
-                        <p className="text-foreground font-semibold text-sm">
-                          Hmm, I had trouble reading that — try a clearer photo! 📸
-                        </p>
+                        <p className="text-foreground font-semibold text-sm">Hmm, I had trouble reading that — try a clearer photo! 📸</p>
                         <button
-                          onClick={() => {
-                            setStep("problem");
-                            setUploadedFile(null);
-                            setUploadError(null);
-                            if (fileInputRef.current) fileInputRef.current.value = "";
-                          }}
+                          onClick={() => { setStep("problem"); setUploadedFile(null); setUploadedImageUrl(null); setUploadError(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
                           className="mt-2 text-xs text-primary font-semibold hover:underline underline-offset-4 transition-colors"
                         >
                           ↩ Try again
@@ -1123,18 +802,61 @@ const DemoPage: React.FC = () => {
                     </motion.div>
                   )}
 
-                  {/* Success results */}
                   {uploadAnalysis && !uploadError && (
                     <>
-                      {/* ── Score Card with personality ── */}
+                      {/* ── 1. Graded paper image ── */}
+                      {uploadedImageUrl && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.05 }}
+                          className="relative rounded-2xl overflow-hidden border border-border shadow-soft"
+                        >
+                          <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-muted/30">
+                            <span className="w-3 h-3 rounded-full bg-destructive/60" />
+                            <span className="w-3 h-3 rounded-full bg-yellow-400/80" />
+                            <span className="w-3 h-3 rounded-full bg-green-500/80" />
+                            <span className="text-xs font-semibold text-muted-foreground ml-1">Starling marked your homework</span>
+                          </div>
+                          <div className="relative bg-white">
+                            <img
+                              src={uploadedImageUrl}
+                              alt="Uploaded homework"
+                              className="w-full object-contain max-h-[420px]"
+                            />
+                            {/* Animated grade marks overlay */}
+                            <div className="absolute inset-0 pointer-events-none flex flex-col justify-around px-6 py-8">
+                              {allProblems.map((prob, i) => (
+                                <motion.div
+                                  key={i}
+                                  initial={{ scale: 0, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  transition={{ delay: 0.3 + i * 0.18, type: "spring", stiffness: 400 }}
+                                  className="flex justify-end"
+                                >
+                                  {prob.isCorrect ? (
+                                    <span className="text-4xl font-black drop-shadow-lg" style={{ color: "#16a34a", textShadow: "0 2px 8px rgba(22,163,74,0.4)" }}>✓</span>
+                                  ) : (
+                                    <span className="text-4xl font-black drop-shadow-lg" style={{ color: "#dc2626", textShadow: "0 2px 8px rgba(220,38,38,0.4)" }}>✗</span>
+                                  )}
+                                </motion.div>
+                              ))}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* ── 2. Score summary — Starling speaking ── */}
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.05 }}
+                        transition={{ delay: 0.15 }}
                         className="flex gap-3"
                       >
                         <div className="flex-shrink-0 mt-1">
-                          <StarlingMascot size="sm" animate={false} expression={pct >= 78 ? "excited" : pct >= 44 ? "happy" : "encouraging"} />
+                          <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}>
+                            <StarlingMascot size="sm" animate={false} expression={incorrect === 0 ? "excited" : pct >= 78 ? "happy" : "encouraging"} />
+                          </motion.div>
                         </div>
                         <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-5 flex-1 space-y-4">
                           <div>
@@ -1143,27 +865,23 @@ const DemoPage: React.FC = () => {
                             </p>
                             <p className="text-foreground text-lg leading-snug mt-1">
                               <span className="text-2xl mr-2">{scoreEmoji}</span>
-                              {scoreMsg}
+                              {scoreLine}
                             </p>
                           </div>
-
-                          {/* Visual progress bar + score */}
                           <div className="space-y-2">
                             <div className="flex items-center justify-between text-sm font-semibold">
                               <span className="text-success">{correct} correct ✅</span>
                               <span className="text-foreground font-bold">{correct}/{total}</span>
-                              <span className="text-warning">{incorrect} to fix 🔶</span>
+                              {incorrect > 0 && <span className="text-warning">{incorrect} to fix 🔶</span>}
                             </div>
                             <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
                               <motion.div
-                                className="h-full rounded-full"
-                                style={{ background: "linear-gradient(90deg, #22c55e, #86efac)" }}
+                                className="h-full rounded-full bg-success"
                                 initial={{ width: 0 }}
                                 animate={{ width: `${pct}%` }}
                                 transition={{ duration: 0.9, ease: "easeOut", delay: 0.3 }}
                               />
                             </div>
-                            {/* Star rating */}
                             <div className="flex gap-1 justify-center pt-1">
                               {Array.from({ length: 5 }).map((_, i) => {
                                 const filled = i < Math.round((pct / 100) * 5);
@@ -1184,17 +902,22 @@ const DemoPage: React.FC = () => {
                         </div>
                       </motion.div>
 
-                      {/* ── Problem cards with Starling reactions ── */}
-                      {visibleProblems.map((prob, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, y: 18 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.15 + i * 0.1 }}
-                        >
-                          <Card className={`p-4 space-y-3 ${!prob.isCorrect ? "border-l-4 border-destructive/60" : ""}`}>
-                            <div className="flex items-start gap-3">
-                              <div className="flex-shrink-0 mt-0.5">
+                      {/* ── 3. All problems list — ungated, full view ── */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.25 }}
+                        className="space-y-2"
+                      >
+                        {allProblems.map((prob, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 + i * 0.07 }}
+                          >
+                            <Card className={`px-4 py-3 flex items-center gap-3 ${!prob.isCorrect ? "border-l-4 border-destructive/60" : ""}`}>
+                              <div className="flex-shrink-0">
                                 {prob.isCorrect ? (
                                   <CheckCircle2 className="w-5 h-5 text-success" />
                                 ) : (
@@ -1203,89 +926,65 @@ const DemoPage: React.FC = () => {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-foreground leading-snug">{prob.question}</p>
-                                {/* Student answer vs correct answer */}
-                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                   {prob.isCorrect ? (
-                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-success/10 text-success">
-                                      = {prob.studentAnswer} ✓
-                                    </span>
+                                    <span className="text-xs font-semibold text-success">= {prob.studentAnswer} ✓</span>
                                   ) : (
                                     <>
-                                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
-                                        = {prob.studentAnswer} ✗
-                                      </span>
+                                      <span className="text-xs font-semibold text-destructive">= {prob.studentAnswer} ✗</span>
                                       {prob.correctAnswer && (
                                         <span className="text-xs text-muted-foreground">
                                           (correct: <span className="font-semibold text-success">{prob.correctAnswer}</span>)
                                         </span>
                                       )}
-                                      {prob.errorType && (
-                                        <span className="text-xs text-muted-foreground">· {prob.errorType}</span>
-                                      )}
                                     </>
                                   )}
                                 </div>
-                                {/* Starling reaction */}
-                                {prob.isCorrect ? (
-                                  <p className="text-xs text-success mt-2 font-medium">✅ Correct — Nice job on this one! 🌟</p>
-                                ) : (
-                                  <p className="text-xs text-muted-foreground mt-2 italic">
-                                    💡 {getTip(prob.errorType, i)}
-                                  </p>
-                                )}
                               </div>
-                            </div>
-                          </Card>
-                        </motion.div>
-                      ))}
+                            </Card>
+                          </motion.div>
+                        ))}
+                      </motion.div>
 
-
-                      {/* ── Blurred gated cards ── */}
-                      {hiddenCount > 0 && (
+                      {/* ── 4. Starling's tutoring loop — all mistakes, auto-advancing, ONE final CTA ── */}
+                      {incorrect > 0 && (
                         <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.2 + visibleProblems.length * 0.1 }}
-                          className="space-y-3"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4 + allProblems.length * 0.07 }}
                         >
-                          {Array.from({ length: Math.min(hiddenCount, 3) }).map((_, i) => (
-                            <div key={i} className="relative">
-                              <Card className="p-4 space-y-2 select-none pointer-events-none">
-                                <div className="flex items-start gap-3">
-                                  <div className="flex-shrink-0 mt-0.5">
-                                    <XCircle className="w-5 h-5 text-warning opacity-50" />
-                                  </div>
-                                  <div className="flex-1 min-w-0 space-y-2">
-                                    <div className="h-3 bg-muted rounded w-3/4" />
-                                    <div className="h-3 bg-muted rounded w-1/2" />
-                                    <div className="h-3 bg-muted rounded w-2/3" />
-                                  </div>
-                                </div>
-                              </Card>
-                              <div className="absolute inset-0 rounded-lg backdrop-blur-sm bg-background/60 flex items-center justify-center gap-2">
-                                <span className="text-lg">🔒</span>
-                                <span className="text-xs font-semibold text-muted-foreground">Sign up to unlock</span>
-                              </div>
-                            </div>
-                          ))}
-                          {hiddenCount > 3 && (
-                            <p className="text-xs text-muted-foreground text-center">+ {hiddenCount - 3} more locked problems</p>
-                          )}
+                          <TutoringSequence
+                            problems={allProblems}
+                            incorrectCount={incorrect}
+                            onSignUp={() => navigate("/signup")}
+                          />
                         </motion.div>
                       )}
 
-                      {/* ── Whiteboard tutoring sequence for all wrong answers ── */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 + visibleProblems.length * 0.1 }}
-                      >
-                        <TutoringSequence
-                          problems={visibleProblems}
-                          incorrectCount={incorrect}
-                          onSignUp={() => navigate("/signup")}
-                        />
-                      </motion.div>
+                      {/* ── Perfect score CTA ── */}
+                      {incorrect === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.96 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                          className="rounded-2xl border border-primary/25 p-6 space-y-4 text-center"
+                          style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.07), hsl(var(--secondary)/0.05))" }}
+                        >
+                          <motion.div animate={{ y: [0, -8, 0, -5, 0] }} transition={{ duration: 0.8, delay: 0.3 }} className="flex justify-center">
+                            <StarlingMascot size="md" animate={false} expression="excited" />
+                          </motion.div>
+                          <p className="text-lg font-bold text-foreground">Perfect score! Now imagine this for every homework 💛</p>
+                          <Button
+                            size="lg"
+                            onClick={() => navigate("/signup")}
+                            className="w-full rounded-full py-5 text-base font-bold gap-2 text-white hover:opacity-90"
+                            style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+                          >
+                            Sign Up Free — It's Magic ✨
+                          </Button>
+                          <p className="text-xs text-muted-foreground">No credit card required · Cancel anytime</p>
+                        </motion.div>
+                      )}
                     </>
                   )}
 
@@ -1294,10 +993,10 @@ const DemoPage: React.FC = () => {
             </motion.div>
           );
         })()}
+
       </AnimatePresence>
     </div>
   );
 };
 
 export default DemoPage;
-
