@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import StarlingMascot from "@/components/StarlingMascot";
 import StarlingLogo from "@/components/StarlingLogo";
+import ShootingStarIcon from "@/components/ShootingStarIcon";
 import TutoringSequence from "@/components/demo/TutoringSequence";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
@@ -377,7 +378,7 @@ const DemoPage: React.FC = () => {
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.97 }}
                   >
-                    <StarlingMascot size="sm" animate={false} expression="happy" />
+                    <ShootingStarIcon size={22} className="shrink-0" />
                     Let Starling work the magic! ✨
                   </motion.button>
                 </motion.div>
@@ -448,7 +449,7 @@ const DemoPage: React.FC = () => {
                 className="w-full rounded-full py-6 text-lg gap-2 text-white hover:opacity-90 transition-opacity"
                 style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
               >
-                <StarlingMascot size="sm" animate={false} expression="happy" />
+                <ShootingStarIcon size={22} className="shrink-0" />
                 Let Starling work the magic! ✨
               </Button>
             </Card>
