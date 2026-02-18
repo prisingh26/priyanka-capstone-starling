@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import StarlingMascot from "@/components/StarlingMascot";
@@ -496,20 +496,40 @@ const STARTUP_DELAY_MS = 350;  // wait for reset to settle before first auto-adv
 
 const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, totalSteps, onComplete, onExit }) => {
   const [currentStep, setCurrentStep] = useState(0); // 0 = not started yet
-  const [isAutoPlaying, setIsAutoPlaying] = useState(false); // don't start until startup delay done
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showNextButton, setShowNextButton] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false); // tracks if IntersectionObserver fired
+  const containerRef = useRef<HTMLDivElement>(null);
   const parsed = parseMath(problem.question, problem.correctAnswer);
 
   // Word-problem step state
   const WORD_STEPS = 4;
-  const [wordStep, setWordStep] = useState(0); // 0 = not started yet
+  const [wordStep, setWordStep] = useState(0);
   const [wordAutoPlaying, setWordAutoPlaying] = useState(false);
   const [wordDone, setWordDone] = useState(false);
 
-  // Full reset + startup delay whenever the problem changes (stepIndex is the most reliable dep)
+  // ── Scroll-into-view trigger: only start animation when card is visible ──
   useEffect(() => {
-    // Hard reset everything synchronously
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !hasStarted) {
+          setHasStarted(true);
+        }
+      },
+      { threshold: 0.35 } // at least 35% visible before starting
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasStarted]);
+
+  // ── Full reset + startup delay whenever problem changes OR scroll triggers it ──
+  useEffect(() => {
+    if (!hasStarted) return; // don't start until scrolled into view
+
     setCurrentStep(0);
     setIsAutoPlaying(false);
     setShowConfetti(false);
@@ -518,7 +538,6 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
     setWordAutoPlaying(false);
     setWordDone(false);
 
-    // After a short pause, kick off step 1
     const startTimer = setTimeout(() => {
       setCurrentStep(1);
       setWordStep(1);
@@ -527,32 +546,31 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
     }, STARTUP_DELAY_MS);
 
     return () => clearTimeout(startTimer);
-  }, [stepIndex]); // stepIndex changes for every new problem — most reliable key
+  }, [stepIndex, hasStarted]);
 
-  // Auto-play for arithmetic
+  // ── Auto-play for arithmetic ──
   useEffect(() => {
     if (!parsed) return;
     if (!isAutoPlaying) return;
-    if (currentStep === 0) return; // not started yet
+    if (currentStep === 0) return;
     if (currentStep >= TOTAL_STEPS) {
       setIsAutoPlaying(false);
-      // Small delay before showing confetti/next
       const t1 = setTimeout(() => setShowConfetti(true), 300);
-      const t2 = setTimeout(() => setShowNextButton(true), 1400); // celebration first, then button
+      const t2 = setTimeout(() => setShowNextButton(true), 1400);
       return () => { clearTimeout(t1); clearTimeout(t2); };
     }
     const t = setTimeout(() => setCurrentStep(s => Math.min(s + 1, TOTAL_STEPS)), STEP_DURATION_MS);
     return () => clearTimeout(t);
   }, [isAutoPlaying, currentStep, parsed]);
 
-  // Auto-play for word problems
+  // ── Auto-play for word problems ──
   useEffect(() => {
-    if (parsed) return; // only for word problems
+    if (parsed) return;
     if (!wordAutoPlaying) return;
-    if (wordStep === 0) return; // not started yet
+    if (wordStep === 0) return;
     if (wordStep >= WORD_STEPS) {
       setWordAutoPlaying(false);
-      const t1 = setTimeout(() => setWordDone(true), 1000); // 1s celebration pause before button
+      const t1 = setTimeout(() => setWordDone(true), 1000);
       return () => clearTimeout(t1);
     }
     const t = setTimeout(() => setWordStep(s => Math.min(s + 1, WORD_STEPS)), STEP_DURATION_MS);
@@ -584,20 +602,23 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
       }
     };
     return (
-      <WordProblemTutor
-        problem={problem}
-        stepIndex={stepIndex}
-        totalSteps={totalSteps}
-        wordStep={wordStep}
-        isDone={wordDone}
-        onComplete={handleWordNext}
-        onExit={onExit}
-      />
+      <div ref={containerRef}>
+        <WordProblemTutor
+          problem={problem}
+          stepIndex={stepIndex}
+          totalSteps={totalSteps}
+          wordStep={wordStep}
+          isDone={wordDone}
+          onComplete={handleWordNext}
+          onExit={onExit}
+        />
+      </div>
     );
   }
 
   return (
     <motion.div
+      ref={containerRef}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 220, damping: 24 }}
@@ -639,8 +660,10 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
                 initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }}
                 transition={{ duration: 0.3 }}>
                 {/* Step pill */}
-                <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary mb-2">
-                  Step {currentStep} of {TOTAL_STEPS}
+                <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mb-2 ${
+                  isDone ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" : "bg-primary/15 text-primary"
+                }`}>
+                  {isDone ? "Complete ✓" : `Step ${currentStep} of ${TOTAL_STEPS}`}
                 </span>
                 {/* Label */}
                 <p className="text-sm font-bold text-foreground leading-snug">{stepLabel}</p>
@@ -674,7 +697,7 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
                     </span>
                   </motion.div>
                 )}
-                {/* Final answer reveal — the satisfying moment, shown after confetti */}
+                {/* Final answer reveal */}
                 {isDone && showConfetti && (
                   <motion.div
                     initial={{ scale: 0.85, opacity: 0 }}
@@ -725,33 +748,33 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
 
       {/* ── Navigation bar ── */}
       <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-border bg-muted/20">
-        {/* Back */}
+        {/* Back — always visible, disabled on step 1 */}
         <Button variant="ghost" size="sm" disabled={currentStep <= 1}
           onClick={() => { setIsAutoPlaying(false); setCurrentStep(s => Math.max(1, s - 1)); }}
           className="rounded-full text-xs px-3">
           ← Back
         </Button>
 
-        {/* Step pills */}
+        {/* Step pills — Bug 1 fix: isDone overrides isActive so last dot goes green */}
         <div className="flex gap-1 items-center flex-wrap justify-center">
           {Array.from({ length: TOTAL_STEPS }).map((_, i) => {
             const stepNum = i + 1;
-            const isActive = stepNum === currentStep;
-            const isDoneStep = stepNum < currentStep || (isDone && stepNum === TOTAL_STEPS);
+            const isCompleted = stepNum < currentStep || (isDone && stepNum === TOTAL_STEPS);
+            const isActive = stepNum === currentStep && !isDone; // active ONLY while not done
             return (
               <button key={i} onClick={() => { setIsAutoPlaying(false); setCurrentStep(stepNum); }}
                 className={`text-xs font-bold rounded-full px-2 py-0.5 transition-all border ${
+                  isCompleted ? "bg-green-500 text-white border-green-500" :
                   isActive ? "bg-primary text-primary-foreground border-primary" :
-                  isDoneStep ? "bg-green-500 text-white border-green-500" :
                   "bg-transparent text-muted-foreground border-border"
                 }`}>
-                {isDoneStep && !isActive ? "✓" : stepNum}
+                {isCompleted ? "✓" : stepNum}
               </button>
             );
           })}
         </div>
 
-        {/* Next / Done — only shows when ready */}
+        {/* Bug 2 fix: Next always shows when not done; forward button appears after last step */}
         {!isDone ? (
           <Button size="sm" onClick={handleNext}
             className="rounded-full text-xs px-4 text-white"
@@ -759,16 +782,18 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
             Next →
           </Button>
         ) : showNextButton ? (
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1.05, opacity: 1 }}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}>
             <Button size="sm" onClick={onComplete}
-              className="rounded-full text-xs px-4 text-white"
+              className="rounded-full text-xs px-4 text-white font-bold"
               style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
-              {stepIndex < totalSteps ? "Next →" : "All done! 🎉"}
+              {stepIndex < totalSteps ? "Next one →" : "All done! 🎉"}
             </Button>
           </motion.div>
         ) : (
-          // placeholder to avoid layout shift
+          // Placeholder — button is about to appear, keep layout stable
           <div className="w-24" />
         )}
       </div>
@@ -777,3 +802,4 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
 };
 
 export default WhiteboardTutor;
+
