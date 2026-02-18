@@ -202,7 +202,7 @@ import {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <StarlingLogo className="scale-125" />
+              <StarlingLogo />
             </motion.div>
           </motion.div>
  
