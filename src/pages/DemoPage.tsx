@@ -768,9 +768,9 @@ const DemoPage: React.FC = () => {
           const allProblems = uploadAnalysis ? uploadAnalysis.problems : [];
 
           let scoreEmoji = "💪";
-          let scoreLine = `I found ${incorrect} mistake${incorrect !== 1 ? "s" : ""} on this worksheet — let me show you exactly how to fix ${incorrect !== 1 ? "each one" : "it"} 👇`;
+          let scoreLine = `You're so close! Just ${incorrect} little thing${incorrect !== 1 ? "s" : ""} to fix — and I'll show you exactly how 💪`;
           if (incorrect === 0) { scoreEmoji = "🎉"; scoreLine = "Perfect score! Every answer is correct — amazing work! 🌟"; }
-          else if (pct >= 78) { scoreEmoji = "🌟"; scoreLine = `So close to perfect! I found ${incorrect} little thing${incorrect !== 1 ? "s" : ""} to polish — let me walk you through ${incorrect !== 1 ? "them" : "it"} 👇`; }
+          else if (pct >= 78) { scoreEmoji = "🌟"; scoreLine = `You're so close! Just ${incorrect} little thing${incorrect !== 1 ? "s" : ""} to fix — and I'll show you exactly how 💪`; }
 
           return (
             <motion.div
