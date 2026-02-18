@@ -176,27 +176,16 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
                   }`}>
                     {problem.id}
                   </div>
-                  <div className="flex-1 text-left">
+                   <div className="flex-1 text-left">
                     <p className="font-medium text-foreground">{problem.question}</p>
                     <p className={`text-sm ${problem.isCorrect ? "text-success" : "text-warning"}`}>
-                      Your answer: {problem.studentAnswer}
-                      {!problem.isCorrect && (
-                        <span className="text-muted-foreground"> (Correct: {problem.correctAnswer})</span>
-                      )}
+                      Your answer: {problem.studentAnswer} {problem.isCorrect ? "✓" : "✗"}
                     </p>
                     {problem.isCorrect && (
                       <p className="text-xs text-success mt-1 font-medium">Nailed it! ✅</p>
                     )}
-                    {!problem.isCorrect && problem.rootCause && (
-                      <p className="text-xs text-muted-foreground mt-1 italic">💡 {problem.rootCause}</p>
-                    )}
                     {!problem.isCorrect && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onGetHelp?.(problem, index); }}
-                        className="mt-2 text-xs font-medium text-primary hover:underline flex items-center gap-1"
-                      >
-                        Let's tackle this together 💡
-                      </button>
+                      <p className="text-xs text-primary mt-1 italic">Starling will teach this one 👇</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
