@@ -378,7 +378,7 @@ const DemoPage: React.FC = () => {
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.97 }}
                   >
-                    <ShootingStarIcon size={22} className="shrink-0" />
+                    <StarlingMascot size="sm" animate={false} expression="happy" />
                     Let Starling work the magic! ✨
                   </motion.button>
                 </motion.div>
@@ -449,7 +449,7 @@ const DemoPage: React.FC = () => {
                 className="w-full rounded-full py-6 text-lg gap-2 text-white hover:opacity-90 transition-opacity"
                 style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
               >
-                <ShootingStarIcon size={22} className="shrink-0" />
+                <StarlingMascot size="sm" animate={false} expression="happy" />
                 Let Starling work the magic! ✨
               </Button>
             </Card>
