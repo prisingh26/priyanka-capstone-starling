@@ -86,11 +86,10 @@ interface UploadAnalysis {
 }
 
 const FUN_UPLOAD_MESSAGES = [
-  { text: "Starling is reading your homework...", emoji: "📖" },
-  { text: "Hmm, interesting problems!", emoji: "🤔" },
-  { text: "Almost done checking...", emoji: "✏️" },
-  { text: "Looking at every detail...", emoji: "🔎" },
-  { text: "This is exciting!", emoji: "✨" },
+  { text: "Reading your homework...", emoji: "📖" },
+  { text: "Spotting the tricky ones...", emoji: "🔎" },
+  { text: "Almost there!", emoji: "✨" },
+  { text: "Just a moment more...", emoji: "🤔" },
 ];
 
 const DemoPage: React.FC = () => {
@@ -109,12 +108,12 @@ const DemoPage: React.FC = () => {
   const [retryAnswer, setRetryAnswer] = useState<string | null>(null);
   const [showDiagramStep, setShowDiagramStep] = useState(0);
 
-  // Cycle upload loading messages
+  // Cycle upload loading messages — faster interval for snappier feel
   useEffect(() => {
     if (step !== "upload-loading") return;
     const interval = setInterval(() => {
       setUploadMsgIndex(prev => (prev + 1) % FUN_UPLOAD_MESSAGES.length);
-    }, 2000);
+    }, 1200);
     return () => clearInterval(interval);
   }, [step]);
 
@@ -957,6 +956,7 @@ const DemoPage: React.FC = () => {
                             problems={allProblems}
                             incorrectCount={incorrect}
                             onSignUp={() => navigate("/signup")}
+                            onExit={() => { setStep("problem"); setUploadedFile(null); setUploadedImageUrl(null); setUploadAnalysis(null); setUploadError(null); if (fileInputRef.current) fileInputRef.current.value = ""; window.scrollTo({ top: 0, behavior: "smooth" }); }}
                           />
                         </motion.div>
                       )}
