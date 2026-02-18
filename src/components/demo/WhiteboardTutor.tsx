@@ -369,7 +369,7 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
           <span className="w-3 h-3 rounded-full bg-green-500/80" />
         </div>
         <span className="text-xs font-bold bg-primary/10 text-primary px-3 py-1 rounded-full">
-          Tricky one {stepIndex} of {totalSteps}
+          {stepIndex} of {totalSteps}
         </span>
         {onExit && (
           <button onClick={onExit} className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded">
@@ -479,7 +479,7 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
           className={`rounded-full text-xs px-4 text-white transition-all ${isDone ? "scale-105" : ""}`}
           style={{ background: isDone ? "linear-gradient(135deg,#22c55e,#16a34a)" : "linear-gradient(135deg,#9333ea,#f97316)" }}>
           {isDone
-            ? (stepIndex < totalSteps ? "Next tricky one →" : "All done! 🎉")
+            ? (stepIndex < totalSteps ? "Next →" : "All done! 🎉")
             : "Next →"
           }
         </Button>
@@ -491,7 +491,7 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
 
 // ── Main WhiteboardTutor ───────────────────────────────────────────────────
 const TOTAL_STEPS = 6;
-const STEP_DURATION_MS = 2600; // 2.6s per step
+const STEP_DURATION_MS = 3800; // 3.8s per step — slower, more readable
 const STARTUP_DELAY_MS = 350;  // wait for reset to settle before first auto-advance
 
 const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, totalSteps, onComplete, onExit }) => {
@@ -611,7 +611,7 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
           <span className="w-3 h-3 rounded-full bg-green-500/80" />
         </div>
         <span className="text-xs font-bold bg-primary/10 text-primary px-3 py-1 rounded-full">
-          Tricky one {stepIndex} of {totalSteps}
+          {stepIndex} of {totalSteps}
         </span>
         {onExit && (
           <button onClick={onExit} className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded">
@@ -764,7 +764,7 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
             <Button size="sm" onClick={onComplete}
               className="rounded-full text-xs px-4 text-white"
               style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
-              {stepIndex < totalSteps ? "Next tricky one →" : "All done! 🎉"}
+              {stepIndex < totalSteps ? "Next →" : "All done! 🎉"}
             </Button>
           </motion.div>
         ) : (
