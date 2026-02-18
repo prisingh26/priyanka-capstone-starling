@@ -961,10 +961,8 @@ const DemoPage: React.FC = () => {
                                   ) : (
                                     <>
                                       <span className="text-xs font-semibold text-destructive">= {prob.studentAnswer} ✗</span>
-                                      {prob.correctAnswer && (
-                                        <span className="text-xs text-muted-foreground">
-                                          (correct: <span className="font-semibold text-success">{prob.correctAnswer}</span>)
-                                        </span>
+                                      {!prob.isCorrect && (
+                                        <span className="text-xs text-primary italic">Starling will teach this one 👇</span>
                                       )}
                                     </>
                                   )}
