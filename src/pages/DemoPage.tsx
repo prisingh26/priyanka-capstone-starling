@@ -394,45 +394,47 @@ const DemoPage: React.FC = () => {
             </motion.div>
 
             {/* Sample Problem */}
-            <Card id="demo-problem" className="p-6 md:p-8 space-y-6 mt-4">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">🐱</span>
-                <div>
+            <Card id="demo-problem" className="p-6 md:p-8 mt-4">
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", textAlign: "center" }}>
+                {/* Header */}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", width: "100%" }}>
+                  <span className="text-4xl">🐱</span>
                   <h2 className="font-bold text-foreground text-xl">Logic Problem</h2>
                   <p className="text-muted-foreground text-sm">Grade 2 • Logical Reasoning</p>
                 </div>
-              </div>
 
-              <div className="bg-muted/50 rounded-xl p-5">
-                <p className="text-foreground text-lg leading-relaxed font-medium">
-                  If every cat has two friends who are mice, what is the smallest number of mice that can be friends with 3 cats?
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-muted-foreground">Answer Options:</p>
-                <div className="grid grid-cols-5 gap-3">
-                  {answerOptions.map((opt) => (
-                    <div
-                      key={opt.label}
-                      className={`rounded-xl p-3 text-center border-2 transition-all ${
-                        opt.label === "B"
-                          ? "border-primary bg-primary/10 ring-2 ring-primary/30"
-                          : "border-border bg-muted/30"
-                      }`}
-                    >
-                      <p className="text-xs text-muted-foreground font-medium">({opt.label})</p>
-                      <p className={`text-xl font-bold ${opt.label === "B" ? "text-primary" : "text-foreground"}`}>
-                        {opt.value}
-                      </p>
-                    </div>
-                  ))}
+                {/* Question */}
+                <div className="bg-muted/50 rounded-xl p-5 w-full">
+                  <p className="text-foreground text-lg leading-relaxed font-medium text-center">
+                    If every cat has two friends who are mice, what is the smallest number of mice that can be friends with 3 cats?
+                  </p>
                 </div>
-              </div>
 
-              <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 flex items-center gap-3">
-                <span className="text-2xl">❌</span>
-                <div>
+                {/* Answer Options */}
+                <div style={{ width: "100%" }}>
+                  <p className="text-sm font-semibold text-muted-foreground text-center mb-3">Answer Options:</p>
+                  <div className="grid grid-cols-5 gap-3 w-full">
+                    {answerOptions.map((opt) => (
+                      <div
+                        key={opt.label}
+                        className={`rounded-xl p-3 text-center border-2 transition-all ${
+                          opt.label === "B"
+                            ? "border-primary bg-primary/10 ring-2 ring-primary/30"
+                            : "border-border bg-muted/30"
+                        }`}
+                      >
+                        <p className="text-xs text-muted-foreground font-medium">({opt.label})</p>
+                        <p className={`text-xl font-bold ${opt.label === "B" ? "text-primary" : "text-foreground"}`}>
+                          {opt.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Student answer */}
+                <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 w-full" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                  <span className="text-2xl">❌</span>
                   <p className="text-sm text-muted-foreground">Student selected:</p>
                   <p className="font-bold text-destructive text-lg">(B) 3</p>
                 </div>
@@ -509,20 +511,21 @@ const DemoPage: React.FC = () => {
               <div className="space-y-5 pr-2">
 
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
-                  <Card className="p-5 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">🐱</span>
-                      <div>
+                  <Card className="p-5">
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", textAlign: "center" }}>
+                      {/* Header */}
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", width: "100%" }}>
+                        <span className="text-3xl">🐱</span>
                         <h3 className="font-bold text-foreground">Logic Problem</h3>
                         <p className="text-xs text-muted-foreground">Grade 2 • Logical Reasoning</p>
                       </div>
-                    </div>
-                    <p className="text-foreground text-base leading-relaxed">
-                      If every cat has two friends who are mice, what is the smallest number of mice that can be friends with 3 cats?
-                    </p>
-                    <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 flex items-center gap-3">
-                      <span className="text-xl">❌</span>
-                      <div>
+                      {/* Question */}
+                      <p className="text-foreground text-base leading-relaxed w-full text-center">
+                        If every cat has two friends who are mice, what is the smallest number of mice that can be friends with 3 cats?
+                      </p>
+                      {/* Student answer */}
+                      <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 w-full" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                        <span className="text-xl">❌</span>
                         <p className="text-sm text-muted-foreground">Student answered:</p>
                         <p className="font-bold text-destructive">(B) 3 — Incorrect</p>
                       </div>
@@ -531,15 +534,13 @@ const DemoPage: React.FC = () => {
                 </motion.div>
 
                 {socraticStep >= 2 ? (
-                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
-                    <div className="flex-shrink-0 mt-1">
-                      <StarlingMascot size="sm" animate={false} expression="happy" />
-                    </div>
-                    <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-5 space-y-3 flex-1">
-                      <p className="text-foreground text-lg leading-relaxed">
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", width: "100%" }}>
+                    <StarlingMascot size="sm" animate={false} expression="happy" />
+                    <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 space-y-3 w-full">
+                      <p className="text-foreground text-lg leading-relaxed text-center">
                         Hmm, interesting guess! Let me ask you this — does each mouse have to belong to <strong>only ONE</strong> cat? Or could a mouse be friends with <strong>more than one</strong> cat? 🤔
                       </p>
-                      <div className="flex items-center gap-3 pt-2">
+                      <div className="flex items-center justify-center gap-3 pt-2">
                         <motion.div className="flex gap-1.5 items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
                           <motion.span animate={{ rotate: [0, 15, -15, 15, 0], scale: [1, 1.2, 1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} className="text-2xl">🤔</motion.span>
                           <motion.span className="text-primary font-bold italic text-base" animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}>Think about it</motion.span>
@@ -601,12 +602,10 @@ const DemoPage: React.FC = () => {
                 )}
 
                 {socraticStep >= 4 && (
-                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
-                    <div className="flex-shrink-0 mt-1">
-                      <StarlingMascot size="sm" animate={false} expression="happy" />
-                    </div>
-                    <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-5 space-y-4 flex-1">
-                      <p className="text-foreground font-semibold">
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", width: "100%" }}>
+                    <StarlingMascot size="sm" animate={false} expression="happy" />
+                    <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 space-y-4 w-full">
+                      <p className="text-foreground font-semibold text-center">
                         {userChoice === "multiple" ? "Great thinking! 🎉 Let's explore together and see what happens!" : "Interesting idea! Let's explore together and test it out!"}
                       </p>
                       <div className="relative flex flex-col items-center gap-2 py-4">
@@ -665,14 +664,12 @@ const DemoPage: React.FC = () => {
                 )}
 
                 {socraticStep === 5 && !retryAnswer && (
-                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                    <div className="flex gap-3">
-                      <div className="flex-shrink-0 mt-1"><StarlingMascot size="sm" animate={false} expression="encouraging" /></div>
-                      <div className="bg-primary/5 border border-primary/20 rounded-2xl rounded-tl-md p-4 flex-1">
-                        <p className="text-foreground">Now that you've explored the diagram, what do you think the <strong>smallest</strong> number of mice is? Try again! 💪</p>
-                      </div>
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", width: "100%" }}>
+                    <StarlingMascot size="sm" animate={false} expression="encouraging" />
+                    <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 w-full">
+                      <p className="text-foreground text-center">Now that you've explored the diagram, what do you think the <strong>smallest</strong> number of mice is? Try again! 💪</p>
                     </div>
-                    <div className="grid grid-cols-5 gap-3">
+                    <div className="grid grid-cols-5 gap-3 w-full">
                       {answerOptions.map((opt) => (
                         <button key={opt.label} onClick={() => handleRetryAnswer(opt.label)} className="rounded-xl p-3 text-center border-2 border-border bg-card hover:border-primary hover:bg-primary/5 transition-all">
                           <p className="text-xs text-muted-foreground font-medium">({opt.label})</p>
@@ -697,38 +694,54 @@ const DemoPage: React.FC = () => {
                 )}
 
                 {socraticStep >= 6 && (
-                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
-                    <div className="flex-shrink-0 mt-1"><StarlingMascot size="sm" animate={false} expression="excited" /></div>
-                    <div className="space-y-3 flex-1">
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", width: "100%" }}>
+                    <StarlingMascot size="sm" animate={false} expression="excited" />
+                    <div className="space-y-3 w-full">
                       {retryAnswer === "A" ? (
-                        <div className="bg-success/10 border border-success/30 rounded-2xl rounded-tl-md p-5">
-                          <p className="text-success font-bold text-lg">🎉 Amazing! You got it!</p>
-                          <p className="text-foreground text-sm mt-2">The answer is <strong>(A) 2 mice</strong>. Since mice can be shared between cats, just 2 mice can each be friends with all 3 cats — and every cat still has exactly 2 mouse friends!</p>
-                          <p className="text-muted-foreground text-sm mt-2 italic">See? You figured it out yourself! That's the Starling way. ⭐</p>
+                        <div className="bg-success/10 border border-success/30 rounded-2xl p-5">
+                          <p className="text-success font-bold text-lg text-center">🎉 Amazing! You got it!</p>
+                          <p className="text-foreground text-sm mt-2 text-center">The answer is <strong>(A) 2 mice</strong>. Since mice can be shared between cats, just 2 mice can each be friends with all 3 cats — and every cat still has exactly 2 mouse friends!</p>
+                          <p className="text-muted-foreground text-sm mt-2 italic text-center">See? You figured it out yourself! That's the Starling way. ⭐</p>
                         </div>
                       ) : retryAnswer === "hint" ? (
                         <div className="space-y-3">
-                          <div className="bg-primary/10 border border-primary/20 rounded-2xl rounded-tl-md p-5">
-                            <p className="text-foreground text-sm mt-1">No worries — this one's tricky! Look at the diagram: Mouse A is friends with <strong>all 3 cats</strong>, and Mouse B is <em>also</em> friends with <strong>all 3 cats</strong>. So every cat has exactly 2 mouse friends — and we only needed…</p>
+                          <div className="bg-primary/10 border border-primary/20 rounded-2xl p-5">
+                            <p className="text-foreground text-sm mt-1 text-center">No worries — this one's tricky! Look at the diagram: Mouse A is friends with <strong>all 3 cats</strong>, and Mouse B is <em>also</em> friends with <strong>all 3 cats</strong>. So every cat has exactly 2 mouse friends — and we only needed…</p>
                           </div>
-                          <div className="bg-success/10 border border-success/30 rounded-2xl rounded-tl-md p-5">
-                            <p className="text-success font-bold text-lg">✅ Answer: (A) 2 mice!</p>
-                            <p className="text-foreground text-sm mt-2">Mice can be shared! The trick is that a mouse can be friends with <strong>more than one cat</strong> at the same time.</p>
-                            <p className="text-muted-foreground text-sm mt-2 italic">Now you know the trick — next time, you'll get it! That's the Starling way. ⭐</p>
+                          <div className="bg-success/10 border border-success/30 rounded-2xl p-5">
+                            <p className="text-success font-bold text-lg text-center">✅ Answer: (A) 2 mice!</p>
+                            <p className="text-foreground text-sm mt-2 text-center">Mice can be shared! The trick is that a mouse can be friends with <strong>more than one cat</strong> at the same time.</p>
+                            <p className="text-muted-foreground text-sm mt-2 italic text-center">Now you know the trick — next time, you'll get it! That's the Starling way. ⭐</p>
                           </div>
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          <div className="bg-warning/10 border border-warning/30 rounded-2xl rounded-tl-md p-5">
-                            <p className="text-foreground font-semibold">Almost there! 💪</p>
-                            <p className="text-foreground text-sm mt-2">Look at the diagram again — both Mouse A and Mouse B are connected to <strong>all 3 cats</strong>. That means every cat has exactly 2 mouse friends, and we only needed…</p>
+                          <div className="bg-warning/10 border border-warning/30 rounded-2xl p-5">
+                            <p className="text-foreground font-semibold text-center">Almost there! 💪</p>
+                            <p className="text-foreground text-sm mt-2 text-center">Look at the diagram again — both Mouse A and Mouse B are connected to <strong>all 3 cats</strong>. That means every cat has exactly 2 mouse friends, and we only needed…</p>
                           </div>
-                          <div className="bg-success/10 border border-success/30 rounded-2xl rounded-tl-md p-5">
-                            <p className="text-success font-bold text-lg">✅ Answer: (A) 2 mice</p>
-                            <p className="text-foreground text-sm mt-2">Mice can be shared! 2 mice is enough because each mouse can be friends with multiple cats at the same time.</p>
+                          <div className="bg-success/10 border border-success/30 rounded-2xl p-5">
+                            <p className="text-success font-bold text-lg text-center">✅ Answer: (A) 2 mice</p>
+                            <p className="text-foreground text-sm mt-2 text-center">Mice can be shared! 2 mice is enough because each mouse can be friends with multiple cats at the same time.</p>
                           </div>
                         </div>
                       )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {socraticStep >= 6 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.0 }}
+                    className="flex justify-center w-full"
+                  >
+                    <div className="w-full">
+                      <DemoEndScreen
+                        onSignUp={() => navigate("/signup")}
+                        onMaybeLater={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setSocraticStep(1); setUserChoice(null); setRetryAnswer(null); setShowDiagramStep(0); setStep("problem"); }}
+                      />
                     </div>
                   </motion.div>
                 )}
