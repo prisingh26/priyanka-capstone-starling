@@ -17,43 +17,52 @@ const DemoEndScreen: React.FC<DemoEndScreenProps> = ({ onSignUp }) => {
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 200, damping: 24 }}
-      className="rounded-2xl border border-primary/25 px-6 py-8 flex flex-col items-center gap-6 text-center"
-      style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.07), hsl(var(--secondary)/0.05))" }}
+      className="rounded-2xl border border-primary/25 w-full"
+      style={{
+        background: "linear-gradient(135deg, hsl(var(--primary)/0.07), hsl(var(--secondary)/0.05))",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+        padding: "2rem 1.5rem",
+        gap: "1.5rem",
+      }}
     >
-      {/* Floating mascot */}
+      {/* Floating mascot — centered */}
       <motion.div
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-        className="flex justify-center"
+        style={{ display: "flex", justifyContent: "center", width: "100%" }}
       >
         <StarlingMascot size="lg" animate={false} expression="excited" />
       </motion.div>
 
-      {/* Copy */}
-      <div className="space-y-1.5">
-        <p className="text-xl font-bold text-foreground leading-snug">
+      {/* Copy — centered */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.375rem", width: "100%" }}>
+        <p className="text-xl font-bold text-foreground leading-snug" style={{ textAlign: "center", width: "100%", margin: 0 }}>
           Every homework. Every mistake. Every time.
         </p>
-        <p className="text-base font-semibold text-primary">
+        <p className="text-base font-semibold text-primary" style={{ textAlign: "center", width: "100%", margin: 0 }}>
           That's Starling 🐦
         </p>
       </div>
 
-      {/* CTA button — full width up to a comfortable max */}
-      <div className="w-full max-w-xs mx-auto">
+      {/* CTA button — centered, capped width */}
+      <div style={{ width: "100%", maxWidth: "360px", margin: "0 auto" }}>
         <Button
           size="lg"
           onClick={onSignUp}
           className="w-full rounded-full py-5 text-base font-bold gap-2 text-white hover:opacity-90 transition-opacity"
-          style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
+          style={{ background: "linear-gradient(135deg, #9333ea, #f97316)", display: "block", width: "100%" }}
         >
           Create your free account → ✨
         </Button>
       </div>
 
-      {/* Maybe later */}
+      {/* Maybe later — centered block */}
       <button
         onClick={() => navigate("/")}
+        style={{ display: "block", margin: "0 auto", textAlign: "center" }}
         className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors underline underline-offset-2"
       >
         Maybe later — take me back

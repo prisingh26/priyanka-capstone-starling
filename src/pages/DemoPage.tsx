@@ -734,11 +734,18 @@ const DemoPage: React.FC = () => {
                 )}
 
                 {socraticStep >= 6 && (
-                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }}>
-                    <DemoEndScreen
-                      onSignUp={() => navigate("/signup")}
-                      onMaybeLater={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setSocraticStep(1); setUserChoice(null); setRetryAnswer(null); setShowDiagramStep(0); setStep("problem"); }}
-                    />
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.0 }}
+                    className="flex justify-center w-full"
+                  >
+                    <div className="w-full">
+                      <DemoEndScreen
+                        onSignUp={() => navigate("/signup")}
+                        onMaybeLater={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setSocraticStep(1); setUserChoice(null); setRetryAnswer(null); setShowDiagramStep(0); setStep("problem"); }}
+                      />
+                    </div>
                   </motion.div>
                 )}
 
