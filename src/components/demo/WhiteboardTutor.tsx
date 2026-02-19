@@ -62,7 +62,7 @@ const DrawCircle: React.FC<{ color: string; delay?: number }> = ({ color, delay 
   </motion.svg>
 );
 
-// ── SVG: Carry arrow ──────────────────────────────────────────────────────
+// ── SVG: Carry arrow (addition: right→left, tens←ones) ───────────────────
 const CarryArrow: React.FC<{ visible: boolean }> = ({ visible }) => (
   <AnimatePresence>
     {visible && (
@@ -72,6 +72,36 @@ const CarryArrow: React.FC<{ visible: boolean }> = ({ visible }) => (
           initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.0, ease: "easeOut" }} />
         <motion.path d="M 18 28 L 20 35 L 26 30" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} />
+      </motion.svg>
+    )}
+  </AnimatePresence>
+);
+
+// ── SVG: Borrow arrow (subtraction: left→right, tens→ones) ───────────────
+// Positioned above the two digit cells (each w-10 = 40px), spanning ~80px
+const BorrowArrow: React.FC<{ visible: boolean }> = ({ visible }) => (
+  <AnimatePresence>
+    {visible && (
+      <motion.svg
+        className="absolute pointer-events-none z-10"
+        style={{ top: -32, left: 0, width: 80, height: 36 }}
+        viewBox="0 0 80 36" fill="none"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        {/* Curved path from left (tens) sweeping right to ones */}
+        <motion.path
+          d="M 18 30 Q 40 2 62 30"
+          stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" fill="none"
+          initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
+          transition={{ duration: 0.9, ease: "easeOut", delay: 0.4 }}
+        />
+        {/* Arrowhead pointing right-down at the ones end */}
+        <motion.path
+          d="M 56 24 L 62 30 L 62 22"
+          stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}
+        />
       </motion.svg>
     )}
   </AnimatePresence>
@@ -134,24 +164,28 @@ const ColumnArithmetic: React.FC<{ parsed: ParsedMath; step: number }> = ({ pars
         </div>
         <div className="w-10" />
       </div>
-      {/* Row A */}
-      <div className="flex gap-0" style={{ minWidth: 120 }}>
+      {/* Row A — with borrow arrow overlay spanning tens→ones */}
+      <div className="flex gap-0 relative" style={{ minWidth: 120 }}>
         <div className="w-10" />
-        {/* Tens digit — shows strikethrough + reduced value when borrowing */}
+        {/* BorrowArrow sits above the two digit cells (80px wide = 2×w-10) */}
+        {showBorrow && (
+          <div className="absolute" style={{ left: 40, top: 0, width: 80, height: 0, overflow: 'visible' }}>
+            <BorrowArrow visible={showBorrow} />
+          </div>
+        )}
+        {/* Tens digit — strikethrough + reduced value */}
         <div className={`w-10 h-14 flex items-center justify-center text-4xl font-extrabold relative ${highlightTens ? "text-primary" : "text-foreground"}`}>
           <AnimatePresence mode="wait">
-            {showBorrow && step >= 2 ? (
-              <motion.span key="borrow-tens" className="relative flex flex-col items-center">
-                {/* Crossed-out original tens */}
+            {showBorrow ? (
+              <motion.span key="borrow-tens" className="relative flex flex-col items-center leading-none gap-0.5">
                 <motion.span
-                  className="text-2xl text-muted-foreground line-through"
+                  className="text-xl text-muted-foreground line-through leading-none"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
                   {aTens}
                 </motion.span>
-                {/* New smaller tens */}
                 <motion.span
-                  className="text-2xl font-extrabold text-orange-500 leading-none"
-                  initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                  className="text-xl font-extrabold text-orange-500 leading-none"
+                  initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}>
                   {borrowedTensDisplay}
                 </motion.span>
               </motion.span>
@@ -163,25 +197,23 @@ const ColumnArithmetic: React.FC<{ parsed: ParsedMath; step: number }> = ({ pars
             )}
           </AnimatePresence>
         </div>
-        {/* Ones digit — shows +10 bubble when borrowing */}
+        {/* Ones digit — updated value + +10 bubble */}
         <div className={`w-10 h-14 flex items-center justify-center text-4xl font-extrabold relative ${highlightOnes ? "text-primary" : "text-foreground"}`}>
           <AnimatePresence mode="wait">
             {showBorrow ? (
-              <motion.span key="borrow-ones" className="relative flex flex-col items-center">
-                {/* Crossed-out original ones */}
+              <motion.span key="borrow-ones" className="relative flex flex-col items-center leading-none gap-0.5">
                 <motion.span
-                  className="text-2xl text-muted-foreground line-through"
+                  className="text-xl text-muted-foreground line-through leading-none"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
                   {aOnes}
                 </motion.span>
-                {/* New bigger ones with +10 bubble */}
                 <motion.span
-                  className="text-2xl font-extrabold text-green-600 leading-none relative"
-                  initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+                  className="text-xl font-extrabold text-green-600 leading-none relative"
+                  initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }}>
                   {borrowedOnesDisplay}
                   <motion.span
-                    className="absolute -top-3 -right-6 text-[9px] font-bold bg-green-500 text-white px-1 py-0.5 rounded-full"
-                    initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.9, type: "spring" }}>
+                    className="absolute -top-2 -right-7 text-[9px] font-bold bg-green-500 text-white px-1 py-0.5 rounded-full whitespace-nowrap"
+                    initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 1.2, type: "spring" }}>
                     +10
                   </motion.span>
                 </motion.span>
