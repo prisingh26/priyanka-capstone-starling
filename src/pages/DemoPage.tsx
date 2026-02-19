@@ -399,7 +399,7 @@ const DemoPage: React.FC = () => {
                 <span className="text-3xl">🐱</span>
                 <div>
                   <h2 className="font-bold text-foreground text-xl">Logic Problem</h2>
-                  <p className="text-muted-foreground text-sm">Grade 4 • Logical Reasoning</p>
+                  <p className="text-muted-foreground text-sm">Grade 2 • Logical Reasoning</p>
                 </div>
               </div>
 
@@ -514,7 +514,7 @@ const DemoPage: React.FC = () => {
                       <span className="text-2xl">🐱</span>
                       <div>
                         <h3 className="font-bold text-foreground">Logic Problem</h3>
-                        <p className="text-xs text-muted-foreground">Grade 4 • Logical Reasoning</p>
+                        <p className="text-xs text-muted-foreground">Grade 2 • Logical Reasoning</p>
                       </div>
                     </div>
                     <p className="text-foreground text-base leading-relaxed">
