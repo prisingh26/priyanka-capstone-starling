@@ -101,16 +101,24 @@ const ConfettiBurst: React.FC = () => {
 // ── Column arithmetic grid ─────────────────────────────────────────────────
 const ColumnArithmetic: React.FC<{ parsed: ParsedMath; step: number }> = ({ parsed, step }) => {
   const { aTens, aOnes, bTens, bOnes, carry, onesDigit, tensDigit } = parsed;
-  const showCarry = carry > 0 && step >= 3;
+  const isSub = parsed.op === "-";
+  const needsBorrow = isSub && carry > 0; // carry===1 means borrow happened
+
+  const showCarry = !isSub && carry > 0 && step >= 3; // carry arrow only for addition
+  const showBorrow = isSub && needsBorrow && step >= 2; // show borrow visuals from step 2
   const showOnesResult = step >= 3;
   const showTensResult = step >= 5;
   const highlightOnes = step === 1 || step === 2 || step === 3;
   const highlightTens = step === 4 || step === 5;
   const highlightResult = step >= 6;
 
+  // For subtraction: borrowed ones digit (+10) and reduced tens digit
+  const borrowedOnesDisplay = aOnes + 10;
+  const borrowedTensDisplay = aTens - 1;
+
   return (
     <div className="relative flex flex-col items-end gap-0 font-mono select-none">
-      {/* Carry row */}
+      {/* Carry row (addition only) */}
       <div className="flex gap-0 mb-0.5 h-7 items-end justify-end pr-1" style={{ minWidth: 120 }}>
         <div className="w-10 flex justify-center relative">
           <AnimatePresence>
@@ -129,13 +137,62 @@ const ColumnArithmetic: React.FC<{ parsed: ParsedMath; step: number }> = ({ pars
       {/* Row A */}
       <div className="flex gap-0" style={{ minWidth: 120 }}>
         <div className="w-10" />
-        <div className={`w-10 h-14 flex items-center justify-center text-4xl font-extrabold text-foreground relative ${highlightTens ? "text-primary" : ""}`}>
-          {aTens > 0 ? aTens : ""}
-          {highlightTens && <DrawCircle color="hsl(271,81%,56%)" delay={0.05} />}
+        {/* Tens digit — shows strikethrough + reduced value when borrowing */}
+        <div className={`w-10 h-14 flex items-center justify-center text-4xl font-extrabold relative ${highlightTens ? "text-primary" : "text-foreground"}`}>
+          <AnimatePresence mode="wait">
+            {showBorrow && step >= 2 ? (
+              <motion.span key="borrow-tens" className="relative flex flex-col items-center">
+                {/* Crossed-out original tens */}
+                <motion.span
+                  className="text-2xl text-muted-foreground line-through"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+                  {aTens}
+                </motion.span>
+                {/* New smaller tens */}
+                <motion.span
+                  className="text-2xl font-extrabold text-orange-500 leading-none"
+                  initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                  {borrowedTensDisplay}
+                </motion.span>
+              </motion.span>
+            ) : (
+              <motion.span key="normal-tens">
+                {aTens > 0 ? aTens : ""}
+                {highlightTens && <DrawCircle color="hsl(271,81%,56%)" delay={0.05} />}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
-        <div className={`w-10 h-14 flex items-center justify-center text-4xl font-extrabold text-foreground relative ${highlightOnes ? "text-primary" : ""}`}>
-          {aOnes}
-          {highlightOnes && step === 1 && <DrawCircle color="hsl(271,81%,56%)" delay={0.1} />}
+        {/* Ones digit — shows +10 bubble when borrowing */}
+        <div className={`w-10 h-14 flex items-center justify-center text-4xl font-extrabold relative ${highlightOnes ? "text-primary" : "text-foreground"}`}>
+          <AnimatePresence mode="wait">
+            {showBorrow ? (
+              <motion.span key="borrow-ones" className="relative flex flex-col items-center">
+                {/* Crossed-out original ones */}
+                <motion.span
+                  className="text-2xl text-muted-foreground line-through"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+                  {aOnes}
+                </motion.span>
+                {/* New bigger ones with +10 bubble */}
+                <motion.span
+                  className="text-2xl font-extrabold text-green-600 leading-none relative"
+                  initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+                  {borrowedOnesDisplay}
+                  <motion.span
+                    className="absolute -top-3 -right-6 text-[9px] font-bold bg-green-500 text-white px-1 py-0.5 rounded-full"
+                    initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.9, type: "spring" }}>
+                    +10
+                  </motion.span>
+                </motion.span>
+              </motion.span>
+            ) : (
+              <motion.span key="normal-ones">
+                {aOnes}
+                {highlightOnes && step === 1 && <DrawCircle color="hsl(271,81%,56%)" delay={0.1} />}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
       </div>
       {/* Row B */}
@@ -285,15 +342,19 @@ const STEP_LABELS_ADD = [
 const STEP_LABELS_SUB = [
   "",
   "Ones column first! 👇 Look at the right side",
-  "{aOnes} is smaller than {bOnes} — time to borrow! 🤝",
-  "Borrow 1 from tens: {aOnes} + 10 − {bOnes} = {onesDigit} ✏️",
+  "The top number is too small — let's borrow from next door! 🏠",
+  "Now we can subtract! {borrowedOnes} − {bOnes} = {onesDigit} ✏️",
   "Tens column now — left side 👈",
-  "After borrowing: {aTens} − 1 − {bTens} = {tensDigit} ✏️",
+  "{borrowedTens} − {bTens} = {tensDigit} ✏️",
   "🎉 There's the answer — {result}!",
 ];
 
 function buildStepLabel(step: number, parsed: ParsedMath): string {
   const { aOnes, bOnes, aTens, bTens, carry, onesSum, tensSum, onesDigit, tensDigit, result } = parsed;
+  // For subtraction borrowing: borrowed ones = aOnes + 10, borrowed tens = aTens - 1
+  const borrowedOnes = aOnes + 10;
+  const borrowedTens = aTens - carry; // carry = 1 if borrow happened
+
   const templates = parsed.op === "+" ? STEP_LABELS_ADD : STEP_LABELS_SUB;
   const raw = typeof templates[step] === "function"
     ? (templates[step] as (c: number) => string)(carry)
@@ -303,8 +364,11 @@ function buildStepLabel(step: number, parsed: ParsedMath): string {
     .replace("{onesA}", String(aOnes)).replace("{onesB}", String(bOnes))
     .replace("{onesSum}", String(onesSum)).replace("{onesDigit}", String(onesDigit))
     .replace("{tensA}", String(aTens)).replace("{tensB}", String(bTens))
+    .replace("{aTens}", String(aTens)).replace("{bTens}", String(bTens))
     .replace("{tensSum}", String(tensSum)).replace("{tensDigit}", String(tensDigit))
     .replace("{aOnes}", String(aOnes)).replace("{bOnes}", String(bOnes))
+    .replace("{borrowedOnes}", String(borrowedOnes))
+    .replace("{borrowedTens}", String(borrowedTens))
     .replace("{result}", String(result));
 }
 
@@ -716,17 +780,35 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
                 {/* Label */}
                 <p className="text-sm font-bold text-foreground leading-snug">{stepLabel}</p>
 
-                {/* Calculation callouts */}
-                {currentStep === 2 && (
+                {/* Calculation callouts — differ by operation */}
+                {currentStep === 2 && parsed.op === "+" && (
                   <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.5 }}
                     className="mt-2 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 rounded-lg px-3 py-1.5 text-center">
                     <span className="text-lg font-extrabold font-mono text-yellow-800 dark:text-yellow-200">
-                      {parsed.aOnes} {parsed.op} {parsed.bOnes} = {parsed.onesSum}
+                      {parsed.aOnes} + {parsed.bOnes} = {parsed.onesSum}
                     </span>
                   </motion.div>
                 )}
-                {currentStep === 3 && parsed.carry > 0 && (
+                {currentStep === 2 && parsed.op === "-" && parsed.carry > 0 && (
+                  <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-2 bg-orange-100 dark:bg-orange-900/30 border border-orange-300 rounded-lg px-3 py-2 text-center space-y-1">
+                    <p className="text-xs font-bold text-orange-700 dark:text-orange-200">
+                      {parsed.aOnes} is too small to take away {parsed.bOnes}
+                    </p>
+                    <div className="flex items-center justify-center gap-2 text-sm font-bold">
+                      <span className="text-muted-foreground line-through">{parsed.aTens}</span>
+                      <span className="text-orange-500">→ {parsed.aTens - 1}</span>
+                      <span className="text-xs text-muted-foreground">tens</span>
+                      <span className="mx-1 text-muted-foreground">·</span>
+                      <span className="text-muted-foreground line-through">{parsed.aOnes}</span>
+                      <span className="text-green-600">→ {parsed.aOnes + 10}</span>
+                      <span className="text-xs font-bold bg-green-500 text-white px-1 rounded-full">+10</span>
+                    </div>
+                  </motion.div>
+                )}
+                {currentStep === 3 && parsed.op === "+" && parsed.carry > 0 && (
                   <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.5 }}
                     className="mt-2 bg-orange-100 dark:bg-orange-900/30 border border-orange-300 rounded-lg px-3 py-1.5 text-center">
@@ -736,12 +818,24 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
                     </span>
                   </motion.div>
                 )}
+                {currentStep === 3 && parsed.op === "-" && parsed.carry > 0 && (
+                  <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-2 bg-green-100 dark:bg-green-900/30 border border-green-300 rounded-lg px-3 py-1.5 text-center">
+                    <span className="text-lg font-extrabold font-mono text-green-700 dark:text-green-200">
+                      {parsed.aOnes + 10} − {parsed.bOnes} = {parsed.onesDigit} ✏️
+                    </span>
+                  </motion.div>
+                )}
                 {currentStep === 5 && (
                   <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.5 }}
                     className="mt-2 bg-blue-100 dark:bg-blue-900/30 border border-blue-300 rounded-lg px-3 py-1.5 text-center">
                     <span className="text-lg font-extrabold font-mono text-blue-800 dark:text-blue-200">
-                      {parsed.aTens} {parsed.op === "+" ? "+" : "−"} {parsed.bTens}{parsed.carry > 0 ? " + 1" : ""} = {parsed.tensSum}
+                      {parsed.op === "+" 
+                        ? `${parsed.aTens} + ${parsed.bTens}${parsed.carry > 0 ? " + 1" : ""} = ${parsed.tensSum}`
+                        : `${parsed.aTens - parsed.carry} − ${parsed.bTens} = ${parsed.tensDigit}`
+                      }
                     </span>
                   </motion.div>
                 )}
