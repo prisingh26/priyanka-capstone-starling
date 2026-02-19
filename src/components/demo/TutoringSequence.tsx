@@ -145,7 +145,6 @@ const TutoringSequence: React.FC<TutoringSequenceProps> = ({ problems, incorrect
           </Button>
 
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">No credit card required · Cancel anytime</p>
             <button
               onClick={onExit}
               className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors underline underline-offset-2"
