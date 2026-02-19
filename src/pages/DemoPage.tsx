@@ -416,27 +416,18 @@ const DemoPage: React.FC = () => {
                   <div className="grid grid-cols-5 gap-3 w-full">
                     {answerOptions.map((opt) => {
                       const isWrong = opt.label === "B";
-                      const isCorrect = opt.label === "A";
                       return (
                         <div key={opt.label} className="relative">
-                          {/* Badge */}
                           {isWrong && (
                             <span className="absolute -top-2 -right-2 z-10 bg-destructive text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">✗</span>
                           )}
-                          {isCorrect && (
-                            <span className="absolute -top-2 -right-2 z-10 bg-success text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">✓</span>
-                          )}
                           <div
                             className={`rounded-xl p-3 text-center border-2 transition-all ${
-                              isWrong
-                                ? "border-destructive bg-destructive/10"
-                                : isCorrect
-                                ? "border-success bg-success/10"
-                                : "border-border bg-muted/30"
+                              isWrong ? "border-destructive bg-destructive/10" : "border-border bg-muted/30"
                             }`}
                           >
                             <p className="text-xs text-muted-foreground font-medium">({opt.label})</p>
-                            <p className={`text-xl font-bold ${isWrong ? "text-destructive" : isCorrect ? "text-success" : "text-foreground"}`}>
+                            <p className={`text-xl font-bold ${isWrong ? "text-destructive" : "text-foreground"}`}>
                               {opt.value}
                             </p>
                           </div>
