@@ -774,14 +774,8 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
           })}
         </div>
 
-        {/* Bug 2 fix: Next always shows when not done; forward button appears after last step */}
-        {!isDone ? (
-          <Button size="sm" onClick={handleNext}
-            className="rounded-full text-xs px-4 text-white"
-            style={{ background: "linear-gradient(135deg,#9333ea,#f97316)" }}>
-            Next →
-          </Button>
-        ) : showNextButton ? (
+        {/* Forward button: manual Next during auto-play, then completion button after done */}
+        {showNextButton ? (
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -793,8 +787,11 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
             </Button>
           </motion.div>
         ) : (
-          // Placeholder — button is about to appear, keep layout stable
-          <div className="w-24" />
+          <Button size="sm" onClick={handleNext}
+            className="rounded-full text-xs px-4 text-white"
+            style={{ background: "linear-gradient(135deg,#9333ea,#f97316)" }}>
+            Next →
+          </Button>
         )}
       </div>
     </motion.div>
