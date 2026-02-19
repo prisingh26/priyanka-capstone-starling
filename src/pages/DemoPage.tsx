@@ -1008,7 +1008,6 @@ const DemoPage: React.FC = () => {
                           <motion.div animate={{ y: [0, -8, 0, -5, 0] }} transition={{ duration: 0.8, delay: 0.3 }} className="flex justify-center">
                             <StarlingMascot size="md" animate={false} expression="excited" />
                           </motion.div>
-                          <p className="text-lg font-bold text-foreground">Perfect score! Now imagine this for every homework 💛</p>
                           <Button
                             size="lg"
                             onClick={() => navigate("/signup")}
@@ -1017,7 +1016,6 @@ const DemoPage: React.FC = () => {
                           >
                             Sign Up Free — It's Magic ✨
                           </Button>
-                          <p className="text-xs text-muted-foreground">No credit card required · Cancel anytime</p>
                         </motion.div>
                       )}
                     </>
