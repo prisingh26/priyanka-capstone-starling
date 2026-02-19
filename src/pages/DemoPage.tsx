@@ -9,6 +9,7 @@ import StarlingMascot from "@/components/StarlingMascot";
 import StarlingLogo from "@/components/StarlingLogo";
 import ShootingStarIcon from "@/components/ShootingStarIcon";
 import TutoringSequence from "@/components/demo/TutoringSequence";
+import DemoEndScreen from "@/components/demo/DemoEndScreen";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
 
@@ -742,13 +743,11 @@ const DemoPage: React.FC = () => {
                 )}
 
                 {socraticStep >= 6 && (
-                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }} className="bg-muted/50 border border-border rounded-xl p-5 text-center space-y-3">
-                    <p className="text-foreground font-semibold">📸 Want Starling to help your child like this?</p>
-                    <p className="text-sm text-muted-foreground">Upload a homework photo and see the magic</p>
-                    <Button size="lg" onClick={() => navigate("/signup")} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-5 text-lg gap-2">
-                      <Camera className="w-5 h-5" />
-                      Upload Homework Photo
-                    </Button>
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }}>
+                    <DemoEndScreen
+                      onSignUp={() => navigate("/signup")}
+                      onMaybeLater={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setSocraticStep(1); setUserChoice(null); setRetryAnswer(null); setShowDiagramStep(0); setStep("problem"); }}
+                    />
                   </motion.div>
                 )}
 
@@ -996,26 +995,13 @@ const DemoPage: React.FC = () => {
                         </motion.div>
                       )}
 
-                      {/* ── Perfect score CTA ── */}
+                      {/* ── Perfect score / end CTA ── */}
                       {incorrect === 0 && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.96 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-                          className="rounded-2xl border border-primary/25 p-6 space-y-4 text-center"
-                          style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.07), hsl(var(--secondary)/0.05))" }}
-                        >
-                          <motion.div animate={{ y: [0, -8, 0, -5, 0] }} transition={{ duration: 0.8, delay: 0.3 }} className="flex justify-center">
-                            <StarlingMascot size="md" animate={false} expression="excited" />
-                          </motion.div>
-                          <Button
-                            size="lg"
-                            onClick={() => navigate("/signup")}
-                            className="w-full rounded-full py-5 text-base font-bold gap-2 text-white hover:opacity-90"
-                            style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
-                          >
-                            Sign Up Free — It's Magic ✨
-                          </Button>
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+                          <DemoEndScreen
+                            onSignUp={() => navigate("/signup")}
+                            onMaybeLater={() => { setStep("problem"); setUploadedFile(null); setUploadedImageUrl(null); setUploadAnalysis(null); setUploadError(null); if (fileInputRef.current) fileInputRef.current.value = ""; window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                          />
                         </motion.div>
                       )}
                     </>
