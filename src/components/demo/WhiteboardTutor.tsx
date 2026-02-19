@@ -134,14 +134,14 @@ const ColumnArithmetic: React.FC<{ parsed: ParsedMath; step: number }> = ({ pars
   const isSub = parsed.op === "-";
   const needsBorrow = isSub && carry > 0;
 
-  const showCarry = !isSub && carry > 0 && step >= 3;
-  const showBorrow = isSub && needsBorrow && step >= 2;
-  // Hide borrow arrow on final step (step 6) — crossed digits tell the story
+  const showCarry    = !isSub && carry > 0 && step >= 3;
+  const showBorrow   = isSub && needsBorrow && step >= 2;
+  // Arrow only shows while student is learning the borrow step; hide on final reveal
   const showBorrowArrow = showBorrow && step < 6;
-  const showOnesResult = step >= 3;
-  const showTensResult = step >= 5;
-  const highlightOnes = step === 1 || step === 2 || step === 3;
-  const highlightTens = step === 4 || step === 5;
+  const showOnesResult  = step >= 3;
+  const showTensResult  = step >= 5;
+  const highlightOnes   = step === 1 || step === 2 || step === 3;
+  const highlightTens   = step === 4 || step === 5;
   const highlightResult = step >= 6;
 
   const borrowedOnesDisplay = aOnes + 10;
@@ -150,41 +150,58 @@ const ColumnArithmetic: React.FC<{ parsed: ParsedMath; step: number }> = ({ pars
   return (
     <div className="relative flex flex-col items-end font-mono select-none" style={{ minWidth: 140 }}>
 
-      {/* ── Annotation row (borrow marks or carry) ── */}
-      <div className="flex gap-0 items-end justify-end" style={{ minWidth: 140, minHeight: 40 }}>
-        {/* spacer for operator column */}
+      {/* ════════════════════════════════════════════════════
+          ROW 1 — Borrowing annotation (ABOVE original digits)
+          Teacher writes the new values here in small purple.
+          Layout mirrors the digit columns below exactly.
+          ════════════════════════════════════════════════════ */}
+      <div className="flex gap-0 items-end" style={{ minWidth: 140, minHeight: 32 }}>
+        {/* operator-column spacer */}
         <div className="w-10" />
 
-        {/* Tens annotation */}
-        <div className="w-10 flex flex-col items-center justify-end relative" style={{ minHeight: 40 }}>
-          {/* Borrow arrow: only when borrowing and not on final step */}
+        {/* Tens annotation: small purple replacement digit */}
+        <div className="w-10 h-8 flex items-end justify-center relative">
+          {/* Borrow arrow spans tens → ones; anchored here */}
           {showBorrowArrow && (
-            <div className="absolute pointer-events-none" style={{ bottom: 0, left: 0, width: 80, height: 40, overflow: 'visible' }}>
+            <div className="absolute pointer-events-none" style={{ bottom: 0, left: 0, width: 80, height: 36, overflow: 'visible' }}>
               <BorrowArrow visible={showBorrowArrow} />
             </div>
           )}
-          {/* Carry digit for addition */}
+          {/* Carry digit (addition) */}
           {showCarry && (
             <motion.span
-              className="text-sm font-bold text-orange-500 relative"
+              className="text-sm font-bold text-orange-500 relative pb-0.5"
               initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 220, damping: 22, delay: 0.4 }}>
               {carry}
               <CarryArrow visible={showCarry} />
             </motion.span>
           )}
-        </div>
-
-        {/* Ones annotation: superscript +10 */}
-        <div className="w-10 flex flex-col items-center justify-end" style={{ minHeight: 40 }}>
+          {/* Borrow: new reduced tens digit written above original */}
           <AnimatePresence>
             {showBorrow && (
               <motion.span
-                key="plus10"
-                className="text-[11px] font-bold text-primary leading-none mb-1"
+                key="annot-tens"
+                className="text-sm font-bold text-primary leading-none pb-0.5"
                 initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                transition={{ delay: 1.0, duration: 0.3 }}>
+                transition={{ delay: 0.5, duration: 0.25 }}>
+                {borrowedTensDisplay}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Ones annotation: small purple +10 written above original */}
+        <div className="w-10 h-8 flex items-end justify-center">
+          <AnimatePresence>
+            {showBorrow && (
+              <motion.span
+                key="annot-ones"
+                className="text-sm font-bold text-primary leading-none pb-0.5"
+                initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 1.0, duration: 0.25 }}>
                 +10
               </motion.span>
             )}
@@ -192,71 +209,64 @@ const ColumnArithmetic: React.FC<{ parsed: ParsedMath; step: number }> = ({ pars
         </div>
       </div>
 
-      {/* ── Row A: top number with borrow crossouts ── */}
+      {/* ════════════════════════════════════════════════════
+          ROW 2 — Top number (original digits, crossed out when borrowing)
+          ════════════════════════════════════════════════════ */}
       <div className="flex gap-0" style={{ minWidth: 140 }}>
-        {/* operator spacer */}
         <div className="w-10" />
 
         {/* Tens digit */}
         <div className={`w-10 h-14 flex items-center justify-center text-4xl font-extrabold relative
           ${highlightTens && !showBorrow ? "text-primary" : "text-foreground"}`}>
-          <AnimatePresence mode="wait">
-            {showBorrow ? (
-              <motion.span key="borrow-tens" className="flex flex-col items-center justify-center gap-0.5 leading-none">
-                {/* Original digit: light grey, thin strikethrough — not bold */}
-                <motion.span
-                  className="text-lg font-normal leading-none"
-                  style={{ color: "hsl(var(--muted-foreground))", textDecoration: "line-through", textDecorationThickness: "1.5px" }}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-                  {aTens}
-                </motion.span>
-                {/* Reduced digit: purple, small, below */}
-                <motion.span
-                  className="text-base font-bold text-primary leading-none"
-                  initial={{ opacity: 0, y: -3 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
-                  {borrowedTensDisplay}
-                </motion.span>
-              </motion.span>
-            ) : (
-              <motion.span key="normal-tens">
-                {aTens > 0 ? aTens : ""}
-                {highlightTens && <DrawCircle color="hsl(271,81%,56%)" delay={0.05} />}
-              </motion.span>
-            )}
-          </AnimatePresence>
+          {showBorrow ? (
+            /* Crossed-out original: light grey, thin strikethrough, normal weight */
+            <motion.span
+              className="text-4xl font-extrabold leading-none"
+              style={{
+                color: "hsl(var(--muted-foreground))",
+                textDecoration: "line-through",
+                textDecorationThickness: "2px",
+                textDecorationColor: "hsl(var(--muted-foreground))",
+              }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+              {aTens}
+            </motion.span>
+          ) : (
+            <motion.span key="normal-tens">
+              {aTens > 0 ? aTens : ""}
+              {highlightTens && <DrawCircle color="hsl(271,81%,56%)" delay={0.05} />}
+            </motion.span>
+          )}
         </div>
 
         {/* Ones digit */}
         <div className={`w-10 h-14 flex items-center justify-center text-4xl font-extrabold relative
           ${highlightOnes && !showBorrow ? "text-primary" : "text-foreground"}`}>
-          <AnimatePresence mode="wait">
-            {showBorrow ? (
-              <motion.span key="borrow-ones" className="flex flex-col items-center justify-center gap-0.5 leading-none">
-                {/* Original digit: light grey, thin strikethrough */}
-                <motion.span
-                  className="text-lg font-normal leading-none"
-                  style={{ color: "hsl(var(--muted-foreground))", textDecoration: "line-through", textDecorationThickness: "1.5px" }}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-                  {aOnes}
-                </motion.span>
-                {/* Updated ones value: purple, small, below */}
-                <motion.span
-                  className="text-base font-bold text-primary leading-none"
-                  initial={{ opacity: 0, y: -3 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}>
-                  {borrowedOnesDisplay}
-                </motion.span>
-              </motion.span>
-            ) : (
-              <motion.span key="normal-ones">
-                {aOnes}
-                {highlightOnes && step === 1 && <DrawCircle color="hsl(271,81%,56%)" delay={0.1} />}
-              </motion.span>
-            )}
-          </AnimatePresence>
+          {showBorrow ? (
+            /* Crossed-out original */
+            <motion.span
+              className="text-4xl font-extrabold leading-none"
+              style={{
+                color: "hsl(var(--muted-foreground))",
+                textDecoration: "line-through",
+                textDecorationThickness: "2px",
+                textDecorationColor: "hsl(var(--muted-foreground))",
+              }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+              {aOnes}
+            </motion.span>
+          ) : (
+            <motion.span key="normal-ones">
+              {aOnes}
+              {highlightOnes && step === 1 && <DrawCircle color="hsl(271,81%,56%)" delay={0.1} />}
+            </motion.span>
+          )}
         </div>
       </div>
 
-      {/* ── Row B: bottom number ── */}
+      {/* ════════════════════════════════════════════════════
+          ROW 3 — Bottom number (subtraction row)
+          ════════════════════════════════════════════════════ */}
       <div className="flex gap-0 items-center" style={{ minWidth: 140 }}>
         <div className="w-10 h-14 flex items-center justify-end pr-1 text-3xl font-extrabold text-muted-foreground">
           {parsed.op}
@@ -271,10 +281,14 @@ const ColumnArithmetic: React.FC<{ parsed: ParsedMath; step: number }> = ({ pars
         </div>
       </div>
 
-      {/* ── Divider with generous breathing room ── */}
-      <div className="w-full rounded" style={{ minWidth: 140, height: 2, background: "hsl(var(--foreground)/0.35)", marginTop: 10, marginBottom: 10 }} />
+      {/* ════════════════════════════════════════════════════
+          Divider — generous breathing room above and below
+          ════════════════════════════════════════════════════ */}
+      <div className="w-full rounded" style={{ minWidth: 140, height: 2, background: "hsl(var(--foreground)/0.35)", marginTop: 12, marginBottom: 12 }} />
 
-      {/* ── Result row ── */}
+      {/* ════════════════════════════════════════════════════
+          ROW 4 — Answer (big green digits)
+          ════════════════════════════════════════════════════ */}
       <div className="flex gap-0" style={{ minWidth: 140 }}>
         <div className="w-10" />
         <div className={`w-10 h-16 flex items-center justify-center text-5xl font-extrabold relative ${showTensResult ? "text-green-600" : "text-transparent"}`}>
@@ -300,7 +314,7 @@ const ColumnArithmetic: React.FC<{ parsed: ParsedMath; step: number }> = ({ pars
         </div>
       </div>
 
-      {/* Big checkmark on last step */}
+      {/* Checkmark on final step */}
       <AnimatePresence>
         {step >= 6 && (
           <motion.div className="absolute -right-14 bottom-2 text-green-500 text-3xl"
