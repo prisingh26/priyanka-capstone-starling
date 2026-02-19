@@ -417,24 +417,49 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
           </AnimatePresence>
         )}
 
-        {/* Column subtraction — shown from step 3 */}
+        {/* Column subtraction — shown from step 3, using fixed-width columns for perfect alignment */}
         {wordStep >= 3 && (
           <motion.div className="flex justify-center"
             initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
-            <div className="bg-muted/50 rounded-xl px-5 py-3 font-mono inline-block">
-              {/* Right-aligned column arithmetic */}
-              <div className="flex flex-col items-end gap-0">
-                <div className="text-2xl font-extrabold text-foreground pr-1">{start}</div>
-                <div className="flex items-center gap-1 text-2xl font-extrabold text-muted-foreground">
-                  <span>{detectedOp}</span>
-                  <span className="text-foreground">{change}</span>
+            <div className="bg-muted/50 rounded-xl px-5 py-3 font-mono">
+              {/* Fixed-width grid: operator col (w-8) + tens col (w-8) + ones col (w-8) */}
+              <div className="flex flex-col gap-0">
+                {/* Top number: blank + tens + ones */}
+                <div className="flex">
+                  <div className="w-8" />
+                  <div className="w-8 h-12 flex items-center justify-center text-3xl font-extrabold text-foreground">
+                    {Math.floor(start / 10) % 10 || ""}
+                  </div>
+                  <div className="w-8 h-12 flex items-center justify-center text-3xl font-extrabold text-foreground">
+                    {start % 10}
+                  </div>
                 </div>
-                <div className="h-px bg-foreground/30 w-full my-1" />
+                {/* Bottom number: operator + tens + ones */}
+                <div className="flex">
+                  <div className="w-8 h-12 flex items-center justify-center text-2xl font-extrabold text-muted-foreground">
+                    {detectedOp}
+                  </div>
+                  <div className="w-8 h-12 flex items-center justify-center text-3xl font-extrabold text-foreground">
+                    {Math.floor(change / 10) % 10 || ""}
+                  </div>
+                  <div className="w-8 h-12 flex items-center justify-center text-3xl font-extrabold text-foreground">
+                    {change % 10}
+                  </div>
+                </div>
+                {/* Divider */}
+                <div className="h-0.5 bg-foreground/40 rounded mx-1 my-0.5" />
+                {/* Answer row */}
                 {wordStep >= 4 && (
-                  <motion.div className="text-3xl font-extrabold text-green-600 pr-1"
-                    initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, delay: 0.2 }}>
-                    {correctNum} ✓
+                  <motion.div className="flex"
+                    initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 280, damping: 22, delay: 0.2 }}>
+                    <div className="w-8" />
+                    <div className="w-8 h-12 flex items-center justify-center text-3xl font-extrabold text-green-600">
+                      {Math.floor(correctNum / 10) % 10 || ""}
+                    </div>
+                    <div className="w-8 h-12 flex items-center justify-center text-3xl font-extrabold text-green-600">
+                      {correctNum % 10}
+                    </div>
                   </motion.div>
                 )}
               </div>
@@ -465,27 +490,46 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
 
       {/* Nav */}
       <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-border bg-muted/20">
+        {/* Progress dots — last dot turns green when isDone */}
         <div className="flex gap-1">
           {Array.from({ length: WORD_STEPS }).map((_, i) => {
             const n = i + 1;
-            const isActive = n === wordStep;
-            const isDoneStep = n < wordStep || isDone;
+            const isCompleted = n < wordStep || (isDone && n === WORD_STEPS);
+            const isActive = n === wordStep && !isDone;
             return (
               <div key={i} className={`text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border transition-all ${
-                isActive ? "bg-primary text-primary-foreground border-primary" :
-                isDoneStep ? "bg-green-500 text-white border-green-500" :
-                "bg-transparent text-muted-foreground border-border"
+                isCompleted ? "bg-green-500 text-white border-green-500" :
+                isActive    ? "bg-primary text-primary-foreground border-primary" :
+                              "bg-transparent text-muted-foreground border-border"
               }`}>
-                {isDoneStep && !isActive ? "✓" : n}
+                {isCompleted ? "✓" : n}
               </div>
             );
           })}
         </div>
-        <Button size="sm" onClick={onComplete}
-          className={`rounded-full text-xs px-4 text-white transition-all ${isDone ? "scale-105" : ""}`}
-          style={{ background: stepIndex >= totalSteps ? "linear-gradient(135deg,#22c55e,#16a34a)" : isDone ? "linear-gradient(135deg,#22c55e,#16a34a)" : "linear-gradient(135deg,#9333ea,#f97316)" }}>
-          {stepIndex >= totalSteps ? "Done ✓" : isDone ? "Next one →" : "Next →"}
-        </Button>
+
+        {/* Button: hidden until isDone, then fades in — "All done! 🎉" on last problem */}
+        <AnimatePresence>
+          {isDone && (
+            <motion.div
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22, delay: 0.3 }}>
+              <Button size="sm" onClick={onComplete}
+                className="rounded-full text-xs px-4 text-white font-bold scale-105"
+                style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
+                {stepIndex >= totalSteps ? "All done! 🎉" : "Next one →"}
+              </Button>
+            </motion.div>
+          )}
+          {!isDone && (
+            <Button size="sm" onClick={onComplete}
+              className="rounded-full text-xs px-4 text-white"
+              style={{ background: "linear-gradient(135deg,#9333ea,#f97316)" }}>
+              Next →
+            </Button>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
