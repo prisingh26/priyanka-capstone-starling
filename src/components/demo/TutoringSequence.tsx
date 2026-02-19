@@ -131,7 +131,7 @@ const TutoringSequence: React.FC<TutoringSequenceProps> = ({ problems, incorrect
 
           <div className="space-y-2">
             <p className="text-xl font-bold text-foreground leading-snug">
-              🎉 That's how I work — every homework, every tricky one, every time!
+              🎉 That's how I help — patiently, step by step, for every child, every time 💛
             </p>
           </div>
 
