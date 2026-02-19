@@ -107,6 +107,14 @@ const DemoPage: React.FC = () => {
   // Socratic demo sub-steps
   const [socraticStep, setSocraticStep] = useState(1);
   const [userChoice, setUserChoice] = useState<string | null>(null);
+
+  // Auto-advance to step 2 when results view opens
+  useEffect(() => {
+    if (step !== "results") return;
+    setSocraticStep(1);
+    const t = setTimeout(() => setSocraticStep(2), 1200);
+    return () => clearTimeout(t);
+  }, [step]);
   const [retryAnswer, setRetryAnswer] = useState<string | null>(null);
   const [showDiagramStep, setShowDiagramStep] = useState(0);
 
@@ -521,11 +529,22 @@ const DemoPage: React.FC = () => {
                       <p className="text-foreground text-base leading-relaxed w-full text-center">
                         If every cat has two friends who are mice, what is the smallest number of mice that can be friends with 3 cats?
                       </p>
-                      {/* Student answer */}
-                      <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 w-full" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                        <span className="text-xl">❌</span>
-                        <p className="text-sm text-muted-foreground">Student answered:</p>
-                        <p className="font-bold text-destructive">(B) 3 — Incorrect</p>
+                      {/* Student answer inline badge on option B */}
+                      <div className="grid grid-cols-5 gap-2 w-full">
+                        {answerOptions.map((opt) => {
+                          const isWrong = opt.label === "B";
+                          return (
+                            <div key={opt.label} className="relative">
+                              {isWrong && (
+                                <span className="absolute -top-2 -right-2 z-10 bg-destructive text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">✗</span>
+                              )}
+                              <div className={`rounded-xl p-2 text-center border-2 transition-all ${isWrong ? "border-destructive bg-destructive/10" : "border-border bg-muted/30"}`}>
+                                <p className="text-xs text-muted-foreground font-medium">({opt.label})</p>
+                                <p className={`text-lg font-bold ${isWrong ? "text-destructive" : "text-foreground"}`}>{opt.value}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </Card>
@@ -551,18 +570,7 @@ const DemoPage: React.FC = () => {
                       </div>
                     </div>
                   </motion.div>
-                ) : (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0 }} className="text-center">
-                    <Button
-                      onClick={() => setSocraticStep(2)}
-                      className="rounded-full px-6 py-5 text-base gap-2 text-white hover:opacity-90 transition-opacity"
-                      style={{ background: "linear-gradient(135deg, #9333ea, #f97316)" }}
-                    >
-                      <StarlingMascot size="sm" animate={false} expression="encouraging" />
-                      What would Starling ask next?
-                    </Button>
-                  </motion.div>
-                )}
+                ) : null}
 
                 {socraticStep >= 3 && socraticStep < 4 && !userChoice && (
                   <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
