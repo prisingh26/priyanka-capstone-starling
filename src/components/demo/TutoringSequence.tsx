@@ -143,9 +143,6 @@ const TutoringSequence: React.FC<TutoringSequenceProps> = ({ problems, incorrect
             <p className="text-xl font-bold text-foreground leading-snug">
               🎉 That's how I work — every homework, every tricky one, every time!
             </p>
-            <p className="text-sm text-muted-foreground">
-              Patient. Visual. Step by step. I'll do this for every homework your child brings me.
-            </p>
           </div>
 
           <Button
