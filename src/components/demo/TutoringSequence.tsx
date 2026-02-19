@@ -129,16 +129,6 @@ const TutoringSequence: React.FC<TutoringSequenceProps> = ({ problems, incorrect
             <StarlingMascot size="lg" animate={false} expression="excited" />
           </motion.div>
 
-          {/* Stars */}
-          <div className="flex justify-center gap-1">
-            {[0, 1, 2, 3, 4].map(i => (
-              <motion.span key={i} className="text-2xl text-yellow-400"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.4 + i * 0.1, type: "spring", stiffness: 300 }}>★</motion.span>
-            ))}
-          </div>
-
           <div className="space-y-2">
             <p className="text-xl font-bold text-foreground leading-snug">
               🎉 That's how I work — every homework, every tricky one, every time!
