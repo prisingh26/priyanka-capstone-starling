@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import StarlingLogo from "@/components/StarlingLogo";
 import StarlingMascot from "@/components/StarlingMascot";
 
@@ -13,7 +12,7 @@ interface Concept {
   name: string;
   difficulty: Difficulty;
   count: number;
-  topic: string; // used to seed practice session
+  topic: string;
 }
 
 interface Grade {
@@ -23,16 +22,29 @@ interface Grade {
   concepts: Concept[];
 }
 
-// ── Catalog data ───────────────────────────────────────────────────────────
+// ── Khan Academy K-5 Common Core aligned catalog ───────────────────────────
 const GRADES: Grade[] = [
   {
     label: "K",
     fullName: "Kindergarten",
     emoji: "🌱",
     concepts: [
-      { icon: "🔢", name: "Counting & Numbers", difficulty: 1, count: 20, topic: "counting to 20 and number recognition" },
-      { icon: "🔷", name: "Shapes", difficulty: 1, count: 15, topic: "identifying circles, squares, and triangles" },
-      { icon: "⚖️", name: "Comparing", difficulty: 1, count: 18, topic: "more/less and bigger/smaller comparisons" },
+      {
+        icon: "🔢", name: "Counting & Place Value", difficulty: 1, count: 24,
+        topic: "counting to 100, number names, and comparing numbers",
+      },
+      {
+        icon: "➕", name: "Addition & Subtraction Intro", difficulty: 1, count: 22,
+        topic: "addition and subtraction within 10 and word problems",
+      },
+      {
+        icon: "🔷", name: "Geometry", difficulty: 1, count: 18,
+        topic: "2D and 3D shapes and positions in space",
+      },
+      {
+        icon: "📏", name: "Measurement & Data", difficulty: 1, count: 16,
+        topic: "comparing lengths, weights, and classifying objects",
+      },
     ],
   },
   {
@@ -40,10 +52,26 @@ const GRADES: Grade[] = [
     fullName: "Grade 1",
     emoji: "🌿",
     concepts: [
-      { icon: "➕", name: "Addition to 20", difficulty: 1, count: 25, topic: "addition with sums up to 20" },
-      { icon: "➖", name: "Subtraction to 20", difficulty: 1, count: 25, topic: "subtraction with numbers up to 20" },
-      { icon: "🏠", name: "Place Value", difficulty: 2, count: 20, topic: "tens and ones place value" },
-      { icon: "📏", name: "Measurement", difficulty: 1, count: 16, topic: "comparing length and weight: longer/shorter, heavier/lighter" },
+      {
+        icon: "➕", name: "Addition & Subtraction", difficulty: 1, count: 30,
+        topic: "addition and subtraction within 20, word problems, and missing number problems",
+      },
+      {
+        icon: "🏠", name: "Place Value", difficulty: 2, count: 24,
+        topic: "tens and ones, comparing 2-digit numbers",
+      },
+      {
+        icon: "📏", name: "Measurement", difficulty: 1, count: 20,
+        topic: "measuring length and telling time to the hour and half hour",
+      },
+      {
+        icon: "🔷", name: "Geometry", difficulty: 1, count: 18,
+        topic: "2D and 3D shapes, equal parts, halves and quarters",
+      },
+      {
+        icon: "📊", name: "Data & Graphs", difficulty: 1, count: 14,
+        topic: "reading tally charts and picture graphs",
+      },
     ],
   },
   {
@@ -51,11 +79,30 @@ const GRADES: Grade[] = [
     fullName: "Grade 2",
     emoji: "🌸",
     concepts: [
-      { icon: "➕", name: "Addition with Carrying", difficulty: 2, count: 30, topic: "2-digit addition with regrouping/carrying" },
-      { icon: "➖", name: "Subtraction with Borrowing", difficulty: 2, count: 30, topic: "2-digit subtraction with regrouping/borrowing" },
-      { icon: "📖", name: "Word Problems", difficulty: 2, count: 24, topic: "addition and subtraction word problems" },
-      { icon: "🕐", name: "Telling Time", difficulty: 1, count: 20, topic: "telling time to the hour and half hour" },
-      { icon: "🪙", name: "Money & Coins", difficulty: 2, count: 18, topic: "identifying coins and their values" },
+      {
+        icon: "➕", name: "Addition & Subtraction", difficulty: 2, count: 35,
+        topic: "addition and subtraction within 100 with carrying, borrowing, and word problems",
+      },
+      {
+        icon: "🏠", name: "Place Value", difficulty: 2, count: 26,
+        topic: "hundreds, tens, and ones; comparing 3-digit numbers",
+      },
+      {
+        icon: "📏", name: "Measurement", difficulty: 2, count: 20,
+        topic: "measuring in inches, feet, and centimeters; estimating lengths",
+      },
+      {
+        icon: "🕐", name: "Time & Money", difficulty: 2, count: 22,
+        topic: "reading clocks to 5 minutes, identifying coins and dollars",
+      },
+      {
+        icon: "🔷", name: "Geometry", difficulty: 1, count: 16,
+        topic: "shapes and partitioning into equal parts",
+      },
+      {
+        icon: "📊", name: "Data & Graphs", difficulty: 1, count: 18,
+        topic: "bar graphs, line plots, and picture graphs",
+      },
     ],
   },
   {
@@ -63,11 +110,42 @@ const GRADES: Grade[] = [
     fullName: "Grade 3",
     emoji: "🌻",
     concepts: [
-      { icon: "✖️", name: "Multiplication", difficulty: 2, count: 35, topic: "times tables 1 through 10" },
-      { icon: "➗", name: "Division", difficulty: 2, count: 30, topic: "basic division facts" },
-      { icon: "½", name: "Fractions", difficulty: 2, count: 22, topic: "understanding ½, ⅓, and ¼" },
-      { icon: "📖", name: "Word Problems", difficulty: 2, count: 20, topic: "multiplication and division word problems" },
-      { icon: "📐", name: "Perimeter & Area", difficulty: 3, count: 18, topic: "calculating perimeter and area of shapes" },
+      {
+        icon: "✖️", name: "Multiplication & Division Intro", difficulty: 2, count: 28,
+        topic: "meaning of multiplication and division, equal groups, and arrays",
+      },
+      {
+        icon: "🧮", name: "Times Tables", difficulty: 2, count: 40,
+        topic: "multiplication tables ×1 through ×10 fluency practice",
+      },
+      {
+        icon: "½", name: "Fractions", difficulty: 2, count: 26,
+        topic: "unit fractions, fractions on a number line, and equivalent fractions",
+      },
+      {
+        icon: "🔢", name: "Place Value & Rounding", difficulty: 2, count: 22,
+        topic: "rounding to the nearest 10 and 100",
+      },
+      {
+        icon: "➕", name: "Addition & Subtraction", difficulty: 2, count: 24,
+        topic: "addition and subtraction within 1000 and multi-step word problems",
+      },
+      {
+        icon: "📐", name: "Measurement", difficulty: 2, count: 20,
+        topic: "area, perimeter, liquid volume, and mass",
+      },
+      {
+        icon: "🕐", name: "Time", difficulty: 1, count: 16,
+        topic: "elapsed time and time intervals",
+      },
+      {
+        icon: "🔷", name: "Geometry", difficulty: 2, count: 16,
+        topic: "quadrilaterals and categories of shapes",
+      },
+      {
+        icon: "📊", name: "Data & Graphs", difficulty: 1, count: 18,
+        topic: "scaled bar graphs, picture graphs, and line plots",
+      },
     ],
   },
   {
@@ -75,12 +153,46 @@ const GRADES: Grade[] = [
     fullName: "Grade 4",
     emoji: "🌟",
     concepts: [
-      { icon: "✖️", name: "Multi-digit Multiplication", difficulty: 2, count: 28, topic: "multi-digit multiplication" },
-      { icon: "➗", name: "Long Division", difficulty: 3, count: 25, topic: "long division with remainders" },
-      { icon: "½", name: "Fractions", difficulty: 2, count: 24, topic: "adding and comparing fractions" },
-      { icon: "🔢", name: "Decimals", difficulty: 2, count: 20, topic: "introduction to decimals" },
-      { icon: "📐", name: "Angles & Geometry", difficulty: 2, count: 18, topic: "measuring and identifying angles and geometric shapes" },
-      { icon: "📖", name: "Word Problems", difficulty: 3, count: 22, topic: "multi-step word problems" },
+      {
+        icon: "🔢", name: "Place Value & Rounding", difficulty: 2, count: 22,
+        topic: "place value to millions and comparing multi-digit numbers",
+      },
+      {
+        icon: "➕", name: "Addition & Subtraction", difficulty: 2, count: 24,
+        topic: "multi-digit addition and subtraction word problems",
+      },
+      {
+        icon: "✖️", name: "Multiplication", difficulty: 2, count: 30,
+        topic: "multi-digit multiplication using partial products and word problems",
+      },
+      {
+        icon: "➗", name: "Division", difficulty: 3, count: 26,
+        topic: "long division with a 1-digit divisor and remainders",
+      },
+      {
+        icon: "🔑", name: "Factors & Multiples", difficulty: 2, count: 20,
+        topic: "prime and composite numbers, factor pairs",
+      },
+      {
+        icon: "½", name: "Fractions", difficulty: 2, count: 28,
+        topic: "equivalent fractions, comparing fractions, adding and subtracting same denominator",
+      },
+      {
+        icon: "🔀", name: "Mixed Numbers & Improper Fractions", difficulty: 3, count: 22,
+        topic: "converting between mixed numbers and improper fractions",
+      },
+      {
+        icon: "🔢", name: "Decimals", difficulty: 2, count: 22,
+        topic: "tenths and hundredths, comparing decimals",
+      },
+      {
+        icon: "📐", name: "Angles & Geometry", difficulty: 2, count: 20,
+        topic: "measuring angles, types of lines, symmetry, and classifying shapes",
+      },
+      {
+        icon: "📏", name: "Measurement & Data", difficulty: 2, count: 18,
+        topic: "unit conversions, area and perimeter, line plots",
+      },
     ],
   },
   {
@@ -88,12 +200,58 @@ const GRADES: Grade[] = [
     fullName: "Grade 5",
     emoji: "🚀",
     concepts: [
-      { icon: "½", name: "Multiply & Divide Fractions", difficulty: 3, count: 26, topic: "multiplying and dividing fractions" },
-      { icon: "🔢", name: "Decimal Operations", difficulty: 2, count: 24, topic: "adding, subtracting, and multiplying decimals" },
-      { icon: "🧮", name: "Order of Operations", difficulty: 3, count: 20, topic: "order of operations (PEMDAS)" },
-      { icon: "📍", name: "Coordinate Planes", difficulty: 3, count: 18, topic: "plotting and reading coordinate planes" },
-      { icon: "📦", name: "Volume", difficulty: 2, count: 16, topic: "calculating volume of rectangular prisms" },
-      { icon: "📖", name: "Complex Word Problems", difficulty: 3, count: 20, topic: "complex multi-step word problems" },
+      {
+        icon: "🔢", name: "Place Value & Decimals", difficulty: 2, count: 24,
+        topic: "decimals to thousandths, multiplying and dividing by powers of 10",
+      },
+      {
+        icon: "➕", name: "Add & Subtract Decimals", difficulty: 2, count: 22,
+        topic: "adding and subtracting decimal numbers",
+      },
+      {
+        icon: "✖️", name: "Multiply Decimals", difficulty: 3, count: 22,
+        topic: "multiplying decimal numbers",
+      },
+      {
+        icon: "➗", name: "Divide Decimals", difficulty: 3, count: 20,
+        topic: "dividing decimal numbers",
+      },
+      {
+        icon: "½", name: "Fractions — Add & Subtract", difficulty: 2, count: 26,
+        topic: "adding and subtracting fractions with unlike denominators and mixed numbers",
+      },
+      {
+        icon: "✖️", name: "Fractions — Multiply", difficulty: 3, count: 24,
+        topic: "multiplying whole numbers, fractions, and mixed numbers",
+      },
+      {
+        icon: "➗", name: "Fractions — Divide", difficulty: 3, count: 20,
+        topic: "dividing unit fractions and whole numbers",
+      },
+      {
+        icon: "🔟", name: "Powers of Ten & Exponents", difficulty: 3, count: 18,
+        topic: "powers of ten and exponent notation",
+      },
+      {
+        icon: "📦", name: "Volume", difficulty: 2, count: 20,
+        topic: "finding volume using unit cubes and rectangular prism formulas",
+      },
+      {
+        icon: "📍", name: "Coordinate Plane", difficulty: 2, count: 18,
+        topic: "plotting points in quadrant 1 of the coordinate plane",
+      },
+      {
+        icon: "🧮", name: "Algebraic Thinking", difficulty: 3, count: 20,
+        topic: "patterns, numerical expressions, and order of operations",
+      },
+      {
+        icon: "🔷", name: "Geometry", difficulty: 2, count: 16,
+        topic: "classifying 2D shapes and the hierarchy of shapes",
+      },
+      {
+        icon: "📏", name: "Measurement & Data", difficulty: 2, count: 18,
+        topic: "unit conversion and line plots with fractions",
+      },
     ],
   },
 ];
@@ -260,7 +418,7 @@ export default function PracticeCatalogPage() {
             Practice with Starling 🐦
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            Pick your grade and what you want to work on today!
+            Pick your grade and what you want to practice today!
           </p>
         </motion.div>
 

@@ -396,7 +396,7 @@ const DemoPage: React.FC = () => {
                   to="/practice"
                   className="text-sm font-semibold text-primary hover:underline inline-flex items-center gap-1"
                 >
-                  Browse Practice Topics →
+                  Browse all practice topics →
                 </Link>
               </div>
             </motion.div>
