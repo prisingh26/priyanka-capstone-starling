@@ -581,14 +581,20 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
   const stepLabel = parsed && currentStep > 0 ? buildStepLabel(Math.min(currentStep, TOTAL_STEPS), parsed) : "";
   const encouragement = getEncouragementMessage(problem.errorType, false);
 
+  // Pressing Next always moves to the next problem immediately
   const handleNext = () => {
     setIsAutoPlaying(false);
-    if (currentStep < TOTAL_STEPS) {
-      setCurrentStep(s => s + 1);
-    } else {
-      onComplete?.();
-    }
+    onComplete?.();
   };
+
+  // After the last problem completes, auto-advance instead of showing a button
+  useEffect(() => {
+    if (!isDone || !showNextButton) return;
+    if (stepIndex >= totalSteps) {
+      const t = setTimeout(() => onComplete?.(), 800);
+      return () => clearTimeout(t);
+    }
+  }, [isDone, showNextButton, stepIndex, totalSteps, onComplete]);
 
   // ── Word problem branch ──
   if (!parsed) {
@@ -774,8 +780,8 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
           })}
         </div>
 
-        {/* Forward button: manual Next during auto-play, then completion button after done */}
-        {showNextButton ? (
+        {/* Forward button: always shows Next → (skips to next problem); after last problem completes, auto-advances so no button needed */}
+        {showNextButton && stepIndex < totalSteps ? (
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -783,15 +789,18 @@ const WhiteboardTutor: React.FC<WhiteboardTutorProps> = ({ problem, stepIndex, t
             <Button size="sm" onClick={onComplete}
               className="rounded-full text-xs px-4 text-white font-bold"
               style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
-              {stepIndex < totalSteps ? "Next one →" : "All done! 🎉"}
+              Next one →
             </Button>
           </motion.div>
-        ) : (
+        ) : !showNextButton ? (
           <Button size="sm" onClick={handleNext}
             className="rounded-full text-xs px-4 text-white"
             style={{ background: "linear-gradient(135deg,#9333ea,#f97316)" }}>
             Next →
           </Button>
+        ) : (
+          // Last problem done — auto-advancing, no button
+          <div className="w-20" />
         )}
       </div>
     </motion.div>
