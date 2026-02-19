@@ -508,9 +508,9 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
           })}
         </div>
 
-        {/* Button: hidden during animation (steps 1–3); slides in after isDone as "Done ✓" or "All done! 🎉" */}
+        {/* Button: appears the moment dot 4 turns green (wordStep >= WORD_STEPS) */}
         <AnimatePresence>
-          {isDone ? (
+          {wordStep >= WORD_STEPS ? (
             <motion.div
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0 }}
@@ -522,7 +522,7 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
               </Button>
             </motion.div>
           ) : (
-            <div className="w-20" /> // placeholder to keep layout stable
+            <div className="w-20" />
           )}
         </AnimatePresence>
       </div>
