@@ -4,7 +4,7 @@ import { ArrowLeft, Camera, FileText, ImageIcon, CheckCircle2, XCircle } from "l
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import StarlingMascot from "@/components/StarlingMascot";
 import StarlingLogo from "@/components/StarlingLogo";
 import ShootingStarIcon from "@/components/ShootingStarIcon";
@@ -388,6 +388,16 @@ const DemoPage: React.FC = () => {
                 <div className="flex-1 h-px bg-border" />
                 <span className="text-xs text-muted-foreground font-medium">or try the sample below</span>
                 <div className="flex-1 h-px bg-border" />
+              </div>
+
+              {/* Browse Practice Topics link */}
+              <div className="text-center pt-1">
+                <Link
+                  to="/practice"
+                  className="text-sm font-semibold text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  Browse Practice Topics →
+                </Link>
               </div>
             </motion.div>
 

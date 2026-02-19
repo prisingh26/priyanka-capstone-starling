@@ -12,6 +12,7 @@
  import ParentOnboardingPage from "./pages/ParentOnboardingPage";
 import NotFound from "./pages/NotFound";
 import DemoPage from "./pages/DemoPage";
+import PracticeCatalogPage from "./pages/PracticeCatalogPage";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const queryClient = new QueryClient();
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/demo" element={<DemoPage />} />
+              <Route path="/practice" element={<PracticeCatalogPage />} />
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/onboarding" element={<ParentOnboardingPage />} />
