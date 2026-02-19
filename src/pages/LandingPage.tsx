@@ -226,6 +226,19 @@ const LandingPage = () => {
                   </Button>
                 </motion.div>
               </motion.div>
+
+              {/* Secondary CTA — practice library */}
+              <motion.div variants={itemVariants} className="mt-4">
+                <button
+                  onClick={() => navigate("/practice")}
+                  className="text-sm text-violet-600/70 hover:text-violet-700 transition-colors inline-flex items-center gap-1.5 group"
+                >
+                  <span>📚</span>
+                  <span className="underline underline-offset-4 decoration-violet-400/50 group-hover:decoration-violet-600 transition-colors">
+                    Or explore our practice library — 200+ problems across K–5
+                  </span>
+                </button>
+              </motion.div>
             </motion.div>
 
             {/* Right: Hero Image */}
