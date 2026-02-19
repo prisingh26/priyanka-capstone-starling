@@ -421,17 +421,23 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
         {wordStep >= 3 && (
           <motion.div className="flex justify-center"
             initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
-            <div className="bg-muted/50 rounded-xl px-5 py-3 font-mono text-center space-y-1">
-              <div className="text-2xl font-extrabold text-foreground">{start}</div>
-              <div className="text-2xl font-extrabold text-muted-foreground">{detectedOp} {change}</div>
-              <div className="h-px bg-foreground/30 w-16 mx-auto" />
-              {wordStep >= 4 && (
-                <motion.div className="text-3xl font-extrabold text-green-600"
-                  initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 300, delay: 0.2 }}>
-                  {correctNum} ✓
-                </motion.div>
-              )}
+            <div className="bg-muted/50 rounded-xl px-5 py-3 font-mono inline-block">
+              {/* Right-aligned column arithmetic */}
+              <div className="flex flex-col items-end gap-0">
+                <div className="text-2xl font-extrabold text-foreground pr-1">{start}</div>
+                <div className="flex items-center gap-1 text-2xl font-extrabold text-muted-foreground">
+                  <span>{detectedOp}</span>
+                  <span className="text-foreground">{change}</span>
+                </div>
+                <div className="h-px bg-foreground/30 w-full my-1" />
+                {wordStep >= 4 && (
+                  <motion.div className="text-3xl font-extrabold text-green-600 pr-1"
+                    initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, delay: 0.2 }}>
+                    {correctNum} ✓
+                  </motion.div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
@@ -477,11 +483,8 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
         </div>
         <Button size="sm" onClick={onComplete}
           className={`rounded-full text-xs px-4 text-white transition-all ${isDone ? "scale-105" : ""}`}
-          style={{ background: isDone ? "linear-gradient(135deg,#22c55e,#16a34a)" : "linear-gradient(135deg,#9333ea,#f97316)" }}>
-          {isDone
-            ? (stepIndex < totalSteps ? "Next →" : "All done! 🎉")
-            : "Next →"
-          }
+          style={{ background: stepIndex >= totalSteps ? "linear-gradient(135deg,#22c55e,#16a34a)" : isDone ? "linear-gradient(135deg,#22c55e,#16a34a)" : "linear-gradient(135deg,#9333ea,#f97316)" }}>
+          {stepIndex >= totalSteps ? "Done ✓" : isDone ? "Next one →" : "Next →"}
         </Button>
       </div>
     </motion.div>
