@@ -490,12 +490,12 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
 
       {/* Nav */}
       <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-border bg-muted/20">
-        {/* Progress dots — last dot turns green when isDone */}
+        {/* Progress dots — last dot turns green immediately when step reaches WORD_STEPS, not waiting for isDone */}
         <div className="flex gap-1">
           {Array.from({ length: WORD_STEPS }).map((_, i) => {
             const n = i + 1;
-            const isCompleted = n < wordStep || (isDone && n === WORD_STEPS);
-            const isActive = n === wordStep && !isDone;
+            const isCompleted = n < wordStep || n === WORD_STEPS && wordStep >= WORD_STEPS;
+            const isActive = n === wordStep && wordStep < WORD_STEPS;
             return (
               <div key={i} className={`text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border transition-all ${
                 isCompleted ? "bg-green-500 text-white border-green-500" :
@@ -508,26 +508,21 @@ const WordProblemTutor: React.FC<WhiteboardTutorProps & { wordStep: number; isDo
           })}
         </div>
 
-        {/* Button: hidden until isDone, then fades in — "All done! 🎉" on last problem */}
+        {/* Button: hidden during animation (steps 1–3); slides in after isDone as "Done ✓" or "All done! 🎉" */}
         <AnimatePresence>
-          {isDone && (
+          {isDone ? (
             <motion.div
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 22, delay: 0.3 }}>
+              transition={{ type: "spring", stiffness: 300, damping: 22 }}>
               <Button size="sm" onClick={onComplete}
-                className="rounded-full text-xs px-4 text-white font-bold scale-105"
+                className="rounded-full text-xs px-4 text-white font-bold"
                 style={{ background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>
-                {stepIndex >= totalSteps ? "All done! 🎉" : "Next one →"}
+                {stepIndex >= totalSteps ? "All done! 🎉" : "Done ✓"}
               </Button>
             </motion.div>
-          )}
-          {!isDone && (
-            <Button size="sm" onClick={onComplete}
-              className="rounded-full text-xs px-4 text-white"
-              style={{ background: "linear-gradient(135deg,#9333ea,#f97316)" }}>
-              Next →
-            </Button>
+          ) : (
+            <div className="w-20" /> // placeholder to keep layout stable
           )}
         </AnimatePresence>
       </div>
