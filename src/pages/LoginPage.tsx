@@ -558,9 +558,11 @@ import {
                       handleCodeInApp: false,
                     });
                     setForgotSent(true);
-                  } catch (err: any) {
+                   } catch (err: any) {
                     if (err.code === "auth/user-not-found") {
                       setForgotError("We couldn't find an account with that email.");
+                    } else if (err?.message?.includes("UNAUTHORIZED_DOMAIN") || err?.code === "auth/unauthorized-continue-uri") {
+                      setForgotError("This domain isn't authorized yet. Please try using Google sign-in, or contact support.");
                     } else {
                       setForgotError("Something went wrong. Please try again.");
                     }
